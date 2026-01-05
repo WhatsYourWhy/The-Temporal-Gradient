@@ -5,15 +5,15 @@ import os
 # Link to your src folder
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
-from chronos_engine import WiltshireClock
+from chronos_engine import ClockRateModulator
 from chronometric_vector import ChronometricVector
 
 def run_twin_experiment():
     print(">>> INITIATING TWIN PARADOX EXPERIMENT...")
     
     # Two identical clocks
-    clock_monk = WiltshireClock(base_dilation_factor=2.0) # Sensitive to complexity
-    clock_clerk = WiltshireClock(base_dilation_factor=2.0)
+    clock_monk = ClockRateModulator(base_dilation_factor=2.0, min_clock_rate=0.05) # Sensitive to complexity
+    clock_clerk = ClockRateModulator(base_dilation_factor=2.0, min_clock_rate=0.05)
     
     # The Environments
     # A: High Complexity (Dense Philosophy)
@@ -21,7 +21,7 @@ def run_twin_experiment():
     # B: Low Complexity (Repetitive Noise)
     input_clerk = "Ping. Pong. Ping. Pong."
     
-    print(f"\n{'REAL SECONDS':<15} | {'MONK AGE':<10} | {'CLERK AGE':<10} | {'DRIFT'}")
+    print(f"\n{'REAL SECONDS':<15} | {'HIGH-LOAD τ':<12} | {'LOW-LOAD τ':<12} | {'DRIFT'}")
     print("=" * 60)
     
     # Run for 10 "Real" Seconds
@@ -41,9 +41,9 @@ def run_twin_experiment():
 
     print("=" * 60)
     print("CONCLUSION:")
-    print(f"The Monk aged {clock_monk.subjective_age:.2f} seconds.")
-    print(f"The Clerk aged {clock_clerk.subjective_age:.2f} seconds.")
-    print("The Monk lived 'less' time because he was burdened by meaning.")
+    print(f"High-load regime accumulated {clock_monk.subjective_age:.2f} internal seconds.")
+    print(f"Low-load regime accumulated {clock_clerk.subjective_age:.2f} internal seconds.")
+    print("Higher salience load slows internal time accumulation relative to the low-load stream.")
 
 if __name__ == "__main__":
     run_twin_experiment()
