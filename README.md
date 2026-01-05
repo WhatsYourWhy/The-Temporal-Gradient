@@ -1,83 +1,76 @@
 # Temporal Gradient: Internal Timebase + Entropic Memory
 
 ## Status
-**Current Version:** 0.1.0  
-**License:** See `LICENSE` (source available for educational review)
+- Current Version: 0.1.0
+- License: See LICENSE (proprietary source-available; educational review only; **execution prohibited without permission**)
 
----
+## Canonical Summary
+Temporal Gradient is a simulation framework that models:
+1) an **internal time accumulator** (\(\tau\)) whose rate is modulated by a **salience load** signal, and  
+2) **memory strength** \(S\) that decays over internal time with optional **reconsolidation** on access.
 
-## What this is (canonical)
-> The Temporal Gradient is a simulation framework that models (1) an internal time coordinate whose rate is modulated by a salience signal, and (2) memory strength that decays over internal time with optional reconsolidation upon access.
-
-Core equations:
-
-\[
-\frac{d\tau}{dt}=\frac{1}{1+\Psi(t)},\quad \Psi(t)=H(x_t)\,V(x_t)
-\]
-
-\[
-\frac{dS}{d\tau}=-\lambda S,\quad S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-) + \Delta_k)
-\]
+It provides engineered control signals and **internal state telemetry** to inspect system behavior in simulation.
 
 ## What this is not (guardrails)
-> This project does not claim to model consciousness, subjective experience, suffering, or life. It provides engineered control signals (clock-rate and memory retention) plus telemetry to inspect their effects in simulation.
+This project does **not** claim to model consciousness, subjective experience, suffering, moral status, or life.  
+Metaphors (if any) belong in appendices only; the core specification is limited to definitions, units/ranges, dynamics, and falsification tests.
 
-Metaphors live in an appendix only; the core specification is limited to definitions, units/ranges, dynamics, and falsification tests.
+## Core Equations
 
----
+### Internal timebase
+\[
+\frac{d\tau}{dt}=\frac{1}{1+\Psi(t)}, \quad \Psi(t)=H(x_t)\cdot V(x_t)
+\]
 
-## Executive summary
-- **What it does:** Simulates an internal time accumulator (τ) whose rate depends on salience, plus memory strength that decays over τ with reconsolidation when accessed.
-- **Why it is useful:** Lets you test how prioritization and memory retention respond to changing input salience without invoking identity or consciousness claims.
-- **How to configure:** Adjust clock-rate modulation (`base_dilation_factor`, `min_clock_rate`) and decay controls (`half_life`, reconsolidation cooldowns/boosts) in the Python modules.
-- **What it does not claim:** No consciousness, no morality, no physical cosmology; it is engineered telemetry and control signals only.
+### Entropic memory decay + reconsolidation
+\[
+\frac{dS}{d\tau}=-\lambda S,\quad
+S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
+\]
 
----
+### Symbols (units / ranges)
+- \(t\): wall time (seconds)
+- \(\tau\): internal time accumulator (internal time unit; dimensionless or “τ-units” by convention; **not age**)
+- \(x_t\): input at wall time \(t\) (e.g., token/text/event identifier)
+- \(H(x_t)\): surprise/novelty score (dimensionless, normalized; recommended \([0,1]\))
+- \(V(x_t)\): imperative/value score (dimensionless, normalized; recommended \([0,1]\))
+- \(\Psi(t)\): salience load (dimensionless; typically \([0,1]\) if \(H,V\in[0,1]\))
+- \(S\): memory strength (dimensionless; bounded \([0, S_{\max}]\))
+- \(\lambda\): decay rate per internal time (units: \(1/\tau\))
+- \(\tau_k\): internal time of the \(k\)-th access event
+- \(\Delta_k\): reconsolidation boost (dimensionless; bounded; typically diminishing with repeated access)
+- \(S_{\max}\): maximum memory strength cap (dimensionless)
 
 ## Architecture
-- **Clock-rate reparameterization (`chronos_engine.py`)** — Modulates the internal time accumulator based on salience load (surprise × value). Exposes a floor so τ always advances.
-- **Entropic memory decay (`entropic_decay.py`)** — Applies exponential decay over internal time and reconsolidates with diminishing returns and cooldowns to prevent runaway reinforcement.
-- **Chronometric vector (`chronometric_vector.py`)** — Standard telemetry packet carrying wall time, internal τ, salience load, and recursion depth for downstream logging.
-- **Simulation examples (`simulation_run.py`, `twin_paradox.py`)** — Show how high-load vs. low-load inputs change internal time accumulation and memory retention.
+- **Clock-rate Reparameterization (`chronos_engine.py`)**  
+  Maps salience load \(\Psi(t)\) to \(d\tau/dt\). Includes an explicit floor so \(\tau\) always advances.
+- **Entropic Memory Decay (`entropic_decay.py`)**  
+  Applies exponential decay over \(\tau\) and reconsolidates on access with diminishing returns and optional cooldown.
+- **Chronometric Vector (`chronometric_vector.py`)**  
+  Telemetry packet carrying wall time, internal \(\tau\), salience load, and recursion depth for downstream logging.
+- **Simulation Examples (`simulation_run.py`, `twin_paradox.py`)**  
+  Demonstrations comparing high-salience vs low-salience regimes and their effects on \(\tau\) and \(S\).
 
----
+## Stability Constraints
+- **Clock floor:** \(d\tau/dt\) clamps to a minimum value so \(\tau\) cannot stall under extreme salience loads.
+- **Reconsolidation diminishing returns:** \(\Delta_k\) decreases as access count rises to avoid runaway reinforcement.
+- **Cooldown (optional):** Reconsolidation boosts can be skipped within a configurable cooldown window.
 
-## Stability constraints
-- **Clock floor:** The clock-rate multiplier clamps at a minimum value so τ cannot stall even under extreme salience loads.
-- **Reconsolidation diminishing returns:** Each reconsolidation boost shrinks as access count rises to avoid obsession-like growth.
-- **Cooldown for boosts (optional):** Reconsolidation boosts are skipped when accesses occur within a configurable cooldown window.
+## Telemetry Schema (key columns)
+- **WALL_T**: wall time (seconds)
+- **TAU**: internal time accumulator \(\tau\)
+- **INPUT**: processed input identifier (text or key)
+- **SALIENCE**: \(\Psi(t)\) (surprise×value)
+- **CLOCK_RATE**: \(d\tau/dt\)
+- **MEMORY_S**: current memory strength \(S\)
+- **DEPTH**: recursion depth (if used)
 
----
+## Review-Only Notice
+Per LICENSE, this repository is provided for educational and academic review.  
+**Running/executing the code is prohibited without explicit written permission from the Author.**
 
-## Usage
-1. Clone and install dependencies (if any are added later).
-2. Run the simulations:
-   - `python simulation_run.py` — Streams inputs, prints internal state telemetry, and audits memory decay.
-   - `python twin_paradox.py` — Compares high-load vs. low-load processing to illustrate clock-rate modulation.
+## Glossary
+Canonical terms and deprecated terms are defined in **GLOSSARY.md**. Public docs, telemetry headers, and filenames should use canonical terms only.
 
-Key telemetry columns:
-- **WALL T:** External time in seconds.
-- **INTERNAL τ:** Internal time accumulator.
-- **INPUT:** The processed text.
-- **PRIORITY:** Surprise×value score from `CodexValuator`.
-- **CLOCK RATE (dτ/dt):** Clock-rate multiplier after reparameterization.
-
----
-
-## Glossary (neutral terms)
-- **Internal State Telemetry** (formerly “Subjective Experience Metrics”): The log of τ, salience load, and memory outcomes.
-- **Internal Time Accumulator (τ)** (formerly “Subjective Time / Agent’s Age”): The integrated internal time coordinate.
-- **Clock-rate Reparameterization** (formerly “Wiltshire Transformation / Time Dilation”): Mapping from salience load to dτ/dt.
-- **Salience Load / Surprise×Value Score** (formerly “Semantic Density”): Multiplicative signal combining novelty and imperative weight.
-- **High-load event** (formerly “Singularity / Trauma”): Input with outsized salience load.
-- **High-load regime / Low-load regime** (formerly “Monk / Clerk”): Processing contexts with high vs. low salience.
-- **Pruned / Decayed below threshold** (formerly “Death of memory”): Memory removed after falling under the retention threshold.
-
-Extended definitions live in `GLOSSARY.md` for quick reference.
-
----
-
-## Safety and license
-Copyright (c) 2026 Justin [WhatsYourWhy].
-
-This repository is provided for educational and academic review. See `LICENSE` for terms.
+## Copyright
+Copyright (c) 2026 Justin Shank.
