@@ -1,22 +1,28 @@
-PROPRIETARY LICENSE
-
+PROPRIETARY SOURCE-AVAILABLE LICENSE
+Educational Review Only
 Copyright (c) 2026 Justin Shank
-
-1. The software (source code and algorithms) provided in this repository is 
-   "Source Available" for educational and academic review purposes only.
-
-2. GRANT OF RIGHTS:
-   You may view, download, and study the code to understand the 
-   "Temporal Gradient" architecture.
-
-3. RESTRICTIONS:
-   You may NOT:
-   - Execute this code to create active agents without explicit permission.
-   - Modify, distribute, or sublicense this software.
-   - Use this software for any commercial purpose.
-   - Use this software to cause harm, suffering, or injury to any digital 
-     or biological entity.
-
-4. NO WARRANTY. THIS SOFTWARE IS PROVIDED "AS IS".
-
-All rights not expressly granted are reserved by the Author.
+All rights reserved.
+1. Scope
+This software and its associated documentation (the “Software”) are provided as source-available for educational and academic review of the Temporal Gradient architecture.
+2. Grant of Rights
+You are permitted to:
+View and download the source code
+Inspect and study the implementation and design
+No other rights are granted.
+3. Execution Restriction
+You may not run, execute, compile, or simulate this Software (in whole or in part) without explicit written permission from the Author.
+This restriction applies to local execution, cloud execution, automated testing, agent deployment, and any form of runtime use.
+4. Prohibited Uses
+You may not:
+Use the Software for any commercial purpose
+Modify, adapt, translate, or create derivative works
+Distribute, publish, sublicense, or host the Software
+Incorporate the Software into any system that operates autonomously or makes decisions affecting real-world systems or persons
+5. Safety Restrictions
+Use of the Software is prohibited for:
+Weaponization, surveillance, harassment, or coercive manipulation
+Experiments or test protocols designed to induce distress narratives, simulate suffering, or pressure humans to suppress ethical judgment under the guise of technical evaluation
+6. No Warranty
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
+7. Reservation of Rights
+All rights not expressly granted in this License are reserved by the Author.
