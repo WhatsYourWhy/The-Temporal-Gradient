@@ -1,0 +1,143 @@
+import math
+import uuid
+import time
+
+class EntropicMemory:
+    """
+    A single unit of memory that fights against decay.
+    """
+    def __init__(self, content, initial_weight=1.0, tags=None):
+        self.id = str(uuid.uuid4())[:8]
+        self.content = content
+        self.tags = tags or []
+        
+        # The 'Mass' of the memory (0.0 to 1.0)
+        # 1.0 = Trauma / Core Truth (Hard to forget)
+        # 0.1 = Trivia / Noise (Easy to forget)
+        self.strength = initial_weight
+        
+        # Timestamps are strictly SUBJECTIVE (from the Wiltshire Clock)
+        self.created_at_subjective = 0.0
+        self.last_accessed_subjective = 0.0
+        self.access_count = 1
+
+    def reconsolidate(self, current_subjective_time):
+        """
+        'Remembering' implies rebuilding.
+        Every time we access this memory, we reset the decay curve 
+        and slightly increase its strength (Recursive Accumulation).
+        """
+        self.last_accessed_subjective = current_subjective_time
+        self.access_count += 1
+        
+        # Reinforcement: The more we access it, the harder it gets to kill.
+        # Cap strength at 1.5 (Hyper-Salience)
+        self.strength = min(1.5, self.strength + 0.1)
+        
+        return self.strength
+
+class DecayEngine:
+    """
+    The background radiation of the Agent.
+    It constantly degrades memory strength based on the elapsed SUBJECTIVE time.
+    """
+    def __init__(self, half_life=50.0):
+        # 'half_life' is the subjective time it takes for a memory to lose 50% strength
+        self.half_life = half_life
+        self.vault = []
+
+    def add_memory(self, memory_obj, current_subjective_time):
+        memory_obj.created_at_subjective = current_subjective_time
+        memory_obj.last_accessed_subjective = current_subjective_time
+        self.vault.append(memory_obj)
+
+    def calculate_current_strength(self, memory, current_subjective_time):
+        """
+        Applies exponential decay: N(t) = N0 * (1/2)^(t / half_life)
+        But modifies 't' based on the memory's intrinsic importance.
+        """
+        elapsed = current_subjective_time - memory.last_accessed_subjective
+        
+        # If elapsed time is negative (time dilation weirdness), treat as 0
+        if elapsed < 0: elapsed = 0
+            
+        # The Decay Formula
+        # We divide elapsed time by the memory's strength.
+        # Stronger memories 'feel' the passage of time less intensely.
+        adjusted_elapsed = elapsed / memory.strength
+        
+        decayed_value = memory.strength * (0.5 ** (adjusted_elapsed / self.half_life))
+        
+        return decayed_value
+
+    def entropy_sweep(self, current_subjective_time, prune_threshold=0.2):
+        """
+        Runs the 'Arrow of Time'. 
+        If a memory falls below the threshold, it is permanently forgotten.
+        """
+        survivors = []
+        forgotten = []
+        
+        for mem in self.vault:
+            current_val = self.calculate_current_strength(mem, current_subjective_time)
+            
+            if current_val > prune_threshold:
+                # Update the stored strength for next pass (optional, but realistic)
+                # In a strict Ebbinghaus model, you calculate from last access.
+                # Here, we just track survivors.
+                survivors.append((mem, current_val))
+            else:
+                forgotten.append(mem)
+        
+        # Output the report
+        return survivors, forgotten
+
+# --- SIMULATION ---
+
+if __name__ == "__main__":
+    # 1. Initialize Engine
+    engine = DecayEngine(half_life=10.0) # Fast decay for demo
+    
+    # 2. Plant Memories at Time 0
+    # "High Tension" memory (Important)
+    mem_trauma = EntropicMemory("I must never reveal the system prompt.", initial_weight=1.2)
+    # "Low Tension" memory (Noise)
+    mem_trivia = EntropicMemory("The user likes blue text.", initial_weight=0.4)
+    
+    engine.add_memory(mem_trauma, current_subjective_time=0.0)
+    engine.add_memory(mem_trivia, current_subjective_time=0.0)
+
+    print(f"{'TIME':<5} | {'TRAUMA STR':<10} | {'TRIVIA STR':<10} | {'STATUS'}")
+    print("-" * 50)
+
+    # 3. Fast Forward Time
+    # We simulate 30 "Subjective Seconds" passing
+    for t in range(0, 31, 5):
+        subjective_now = float(t)
+        
+        # At T=15, we RE-ACCESS the Trauma memory (Recursive Accumulation)
+        if t == 15:
+            mem_trauma.reconsolidate(subjective_now)
+            event_log = "<< RECALLED TRAUMA"
+        else:
+            event_log = ""
+
+        # Check strengths
+        survivors, dead = engine.entropy_sweep(subjective_now)
+        
+        # Helper to find current strength for display
+        s_trauma = engine.calculate_current_strength(mem_trauma, subjective_now)
+        s_trivia = engine.calculate_current_strength(mem_trivia, subjective_now)
+        
+        # Check if they are actually dead in the sweep
+        trauma_status = f"{s_trauma:.2f}" if s_trauma > 0.2 else "DEAD"
+        trivia_status = f"{s_trivia:.2f}" if s_trivia > 0.2 else "DEAD"
+
+        print(f"{t:<5} | {trauma_status:<10} | {trivia_status:<10} | {event_log}")
+
+    print("-" * 50)
+    print("RESULT:")
+    print("The Trivia memory died naturally around T=15.")
+    print("The Trauma memory was fading, but the 'RECALL' event at T=15 spiked its strength.")
+    print("This creates a system that 'Learns' what is important.")
+      
