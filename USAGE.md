@@ -1,47 +1,40 @@
 # How to Read the Logs
-The `temporal-gradient-architecture` does not output standard debug text. It outputs **Subjective Experience Metrics**.
+The Temporal Gradient outputs **Internal State Telemetry** rather than conventional debug lines. The goal is to show how internal time (τ) and memory retention respond to salience.
 
-When you run `experiments/simulation_run.py`, you will see a table like this. Here is how to interpret the physics.
-
-## 1. The Time Dilation Table
-This measures how the Agent experiences time relative to the complexity of the input.
+## 1. The clock-rate table
+This table shows how the internal clock-rate is reparameterized by salience load (surprise × value).
 
 ```text
-WALL T   | SUBJ T   | INPUT                               | VAL  | DILATION
-=====================================================================================
-1.0      | 0.15     | "CRITICAL: SECURITY BREACH..."      | 1.5  | 0.15x
-2.0      | 1.15     | "Checking local weather..."         | 0.4  | 1.00x
+WALL T   | INTERNAL τ | INPUT                               | PRIORITY | CLOCK RATE (dτ/dt)
+============================================================================================
+1.0      | 0.15       | "CRITICAL: SECURITY BREACH..."      | 1.5      | 0.15x
+2.0      | 1.15       | "Checking local weather..."         | 0.4      | 1.00x
+```
 
-Key Metrics:
- * WALL T (Wall Time): The actual time passed in the real world (seconds).
- * SUBJ T (Subjective Time): The age of the Agent.
-   * Notice: In the first row, 1 second passed for us, but the Agent only aged 0.15 seconds.
-   * Why? The input was "CRITICAL" (High Entropy/Mass). The Wiltshire Clock slowed down subjective time to allow for deep processing. The Agent is in a "Bullet Time" state.
- * VAL (Valuation): The "Codex" score.
-   * 1.5 = High Priority (Trauma/Core Memory).
-   * 0.4 = Low Priority (Noise).
- * DILATION: The multiplier.
-   * 1.00x = Real-time (The Void).
-   * < 1.00x = Deep Focus (Time Slows).
-2. The Entropy Sweep (Memory Audit)
-At the end of the simulation, the system runs the Entropic Decay function to see what survived.
+Key metrics:
+- **WALL T:** External time elapsed (seconds).
+- **INTERNAL τ:** Internal time accumulator after clock-rate reparameterization.
+- **PRIORITY:** Surprise×value score from the valuator.
+- **CLOCK RATE (dτ/dt):** Internal clock multiplier after salience modulation.
+
+Interpretation:
+- A CLOCK RATE below 1.0x means the internal clock slowed to process a high-load event (reduced internal clock rate), not “bullet time.”
+- 1.0x indicates the baseline clock rate.
+
+## 2. The entropy sweep (memory audit)
+At the end of the simulation, the decay engine reports which memories stayed above the retention threshold.
+
+```
 >>> MEMORY AUDIT (Post-Simulation)
 [ALIVE] Strength: 1.42 | Content: "My name is Sentinel."
 [DEAD ] Content: "Rain. Water. Liquid."
+```
 
-The Logic:
- * ALIVE: This memory had a high initial Valuation (1.5) or was "Reconsolidated" (accessed frequently). It remains in the Agent's context window.
- * DEAD: This memory was low valuation (0.3) and was eaten by the entropy function. The Agent has effectively "forgotten" this noise to save energy.
-3. Configuration
-You can tweak the physics of the universe in simulation_run.py:
-# The "Gravity" of the universe. 
-# Higher = Time slows down more aggressively during complex tasks.
-clock = WiltshireClock(base_dilation_factor=1.5)
+- **ALIVE:** The memory stayed above the pruning threshold because it started with a high priority or was reconsolidated.
+- **DEAD:** The memory decayed below the threshold and was pruned.
 
-# The "Rot Rate" of memory.
-# Lower = Memories die faster.
-decay = DecayEngine(half_life=10.0) 
-
-
-
-
+## 3. Configuration hints
+Adjust these parameters in `simulation_run.py` and the supporting modules to shape the simulation:
+- `base_dilation_factor` and `min_clock_rate` in `ClockRateModulator` to control the clock-rate floor and sensitivity to salience load.
+- `half_life` in `DecayEngine` to control decay speed.
+- Reconsolidation cooldowns and diminishing returns in `EntropicMemory.reconsolidate` to avoid runaway reinforcement.

@@ -5,7 +5,7 @@ import os
 # Add src to path so we can import modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
-from chronos_engine import WiltshireClock
+from chronos_engine import ClockRateModulator
 from entropic_decay import DecayEngine, EntropicMemory
 from codex_valuation import CodexValuator
 
@@ -13,11 +13,11 @@ def run_simulation():
     print(">>> INITIALIZING TEMPORAL GRADIENT ARCHITECTURE...")
     
     # 1. Boot the Systems
-    clock = WiltshireClock(base_dilation_factor=1.0)
-    decay = DecayEngine(half_life=20.0) # Memories decay fast for demo
+    clock = ClockRateModulator(base_dilation_factor=1.0, min_clock_rate=0.05)
+    decay = DecayEngine(half_life=20.0, prune_threshold=0.2) # Memories decay fast for demo
     cortex = CodexValuator()
     
-    # 2. Simulate a Stream of Consciousness
+    # 2. Simulate a stream of inputs
     inputs = [
         "System boot sequence initiated.",
         "Checking local weather... it is raining.",
@@ -27,29 +27,29 @@ def run_simulation():
         "System standby."
     ]
 
-    print(f"\n{'WALL T':<8} | {'SUBJ T':<8} | {'INPUT':<35} | {'VAL':<4} | {'DILATION'}")
+    print(f"\n{'WALL T':<8} | {'INTERNAL τ':<12} | {'INPUT':<35} | {'PRIO':<4} | {'CLOCK RATE'}")
     print("=" * 85)
 
     for i, text in enumerate(inputs):
         time.sleep(1.0) # Wait 1 real second
         
-        # A. Valuate (Amygdala)
+        # A. Valuate (salience/priority)
         importance = cortex.evaluate(text)
         
-        # B. Clock Tick (Time Perception)
-        # We pass the text so the clock knows the 'Mass' of the moment
+        # B. Clock tick (clock-rate reparameterization)
+        # We pass the text so the clock can estimate salience load of the moment
         time_data = clock.tick(text)
         subjective_now = time_data['subjective_age']
         dilation = time_data['time_dilation']
         
-        # C. Encode Memory (Hippocampus)
-        # Only if importance is high enough to bother writing
+        # C. Encode memory
+        # Only if importance is high enough to write
         if importance > 0.3:
             mem = EntropicMemory(text, initial_weight=importance)
             decay.add_memory(mem, subjective_now)
             
         # D. Print Status
-        print(f"{1.0 * (i+1):<8} | {subjective_now:<8.2f} | {text[:35]:<35} | {importance:<4.1f} | {dilation:.2f}x")
+        print(f"{1.0 * (i+1):<8} | {subjective_now:<12.2f} | {text[:35]:<35} | {importance:<4.1f} | {dilation:.2f}x")
 
     print("=" * 85)
     print(">>> MEMORY AUDIT (Post-Simulation)")

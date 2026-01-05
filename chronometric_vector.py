@@ -10,8 +10,8 @@ class ChronometricVector:
     # 1. The Anchor (Objective Reality)
     wall_clock_time: float
     
-    # 2. The Field State (Subjective Reality)
-    subjective_time: float
+    # 2. The Field State (Internal Time Accumulator)
+    internal_time: float
     
     # 3. The Tension Metrics
     entropy_cost: float       # How much energy did this thought burn?
@@ -24,8 +24,8 @@ class ChronometricVector:
         """
         return json.dumps({
             "t_obj": round(self.wall_clock_time, 2),
-            "t_subj": round(self.subjective_time, 2),
-            "psi": round(self.semantic_density, 3), # Information Density
+            "tau": round(self.internal_time, 2),
+            "psi": round(self.semantic_density, 3), # Salience load
             "r": self.recursion_depth
         })
 
@@ -34,7 +34,7 @@ class ChronometricVector:
         data = json.loads(json_str)
         return ChronometricVector(
             wall_clock_time=data['t_obj'],
-            subjective_time=data['t_subj'],
+            internal_time=data['tau'],
             entropy_cost=0.0, # Usually lost in transmission unless specified
             semantic_density=data['psi'],
             recursion_depth=data['r']

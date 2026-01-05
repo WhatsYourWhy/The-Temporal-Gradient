@@ -21,29 +21,33 @@ class EntropicMemory:
         self.last_accessed_subjective = 0.0
         self.access_count = 1
 
-    def reconsolidate(self, current_subjective_time):
+    def reconsolidate(self, current_subjective_time, cooldown=0.0):
         """
-        'Remembering' implies rebuilding.
-        Every time we access this memory, we reset the decay curve 
-        and slightly increase its strength (Recursive Accumulation).
+        Reconsolidation with diminishing returns and optional cooldown.
+
+        - Diminishing returns: boost shrinks as access_count rises.
+        - Cooldown: if reconsolidated within `cooldown` internal seconds, skip boost.
         """
+        elapsed = current_subjective_time - self.last_accessed_subjective
         self.last_accessed_subjective = current_subjective_time
         self.access_count += 1
-        
-        # Reinforcement: The more we access it, the harder it gets to kill.
-        # Cap strength at 1.5 (Hyper-Salience)
-        self.strength = min(1.5, self.strength + 0.1)
+
+        # Only apply boost if outside the cooldown window
+        if elapsed >= cooldown:
+            boost = max(0.02, 0.1 / self.access_count)
+            # Cap strength to avoid runaway reinforcement
+            self.strength = min(1.5, self.strength + boost)
         
         return self.strength
 
 class DecayEngine:
     """
-    The background radiation of the Agent.
-    It constantly degrades memory strength based on the elapsed SUBJECTIVE time.
+    Entropic decay over internal time with configurable pruning threshold.
     """
-    def __init__(self, half_life=50.0):
+    def __init__(self, half_life=50.0, prune_threshold=0.2):
         # 'half_life' is the subjective time it takes for a memory to lose 50% strength
         self.half_life = half_life
+        self.prune_threshold = prune_threshold
         self.vault = []
 
     def add_memory(self, memory_obj, current_subjective_time):
@@ -70,10 +74,9 @@ class DecayEngine:
         
         return decayed_value
 
-    def entropy_sweep(self, current_subjective_time, prune_threshold=0.2):
+    def entropy_sweep(self, current_subjective_time):
         """
-        Runs the 'Arrow of Time'. 
-        If a memory falls below the threshold, it is permanently forgotten.
+        Applies decay and removes memories below the configured threshold.
         """
         survivors = []
         forgotten = []
@@ -81,7 +84,7 @@ class DecayEngine:
         for mem in self.vault:
             current_val = self.calculate_current_strength(mem, current_subjective_time)
             
-            if current_val > prune_threshold:
+            if current_val > self.prune_threshold:
                 # Update the stored strength for next pass (optional, but realistic)
                 # In a strict Ebbinghaus model, you calculate from last access.
                 # Here, we just track survivors.
