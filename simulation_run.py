@@ -89,7 +89,7 @@ def run_simulation():
         print(f"[ALIVE] Strength: {str_val:.2f} | Content: {mem.content}")
         
     for mem in dead:
-        print(f"[DEAD ] Content: {mem.content}")
+        print(f"[PRUNED ] Content: {mem.content}")
 
 if __name__ == "__main__":
     run_simulation()

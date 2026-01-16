@@ -133,7 +133,7 @@ if __name__ == "__main__":
     print("-" * 50)
 
     # 3. Fast Forward Time
-    # We simulate 30 "Subjective Seconds" passing
+    # We simulate 30 "tau Seconds" passing
     for t in range(0, 31, 5):
         subjective_now = float(t)
         
@@ -152,8 +152,8 @@ if __name__ == "__main__":
         s_trivia = engine.calculate_current_strength(mem_trivia, subjective_now)
         
         # Check if they are actually dead in the sweep
-        trauma_status = f"{s_trauma:.2f}" if s_trauma > 0.2 else "DEAD"
-        trivia_status = f"{s_trivia:.2f}" if s_trivia > 0.2 else "DEAD"
+        trauma_status = f"{s_trauma:.2f}" if s_trauma > 0.2 else "PRUNED"
+        trivia_status = f"{s_trivia:.2f}" if s_trivia > 0.2 else "PRUNED"
 
         print(f"{t:<5} | {trauma_status:<10} | {trivia_status:<10} | {event_log}")
 
