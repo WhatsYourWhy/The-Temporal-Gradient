@@ -22,6 +22,13 @@ class ClockRateModulator:
         # Telemetry history for debugging/visualizing
         self.chronolog = []
 
+    def clock_rate_from_psi(self, psi):
+        """
+        Maps salience load (Ψ) to a clock-rate with a minimum floor.
+        """
+        scaled_psi = max(0.0, psi) * self.base_dilation
+        return max(self.min_clock_rate, 1 / (1 + scaled_psi))
+
     def calculate_information_density(self, input_data):
         """
         Calculates the 'Mass' of the current moment.
@@ -42,43 +49,42 @@ class ClockRateModulator:
         density = mass * entropy
         return density
 
-    def tick(self, input_context=None):
+    def tick(self, psi, input_context=None):
         """
         Advances time. 
-        Instead of adding +1 second, we add +(1 / Density) seconds.
+        ψ is the salience load; we reparameterize the clock-rate from it.
         """
         current_wall_time = time.time()
         wall_delta = current_wall_time - self.last_tick
         
-        # Calculate the "Gravity" of the current context
-        density = self.calculate_information_density(input_context)
-        
         # Clock-rate reparameterization
-        # If Density is 0, internal time matches wall clock (factor 1.0).
-        # As Density increases, the divisor grows, and internal time slows.
-        # Log scaling plus a floor prevent the accumulator from stalling.
-        gravity_well = math.log(density + 1) + 1 
-        dilation_factor = max(self.min_clock_rate, 1 / (gravity_well * self.base_dilation))
+        # If Ψ is 0, internal time matches wall clock (factor 1.0).
+        # As Ψ increases, internal time slows with a minimum floor.
+        clock_rate = self.clock_rate_from_psi(psi)
         
         # Calculate Subjective Delta
-        subjective_delta = wall_delta * dilation_factor
+        subjective_delta = wall_delta * clock_rate
         self.subjective_age += subjective_delta
+
+        density = None
+        if input_context is not None:
+            density = self.calculate_information_density(input_context)
         
         # Log the state
-        self.chronolog.append({
+        telemetry = {
             "wall_delta": round(wall_delta, 4),
-            "context_mass": round(density, 2),
-            "dilation_factor": round(dilation_factor, 4),
-            "subjective_delta": round(subjective_delta, 4)
-        })
+            "tau": round(self.subjective_age, 4),
+            "psi": round(psi, 4),
+            "clock_rate": round(clock_rate, 4),
+            "d_tau": round(subjective_delta, 4)
+        }
+        if density is not None:
+            telemetry["diagnostic_density"] = round(density, 2)
+        self.chronolog.append(telemetry)
         
         self.last_tick = current_wall_time
         
-        return {
-            "subjective_age": self.subjective_age,
-            "time_dilation": dilation_factor,
-            "status": "Time Dilated" if dilation_factor < 0.9 else "Synchronized"
-        }
+        return subjective_delta
 
 # --- SIMULATION ---
 
@@ -104,12 +110,14 @@ if __name__ == "__main__":
         # Simulate processing time (Wall Clock moves forward)
         time.sleep(1.0) 
         
+        psi = min(4.0, len(event) / 20) if event else 0.0
+
         # The Agent "Experiences" the event
-        result = agent_clock.tick(event)
+        d_tau = agent_clock.tick(psi, input_context=event)
         
         label = (event[:15] + '...') if len(event) > 15 else (event if event else "[THE VOID]")
         
-        print(f"{label:<20} | {1.0:<10} | {round(result['subjective_age'], 4):<10} | {round(result['time_dilation'], 2)}x")
+        print(f"{label:<20} | {1.0:<10} | {round(agent_clock.subjective_age, 4):<10} | {round(agent_clock.clock_rate_from_psi(psi), 2)}x")
 
     print("-" * 60)
     print("OBSERVATION:")
