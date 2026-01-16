@@ -35,12 +35,12 @@ def run_twin_experiment():
         # 1. Tick the high-salience regime (Heavy Load)
         high_psi = min(4.0, len(input_high_salience) / 20)
         high_clock_rate = clock_high_salience.clock_rate_from_psi(high_psi)
-        clock_high_salience.tick(high_psi, input_context=input_high_salience)
+        clock_high_salience.tick(high_psi)
         
         # 2. Tick the low-salience regime (Light Load)
         low_psi = min(4.0, len(input_low_salience) / 20)
         low_clock_rate = clock_low_salience.clock_rate_from_psi(low_psi)
-        clock_low_salience.tick(low_psi, input_context=input_low_salience)
+        clock_low_salience.tick(low_psi)
         
         # 3. Calculate the "Temporal Drift" (How far apart are they?)
         drift = clock_low_salience.subjective_age - clock_high_salience.subjective_age

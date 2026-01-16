@@ -12,15 +12,23 @@ class ClockRateModulator:
     3. A floor on the clock-rate prevents τ from stalling.
     """
     
-    def __init__(self, base_dilation_factor=1.0, min_clock_rate=0.05):
+    def __init__(self, base_dilation_factor=1.0, min_clock_rate=0.05, salience_mode="canonical"):
         self.start_wall_time = time.time()
         self.subjective_age = 0.0
         self.base_dilation = base_dilation_factor
         self.min_clock_rate = min_clock_rate
         self.last_tick = self.start_wall_time
+        self.salience_mode = self._validate_salience_mode(salience_mode)
         
         # Telemetry history for debugging/visualizing
         self.chronolog = []
+
+    def _validate_salience_mode(self, salience_mode):
+        valid_modes = {"canonical", "legacy_density"}
+        if salience_mode not in valid_modes:
+            valid = ", ".join(sorted(valid_modes))
+            raise ValueError(f"salience_mode must be one of: {valid}")
+        return salience_mode
 
     def clock_rate_from_psi(self, psi):
         """
@@ -49,11 +57,20 @@ class ClockRateModulator:
         density = mass * entropy
         return density
 
-    def tick(self, psi, input_context=None):
+    def tick(self, psi=None, input_context=None):
         """
         Advances time. 
         ψ is the salience load; we reparameterize the clock-rate from it.
         """
+        density = None
+        if self.salience_mode == "legacy_density" and psi is None:
+            if input_context is None:
+                raise ValueError("legacy_density mode requires psi or input_context to derive psi.")
+            density = self.calculate_information_density(input_context)
+            psi = density
+        if psi is None:
+            raise ValueError("psi is required in canonical mode.")
+
         current_wall_time = time.time()
         wall_delta = current_wall_time - self.last_tick
         
@@ -66,10 +83,6 @@ class ClockRateModulator:
         subjective_delta = wall_delta * clock_rate
         self.subjective_age += subjective_delta
 
-        density = None
-        if input_context is not None:
-            density = self.calculate_information_density(input_context)
-        
         # Log the state
         telemetry = {
             "wall_delta": round(wall_delta, 4),
@@ -113,7 +126,7 @@ if __name__ == "__main__":
         psi = min(4.0, len(event) / 20) if event else 0.0
 
         # The Agent "Experiences" the event
-        d_tau = agent_clock.tick(psi, input_context=event)
+        d_tau = agent_clock.tick(psi)
         
         label = (event[:15] + '...') if len(event) > 15 else (event if event else "[EMPTY INPUT]")
         
