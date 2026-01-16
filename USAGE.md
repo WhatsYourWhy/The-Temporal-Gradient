@@ -38,3 +38,22 @@ Adjust these parameters in `simulation_run.py` and the supporting modules to sha
 - `base_dilation_factor` and `min_clock_rate` in `ClockRateModulator` to control the clock-rate floor and sensitivity to salience load.
 - `half_life` in `DecayEngine` to control decay speed.
 - Reconsolidation cooldowns and diminishing returns in `EntropicMemory.reconsolidate` to avoid runaway reinforcement.
+
+## 4. Salience components (H/V)
+The salience pipeline currently decomposes **H (novelty)** and **V (value)** into two concrete components with constrained inputs and normalized outputs.
+
+### RollingJaccardNovelty (H)
+- **Operational definition:** Compute tokens from the incoming text, compare against a rolling history window, and take `1 - max_jaccard_similarity` across the window. The history stores the most recent **5** token sets (default `window_size=5`).
+- **Tokenization:** Lowercase and split on the regex pattern `[a-z0-9']+` to form a unique token set.
+- **Allowed inputs:** Current message text **plus** the internal rolling history (no external context).
+- **Normalization:** Jaccard similarity is in `[0,1]`, so novelty output is normalized to `[0,1]`.
+- **Swap-friendly note:** This component can be replaced with an embedding-based novelty scorer, provided the output stays normalized to `[0,1]` and only uses the current text plus an internal memory of prior text.
+
+### KeywordImperativeValue (V)
+- **Operational definition:** Count keyword hits in the current text, then compute `min(max_value, base_value + hit_value * hits)`.
+- **Default keyword list:** `["must", "never", "critical", "always", "don't", "stop", "urgent"]`.
+- **Default weights:** `base_value=0.1`, `hit_value=0.2`, `max_value=1.0`.
+- **Allowed inputs:** Current message text **only** (no access to memory or external context).
+- **Normalization:** Value output is clamped to `[0,1]` via `max_value`.
+
+Both components are expected to output normalized scores in `[0,1]`. The combined salience `psi = H × V` inherits the same normalization range.
