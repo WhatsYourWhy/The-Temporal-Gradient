@@ -1,6 +1,6 @@
 import math
 
-from entropic_decay import DecayEngine, EntropicMemory
+from entropic_decay import DecayEngine, EntropicMemory, S_MAX
 
 
 def test_decay_strength_nonincreasing_over_time():
@@ -19,7 +19,7 @@ def test_reconsolidation_capped():
     for step in range(1, 40):
         memory.reconsolidate(current_tau=float(step), cooldown=0.0)
 
-    assert memory.strength <= 1.5
+    assert memory.strength <= S_MAX
 
 
 def test_reconsolidation_cooldown_enforced():
