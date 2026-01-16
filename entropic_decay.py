@@ -2,6 +2,8 @@ import math
 import uuid
 import time
 
+S_MAX = 1.5
+
 def _clamp(value, min_value=0.0, max_value=1.0):
     return max(min_value, min(max_value, value))
 
@@ -55,7 +57,7 @@ class EntropicMemory:
         if elapsed >= cooldown:
             boost = max(0.02, 0.1 / self.access_count)
             # Cap strength to avoid runaway reinforcement
-            self.strength = min(1.5, self.strength + boost)
+            self.strength = min(S_MAX, self.strength + boost)
         
         return self.strength
 

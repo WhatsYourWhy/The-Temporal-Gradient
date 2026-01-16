@@ -55,8 +55,10 @@ def run_simulation():
         
         # C. Encode memory
         # Only if importance is high enough to write
+        memory_strength = 0.0
         if should_encode(sal.psi, threshold=0.3):
             strength = initial_strength_from_psi(sal.psi, S_max=1.2)
+            memory_strength = strength
             mem = EntropicMemory(text, initial_weight=strength)
             decay.add_memory(mem, tau_now)
             
@@ -70,6 +72,7 @@ def run_simulation():
             clock_rate=dilation,
             H=sal.novelty,
             V=sal.value,
+            memory_strength=memory_strength,
         )
         packet = vector.to_packet()
 

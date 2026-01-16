@@ -7,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 's
 
 from chronos_engine import ClockRateModulator
 from chronometric_vector import ChronometricVector
+from salience_pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
 
 def run_twin_experiment():
     print(">>> INITIATING TWIN PARADOX EXPERIMENT...")
@@ -15,6 +16,9 @@ def run_twin_experiment():
     clock_high_salience = ClockRateModulator(base_dilation_factor=2.0, min_clock_rate=0.05)
     clock_low_salience = ClockRateModulator(base_dilation_factor=2.0, min_clock_rate=0.05)
     
+    salience_high = SaliencePipeline(RollingJaccardNovelty(), KeywordImperativeValue())
+    salience_low = SaliencePipeline(RollingJaccardNovelty(), KeywordImperativeValue())
+
     # The Environments
     # A: High Complexity (Dense Philosophy)
     input_high_salience = "Time is the emergent tension gradient created by recursive accumulation." * 5
@@ -33,12 +37,14 @@ def run_twin_experiment():
         time.sleep(1.0) # 1 Wall Second Passes
         
         # 1. Tick the high-salience regime (Heavy Load)
-        high_psi = min(4.0, len(input_high_salience) / 20)
+        high_sal = salience_high.evaluate(input_high_salience)
+        high_psi = high_sal.psi
         high_clock_rate = clock_high_salience.clock_rate_from_psi(high_psi)
         clock_high_salience.tick(high_psi)
         
         # 2. Tick the low-salience regime (Light Load)
-        low_psi = min(4.0, len(input_low_salience) / 20)
+        low_sal = salience_low.evaluate(input_low_salience)
+        low_psi = low_sal.psi
         low_clock_rate = clock_low_salience.clock_rate_from_psi(low_psi)
         clock_low_salience.tick(low_psi)
         
@@ -52,8 +58,9 @@ def run_twin_experiment():
             psi=high_psi,
             recursion_depth=0,
             clock_rate=high_clock_rate,
-            H=0.0,
-            V=0.0,
+            memory_strength=0.0,
+            H=high_sal.novelty,
+            V=high_sal.value,
         ).to_packet()
         low_packet = ChronometricVector(
             wall_clock_time=wall_time,
@@ -61,8 +68,9 @@ def run_twin_experiment():
             psi=low_psi,
             recursion_depth=0,
             clock_rate=low_clock_rate,
-            H=0.0,
-            V=0.0,
+            memory_strength=0.0,
+            H=low_sal.novelty,
+            V=low_sal.value,
         ).to_packet()
         
         print(

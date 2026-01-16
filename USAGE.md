@@ -1,13 +1,31 @@
 # How to Read the Logs
 The Temporal Gradient outputs **Internal State Telemetry** rather than conventional debug lines. The goal is to show how internal time (τ) and memory retention respond to salience.
 
+## 0. Telemetry contract (canonical vs extended)
+The telemetry packet is versioned and split into **required** vs **optional** keys.
+
+**Required keys (canonical schema):**
+- `SCHEMA_VERSION`
+- `WALL_T`
+- `TAU`
+- `SALIENCE`
+- `CLOCK_RATE`
+- `MEMORY_S`
+- `DEPTH`
+
+**Optional keys (extended telemetry):**
+- `H`
+- `V`
+
+CLI tables should print **only canonical columns** by default (`WALL_T`, `TAU`, `SALIENCE`, `CLOCK_RATE`, `MEMORY_S`, `DEPTH`). Extended fields like `H` and `V` are intended for verbose/debug output, not the base schema.
+
 ## 1. The clock-rate table
 This table shows how the internal clock-rate is reparameterized by salience load (surprise × value).
 
 ```text
 WALL_T   | TAU | INPUT                               | SALIENCE | CLOCK_RATE (dτ/dt)
 ============================================================================================
-1.0      | 0.15       | "CRITICAL: SECURITY BREACH..."      | 1.5      | 0.15x
+1.0      | 0.15       | "CRITICAL: SECURITY BREACH..."      | 0.9      | 0.15x
 2.0      | 1.15       | "Checking local weather..."         | 0.4      | 1.00x
 ```
 
