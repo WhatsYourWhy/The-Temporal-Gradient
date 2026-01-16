@@ -37,7 +37,7 @@ def run_simulation():
         "System standby."
     ]
 
-    print(f"\n{'WALL T':<8} | {'INTERNAL τ':<12} | {'INPUT':<35} | {'PRIO':<4} | {'CLOCK RATE'}")
+    print(f"\n{'WALL_T':<8} | {'TAU':<12} | {'INPUT':<35} | {'SALIENCE':<8} | {'CLOCK_RATE'}")
     print("=" * 85)
 
     start_time = time.time()
@@ -75,7 +75,7 @@ def run_simulation():
         packet = vector.to_packet()
 
         # E. Print Status
-        print(f"{1.0 * (i+1):<8} | {subjective_now:<12.2f} | {text[:35]:<35} | {sal.psi:<4.1f} | {dilation:.2f}x")
+        print(f"{1.0 * (i+1):<8} | {subjective_now:<12.2f} | {text[:35]:<35} | {sal.psi:<8.3f} | {dilation:.2f}x")
         print(f"{'PACKET':<8} | {packet}")
 
     print("=" * 85)
