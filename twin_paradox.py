@@ -43,12 +43,12 @@ def run_twin_experiment():
         clock_low_salience.tick(low_psi)
         
         # 3. Calculate the "Temporal Drift" (How far apart are they?)
-        drift = clock_low_salience.subjective_age - clock_high_salience.subjective_age
+        drift = clock_low_salience.tau - clock_high_salience.tau
 
         wall_time = time.time() - start_time
         high_packet = ChronometricVector(
             wall_clock_time=wall_time,
-            tau=clock_high_salience.subjective_age,
+            tau=clock_high_salience.tau,
             psi=high_psi,
             recursion_depth=0,
             clock_rate=high_clock_rate,
@@ -57,7 +57,7 @@ def run_twin_experiment():
         ).to_packet()
         low_packet = ChronometricVector(
             wall_clock_time=wall_time,
-            tau=clock_low_salience.subjective_age,
+            tau=clock_low_salience.tau,
             psi=low_psi,
             recursion_depth=0,
             clock_rate=low_clock_rate,
@@ -66,7 +66,7 @@ def run_twin_experiment():
         ).to_packet()
         
         print(
-            f"{i+1:<8} | {clock_high_salience.subjective_age:<10.2f} | {clock_low_salience.subjective_age:<10.2f} | "
+            f"{i+1:<8} | {clock_high_salience.tau:<10.2f} | {clock_low_salience.tau:<10.2f} | "
             f"{high_psi:<11.3f} | {low_psi:<11.3f} | {high_clock_rate:<13.4f} | {low_clock_rate:<13.4f} | {drift:+.2f}s"
         )
         print(f"{'HIGH':<15} | {high_packet}")
@@ -74,8 +74,8 @@ def run_twin_experiment():
 
     print("=" * 110)
     print("CONCLUSION:")
-    print(f"High-load regime accumulated {clock_high_salience.subjective_age:.2f} internal seconds.")
-    print(f"Low-load regime accumulated {clock_low_salience.subjective_age:.2f} internal seconds.")
+    print(f"High-load regime accumulated {clock_high_salience.tau:.2f} internal seconds.")
+    print(f"Low-load regime accumulated {clock_low_salience.tau:.2f} internal seconds.")
     print("Higher salience load slows internal time accumulation relative to the low-load stream.")
 
 if __name__ == "__main__":

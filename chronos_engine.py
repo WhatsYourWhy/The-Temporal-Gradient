@@ -14,7 +14,7 @@ class ClockRateModulator:
     
     def __init__(self, base_dilation_factor=1.0, min_clock_rate=0.05, salience_mode="canonical"):
         self.start_wall_time = time.time()
-        self.subjective_age = 0.0
+        self.tau = 0.0
         self.base_dilation = base_dilation_factor
         self.min_clock_rate = min_clock_rate
         self.last_tick = self.start_wall_time
@@ -80,16 +80,16 @@ class ClockRateModulator:
         clock_rate = self.clock_rate_from_psi(psi)
         
         # Calculate tau Delta
-        subjective_delta = wall_delta * clock_rate
-        self.subjective_age += subjective_delta
+        tau_delta = wall_delta * clock_rate
+        self.tau += tau_delta
 
         # Log the state
         telemetry = {
             "wall_delta": round(wall_delta, 4),
-            "tau": round(self.subjective_age, 4),
+            "tau": round(self.tau, 4),
             "psi": round(psi, 4),
             "clock_rate": round(clock_rate, 4),
-            "d_tau": round(subjective_delta, 4)
+            "d_tau": round(tau_delta, 4)
         }
         if density is not None:
             telemetry["diagnostic_density"] = round(density, 2)
@@ -97,7 +97,7 @@ class ClockRateModulator:
         
         self.last_tick = current_wall_time
         
-        return subjective_delta
+        return tau_delta
 
 # --- SIMULATION ---
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         
         label = (event[:15] + '...') if len(event) > 15 else (event if event else "[EMPTY INPUT]")
         
-        print(f"{label:<20} | {1.0:<10} | {round(agent_clock.subjective_age, 4):<10} | {round(agent_clock.clock_rate_from_psi(psi), 2)}x")
+        print(f"{label:<20} | {1.0:<10} | {round(agent_clock.tau, 4):<10} | {round(agent_clock.clock_rate_from_psi(psi), 2)}x")
 
     print("-" * 60)
     print("OBSERVATION:")

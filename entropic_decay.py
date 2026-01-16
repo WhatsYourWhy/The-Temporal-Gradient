@@ -36,19 +36,19 @@ class EntropicMemory:
         self.strength = initial_weight
         
         # Timestamps are strictly internal time (τ).
-        self.created_at_subjective = 0.0
-        self.last_accessed_subjective = 0.0
+        self.created_at_tau = 0.0
+        self.last_accessed_tau = 0.0
         self.access_count = 1
 
-    def reconsolidate(self, current_subjective_time, cooldown=0.0):
+    def reconsolidate(self, current_tau, cooldown=0.0):
         """
         Reconsolidation with diminishing returns and optional cooldown.
 
         - Diminishing returns: boost shrinks as access_count rises.
         - Cooldown: if reconsolidated within `cooldown` internal seconds, skip boost.
         """
-        elapsed = current_subjective_time - self.last_accessed_subjective
-        self.last_accessed_subjective = current_subjective_time
+        elapsed = current_tau - self.last_accessed_tau
+        self.last_accessed_tau = current_tau
         self.access_count += 1
 
         # Only apply boost if outside the cooldown window
@@ -64,24 +64,24 @@ class DecayEngine:
     Entropic decay over internal time with configurable pruning threshold.
     """
     def __init__(self, half_life=50.0, prune_threshold=0.2):
-        # 'half_life' is the subjective time it takes for a memory to lose 50% strength
+        # 'half_life' is the internal time (τ) it takes for a memory to lose 50% strength
         self.half_life = half_life
         self.prune_threshold = prune_threshold
         self.vault = []
 
-    def add_memory(self, memory_obj, current_subjective_time):
-        memory_obj.created_at_subjective = current_subjective_time
-        memory_obj.last_accessed_subjective = current_subjective_time
+    def add_memory(self, memory_obj, current_tau):
+        memory_obj.created_at_tau = current_tau
+        memory_obj.last_accessed_tau = current_tau
         self.vault.append(memory_obj)
 
-    def calculate_current_strength(self, memory, current_subjective_time):
+    def calculate_current_strength(self, memory, current_tau):
         """
         Applies exponential decay: N(t) = N0 * (1/2)^(t / half_life)
         But modifies 't' based on the memory's intrinsic importance.
         """
-        elapsed = current_subjective_time - memory.last_accessed_subjective
+        elapsed = current_tau - memory.last_accessed_tau
         
-        # If elapsed time is negative (time dilation weirdness), treat as 0
+        # If elapsed time is negative (clock-rate reparameterization drift), treat as 0
         if elapsed < 0: elapsed = 0
             
         # The Decay Formula
@@ -93,7 +93,7 @@ class DecayEngine:
         
         return decayed_value
 
-    def entropy_sweep(self, current_subjective_time):
+    def entropy_sweep(self, current_tau):
         """
         Applies decay and removes memories below the configured threshold.
         """
@@ -101,7 +101,7 @@ class DecayEngine:
         forgotten = []
         
         for mem in self.vault:
-            current_val = self.calculate_current_strength(mem, current_subjective_time)
+            current_val = self.calculate_current_strength(mem, current_tau)
             
             if current_val > self.prune_threshold:
                 # Update the stored strength for next pass (optional, but realistic)
@@ -126,8 +126,8 @@ if __name__ == "__main__":
     # Low-salience memory (Noise)
     mem_low_salience = EntropicMemory("The user likes blue text.", initial_weight=0.4)
     
-    engine.add_memory(mem_high_salience, current_subjective_time=0.0)
-    engine.add_memory(mem_low_salience, current_subjective_time=0.0)
+    engine.add_memory(mem_high_salience, current_tau=0.0)
+    engine.add_memory(mem_low_salience, current_tau=0.0)
 
     print(f"{'TIME':<5} | {'HIGH STR':<10} | {'LOW STR':<10} | {'STATUS'}")
     print("-" * 50)
@@ -135,21 +135,21 @@ if __name__ == "__main__":
     # 3. Fast Forward Time
     # We simulate 30 "tau Seconds" passing
     for t in range(0, 31, 5):
-        subjective_now = float(t)
+        tau_now = float(t)
         
         # At T=15, we re-access the high-salience memory (Recursive Accumulation)
         if t == 15:
-            mem_high_salience.reconsolidate(subjective_now)
+            mem_high_salience.reconsolidate(tau_now)
             event_log = "<< RECALLED MEMORY"
         else:
             event_log = ""
 
         # Check strengths
-        survivors, dead = engine.entropy_sweep(subjective_now)
+        survivors, dead = engine.entropy_sweep(tau_now)
         
         # Helper to find current strength for display
-        s_high = engine.calculate_current_strength(mem_high_salience, subjective_now)
-        s_low = engine.calculate_current_strength(mem_low_salience, subjective_now)
+        s_high = engine.calculate_current_strength(mem_high_salience, tau_now)
+        s_low = engine.calculate_current_strength(mem_low_salience, tau_now)
         
         # Check if they are actually dead in the sweep
         high_status = f"{s_high:.2f}" if s_high > 0.2 else "PRUNED"
