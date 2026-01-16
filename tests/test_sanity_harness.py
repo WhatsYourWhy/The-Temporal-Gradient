@@ -17,5 +17,5 @@ def test_harness_summary_bounds():
     for packet in packets:
         for key in {"SCHEMA_VERSION", "WALL_T", "TAU", "SALIENCE", "CLOCK_RATE", "MEMORY_S", "DEPTH"}:
             assert key in packet
-        for legacy_key in {"t_obj", "r", "semantic_density", "clock_rate", "psi"}:
+        for legacy_key in {"t_obj", "r", "legacy_density", "clock_rate", "psi"}:
             assert legacy_key not in packet
