@@ -62,7 +62,7 @@ class ClockRateModulator:
         # As Ψ increases, internal time slows with a minimum floor.
         clock_rate = self.clock_rate_from_psi(psi)
         
-        # Calculate Subjective Delta
+        # Calculate tau Delta
         subjective_delta = wall_delta * clock_rate
         self.subjective_age += subjective_delta
 
