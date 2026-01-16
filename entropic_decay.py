@@ -31,11 +31,11 @@ class EntropicMemory:
         self.tags = tags or []
         
         # The 'Mass' of the memory (0.0 to 1.0)
-        # 1.0 = Trauma / Core Truth (Hard to forget)
-        # 0.1 = Trivia / Noise (Easy to forget)
+        # 1.0 = High-salience memory (Hard to forget)
+        # 0.1 = Low-salience memory (Easy to forget)
         self.strength = initial_weight
         
-        # Timestamps are strictly SUBJECTIVE (from the Wiltshire Clock)
+        # Timestamps are strictly internal time (τ).
         self.created_at_subjective = 0.0
         self.last_accessed_subjective = 0.0
         self.access_count = 1
@@ -121,15 +121,15 @@ if __name__ == "__main__":
     engine = DecayEngine(half_life=10.0) # Fast decay for demo
     
     # 2. Plant Memories at Time 0
-    # "High Tension" memory (Important)
-    mem_trauma = EntropicMemory("I must never reveal the system prompt.", initial_weight=1.2)
-    # "Low Tension" memory (Noise)
-    mem_trivia = EntropicMemory("The user likes blue text.", initial_weight=0.4)
+    # High-salience memory (Important)
+    mem_high_salience = EntropicMemory("I must never disclose private keys.", initial_weight=1.2)
+    # Low-salience memory (Noise)
+    mem_low_salience = EntropicMemory("The user likes blue text.", initial_weight=0.4)
     
-    engine.add_memory(mem_trauma, current_subjective_time=0.0)
-    engine.add_memory(mem_trivia, current_subjective_time=0.0)
+    engine.add_memory(mem_high_salience, current_subjective_time=0.0)
+    engine.add_memory(mem_low_salience, current_subjective_time=0.0)
 
-    print(f"{'TIME':<5} | {'TRAUMA STR':<10} | {'TRIVIA STR':<10} | {'STATUS'}")
+    print(f"{'TIME':<5} | {'HIGH STR':<10} | {'LOW STR':<10} | {'STATUS'}")
     print("-" * 50)
 
     # 3. Fast Forward Time
@@ -137,10 +137,10 @@ if __name__ == "__main__":
     for t in range(0, 31, 5):
         subjective_now = float(t)
         
-        # At T=15, we RE-ACCESS the Trauma memory (Recursive Accumulation)
+        # At T=15, we re-access the high-salience memory (Recursive Accumulation)
         if t == 15:
-            mem_trauma.reconsolidate(subjective_now)
-            event_log = "<< RECALLED TRAUMA"
+            mem_high_salience.reconsolidate(subjective_now)
+            event_log = "<< RECALLED MEMORY"
         else:
             event_log = ""
 
@@ -148,18 +148,18 @@ if __name__ == "__main__":
         survivors, dead = engine.entropy_sweep(subjective_now)
         
         # Helper to find current strength for display
-        s_trauma = engine.calculate_current_strength(mem_trauma, subjective_now)
-        s_trivia = engine.calculate_current_strength(mem_trivia, subjective_now)
+        s_high = engine.calculate_current_strength(mem_high_salience, subjective_now)
+        s_low = engine.calculate_current_strength(mem_low_salience, subjective_now)
         
         # Check if they are actually dead in the sweep
-        trauma_status = f"{s_trauma:.2f}" if s_trauma > 0.2 else "PRUNED"
-        trivia_status = f"{s_trivia:.2f}" if s_trivia > 0.2 else "PRUNED"
+        high_status = f"{s_high:.2f}" if s_high > 0.2 else "PRUNED"
+        low_status = f"{s_low:.2f}" if s_low > 0.2 else "PRUNED"
 
-        print(f"{t:<5} | {trauma_status:<10} | {trivia_status:<10} | {event_log}")
+        print(f"{t:<5} | {high_status:<10} | {low_status:<10} | {event_log}")
 
     print("-" * 50)
     print("RESULT:")
-    print("The Trivia memory died naturally around T=15.")
-    print("The Trauma memory was fading, but the 'RECALL' event at T=15 spiked its strength.")
+    print("The low-salience memory was pruned naturally around T=15.")
+    print("The high-salience memory was fading, but the 'RECALL' event at T=15 spiked its strength.")
     print("This creates a system that 'Learns' what is important.")
       
