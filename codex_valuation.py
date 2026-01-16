@@ -112,7 +112,7 @@ if __name__ == "__main__":
         "Cool.",                                     # Noise
     ]
     
-    print(f"{'INPUT':<40} | {'WEIGHT':<10} | {'CLASSIFICATION'}")
+    print(f"{'INPUT_CLI':<40} | {'WEIGHT':<10} | {'CLASSIFICATION'}")
     print("-" * 75)
     
     for i in inputs:
