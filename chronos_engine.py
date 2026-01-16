@@ -12,13 +12,20 @@ class ClockRateModulator:
     3. A floor on the clock-rate prevents τ from stalling.
     """
     
-    def __init__(self, base_dilation_factor=1.0, min_clock_rate=0.05, salience_mode="canonical"):
+    def __init__(
+        self,
+        base_dilation_factor=1.0,
+        min_clock_rate=0.05,
+        salience_mode="canonical",
+        legacy_density_scale=100.0,
+    ):
         self.start_wall_time = time.time()
         self.tau = 0.0
         self.base_dilation = base_dilation_factor
         self.min_clock_rate = min_clock_rate
         self.last_tick = self.start_wall_time
         self.salience_mode = self._validate_salience_mode(salience_mode)
+        self.legacy_density_scale = legacy_density_scale
         
         # Telemetry history for debugging/visualizing
         self.chronolog = []
@@ -57,7 +64,13 @@ class ClockRateModulator:
         density = mass * entropy
         return density
 
-    def tick(self, psi=None, input_context=None):
+    def _psi_from_legacy_density(self, density):
+        if density is None:
+            return None
+        scaled = density / self.legacy_density_scale
+        return max(0.0, min(1.0, scaled))
+
+    def tick(self, psi=None, input_context=None, wall_delta=None):
         """
         Advances time. 
         ψ is the salience load; we reparameterize the clock-rate from it.
@@ -67,12 +80,17 @@ class ClockRateModulator:
             if input_context is None:
                 raise ValueError("legacy_density mode requires psi or input_context to derive psi.")
             density = self.calculate_information_density(input_context)
-            psi = density
+            psi = self._psi_from_legacy_density(density)
         if psi is None:
             raise ValueError("psi is required in canonical mode.")
+        if self.salience_mode == "canonical" and not 0.0 <= psi <= 1.0:
+            raise ValueError("psi must be within [0, 1] in canonical mode.")
 
         current_wall_time = time.time()
-        wall_delta = current_wall_time - self.last_tick
+        if wall_delta is None:
+            wall_delta = current_wall_time - self.last_tick
+        else:
+            current_wall_time = self.last_tick + wall_delta
         
         # Clock-rate reparameterization
         # If Ψ is 0, internal time matches wall clock (factor 1.0).
@@ -123,7 +141,7 @@ if __name__ == "__main__":
         # Simulate processing time (Wall Clock moves forward)
         time.sleep(1.0) 
         
-        psi = min(4.0, len(event) / 20) if event else 0.0
+        psi = min(1.0, len(event) / 200) if event else 0.0
 
         # The Agent "Experiences" the event
         d_tau = agent_clock.tick(psi)
