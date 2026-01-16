@@ -8,6 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 's
 from chronos_engine import ClockRateModulator
 from entropic_decay import DecayEngine, EntropicMemory
 from codex_valuation import CodexValuator
+from salience_pipeline import CodexNoveltyAdapter, CodexValueAdapter, SaliencePipeline
 
 def run_simulation():
     print(">>> INITIALIZING TEMPORAL GRADIENT ARCHITECTURE...")
@@ -16,6 +17,7 @@ def run_simulation():
     clock = ClockRateModulator(base_dilation_factor=1.0, min_clock_rate=0.05)
     decay = DecayEngine(half_life=20.0, prune_threshold=0.2) # Memories decay fast for demo
     cortex = CodexValuator()
+    salience = SaliencePipeline(CodexNoveltyAdapter(cortex), CodexValueAdapter(cortex))
     
     # 2. Simulate a stream of inputs
     inputs = [
@@ -34,7 +36,8 @@ def run_simulation():
         time.sleep(1.0) # Wait 1 real second
         
         # A. Valuate (salience/priority)
-        importance = cortex.evaluate(text)
+        components = salience.evaluate(text)
+        importance = components.psi
         
         # B. Clock tick (clock-rate reparameterization)
         # We pass the text so the clock can estimate salience load of the moment

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Protocol, Tuple
+from typing import Dict, Iterable, List, Protocol, Tuple, TYPE_CHECKING
 import re
+
+if TYPE_CHECKING:
+    from codex_valuation import CodexValuator
 
 
 class NoveltyScorer(Protocol):
@@ -112,3 +115,19 @@ class SaliencePipeline:
         diagnostics.update(novelty_diag)
         diagnostics.update(value_diag)
         return SalienceComponents(novelty=novelty, value=value, psi=psi, diagnostics=diagnostics)
+
+
+class CodexNoveltyAdapter:
+    def __init__(self, codex: "CodexValuator") -> None:
+        self.codex = codex
+
+    def score(self, text: str) -> Tuple[float, Dict[str, float]]:
+        return self.codex.score_H(text)
+
+
+class CodexValueAdapter:
+    def __init__(self, codex: "CodexValuator") -> None:
+        self.codex = codex
+
+    def score(self, text: str) -> Tuple[float, Dict[str, float]]:
+        return self.codex.score_V(text)

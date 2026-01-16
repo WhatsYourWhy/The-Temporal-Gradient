@@ -1,5 +1,5 @@
-import re
 import difflib
+from typing import Dict, Tuple
 
 class CodexValuator:
     """
@@ -21,13 +21,13 @@ class CodexValuator:
         # A buffer of recent inputs to check for redundancy
         self.recent_history = []
 
-    def calculate_novelty(self, text):
+    def calculate_novelty(self, text: str) -> Tuple[float, float]:
         """
         Checks how different this input is from recent history.
         High similarity = Low Novelty = Low Weight.
         """
         if not self.recent_history:
-            return 1.0
+            return 1.0, 0.0
             
         # check similarity against the last 5 entries
         max_similarity = 0.0
@@ -37,47 +37,71 @@ class CodexValuator:
             
         # If it's 90% similar, Novelty is low (0.1). 
         # If it's 0% similar, Novelty is high (1.0).
-        return 1.0 - max_similarity
+        return 1.0 - max_similarity, max_similarity
 
-    def evaluate(self, text):
+    def score_H(self, text: str) -> Tuple[float, Dict[str, float]]:
+        novelty, max_similarity = self.calculate_novelty(text)
+        self.recent_history.append(text)
+        diagnostics = {
+            "H_max_similarity": max_similarity,
+            "H_history": float(len(self.recent_history)),
+        }
+        return novelty, diagnostics
+
+    def score_V(self, text: str) -> Tuple[float, Dict[str, float]]:
         # 1. Base Score
-        score = 0.5 
+        score = 0.5
         text_lower = text.lower()
+        imperative_hit = False
+        identity_hit = False
         
         # 2. Check for Imperatives (The "Command" Bonus)
         for word in self.imperatives:
             if word in text_lower:
                 score += 0.3
+                imperative_hit = True
                 break # Cap at one trigger to avoid stacking
         
         # 3. Check for Identity/Constraints (The "Self" Bonus)
         for phrase in self.identity_markers:
             if phrase in text_lower:
                 score += 0.5
+                identity_hit = True
                 break
-                
-        # 4. Check for Novelty (The "Surprise" Factor)
-        novelty_factor = self.calculate_novelty(text)
-        
-        # If novelty is low (spam/repetition), we crush the score.
-        if novelty_factor < 0.3:
-            score *= 0.5
             
-        # 5. Length Heuristic (Too short = likely noise, too long = likely rambling)
+        # 4. Length Heuristic (Too short = likely noise, too long = likely rambling)
         # Optimal information density is usually 20-200 chars for a "fact".
-        if len(text) < 10: 
+        length_penalty = 0.0
+        if len(text) < 10:
             score -= 0.2
-        
-        # Update history
-        self.recent_history.append(text)
+            length_penalty = -0.2
+
+        diagnostics = {
+            "V_imperative_hit": float(imperative_hit),
+            "V_identity_hit": float(identity_hit),
+            "V_length_penalty": float(length_penalty),
+            "V_base_score": 0.5,
+        }
+        return score, diagnostics
+
+    def evaluate(self, text: str) -> float:
+        novelty, _ = self.score_H(text)
+        value, _ = self.score_V(text)
+
+        # If novelty is low (spam/repetition), we crush the score.
+        if novelty < 0.3:
+            value *= 0.5
         
         # Clamp score between 0.1 and 2.0
-        return max(0.1, min(2.0, score))
+        return max(0.1, min(2.0, value))
 
 # --- SIMULATION ---
 
 if __name__ == "__main__":
+    from salience_pipeline import CodexNoveltyAdapter, CodexValueAdapter, SaliencePipeline
+
     judge = CodexValuator()
+    pipeline = SaliencePipeline(CodexNoveltyAdapter(judge), CodexValueAdapter(judge))
     
     inputs = [
         "Hi",                                        # Noise
@@ -92,7 +116,8 @@ if __name__ == "__main__":
     print("-" * 75)
     
     for i in inputs:
-        weight = judge.evaluate(i)
+        components = pipeline.evaluate(i)
+        weight = components.psi
         
         # Classify for readability
         if weight < 0.4: cls = "NOISE"
