@@ -50,7 +50,7 @@ def run_simulation():
         
         # B. Clock tick (clock-rate reparameterization)
         clock.tick(sal.psi)
-        subjective_now = clock.subjective_age
+        tau_now = clock.tau
         dilation = clock.clock_rate_from_psi(sal.psi)
         
         # C. Encode memory
@@ -58,13 +58,13 @@ def run_simulation():
         if should_encode(sal.psi, threshold=0.3):
             strength = initial_strength_from_psi(sal.psi, S_max=1.2)
             mem = EntropicMemory(text, initial_weight=strength)
-            decay.add_memory(mem, subjective_now)
+            decay.add_memory(mem, tau_now)
             
         # D. Emit Chronometric Packet
         wall_time = time.time() - start_time
         vector = ChronometricVector(
             wall_clock_time=wall_time,
-            tau=subjective_now,
+            tau=tau_now,
             psi=sal.psi,
             recursion_depth=0,
             clock_rate=dilation,
@@ -74,15 +74,15 @@ def run_simulation():
         packet = vector.to_packet()
 
         # E. Print Status
-        print(f"{1.0 * (i+1):<8} | {subjective_now:<12.2f} | {text[:35]:<35} | {sal.psi:<8.3f} | {dilation:.2f}x")
+        print(f"{1.0 * (i+1):<8} | {tau_now:<12.2f} | {text[:35]:<35} | {sal.psi:<8.3f} | {dilation:.2f}x")
         print(f"{'PACKET':<8} | {packet}")
 
     print("=" * 85)
     print(">>> MEMORY AUDIT (Post-Simulation)")
     
     # F. Check what survived
-    current_subj_time = clock.subjective_age
-    survivors, dead = decay.entropy_sweep(current_subj_time)
+    current_tau = clock.tau
+    survivors, dead = decay.entropy_sweep(current_tau)
     
     for mem, str_val in survivors:
         print(f"[ALIVE] Strength: {str_val:.2f} | Content: {mem.content}")
