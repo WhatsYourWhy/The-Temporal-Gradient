@@ -22,6 +22,7 @@ class ChronometricVector:
     clock_rate: Optional[float] = None
     H: Optional[float] = None
     V: Optional[float] = None
+    memory_strength: Optional[float] = None
     entropy_cost: float = 0.0  # How much energy did this thought burn?
 
     def to_packet(self):
@@ -29,30 +30,33 @@ class ChronometricVector:
         Serializes the vector for transmission.
         """
         packet = {
-            "t_obj": round(self.wall_clock_time, 2),
-            "tau": round(self.tau, 2),
-            "psi": round(self.psi, 3), # Salience load
-            "r": self.recursion_depth
+            "WALL_T": round(self.wall_clock_time, 2),
+            "TAU": round(self.tau, 2),
+            "SALIENCE": round(self.psi, 3), # Salience load
+            "DEPTH": self.recursion_depth,
         }
         if self.clock_rate is not None:
-            packet["clock_rate"] = round(self.clock_rate, 4)
+            packet["CLOCK_RATE"] = round(self.clock_rate, 4)
         if self.H is not None:
             packet["H"] = round(self.H, 4)
         if self.V is not None:
             packet["V"] = round(self.V, 4)
+        if self.memory_strength is not None:
+            packet["MEMORY_S"] = round(self.memory_strength, 4)
         return json.dumps(packet)
 
     @staticmethod
     def from_packet(json_str):
         data = json.loads(json_str)
-        psi = data.get('psi', data.get('semantic_density'))
+        psi = data.get('SALIENCE')
         return ChronometricVector(
-            wall_clock_time=data['t_obj'],
-            tau=data['tau'],
+            wall_clock_time=data['WALL_T'],
+            tau=data['TAU'],
             psi=psi,
-            recursion_depth=data['r'],
-            clock_rate=data.get('clock_rate'),
+            recursion_depth=data.get('DEPTH', 0),
+            clock_rate=data.get('CLOCK_RATE'),
             H=data.get('H'),
             V=data.get('V'),
-            entropy_cost=data.get('entropy_cost', 0.0)
+            memory_strength=data.get('MEMORY_S', data.get('S')),
+            entropy_cost=data.get('entropy_cost', 0.0),
         )

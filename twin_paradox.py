@@ -21,8 +21,11 @@ def run_twin_experiment():
     # B: Low Complexity (Repetitive Noise)
     input_low_salience = "Ping. Pong. Ping. Pong."
     
-    print(f"\n{'REAL SECONDS':<15} | {'HIGH-LOAD τ':<12} | {'LOW-LOAD τ':<12} | {'DRIFT'}")
-    print("=" * 60)
+    print(
+        f"\n{'WALL_T':<8} | {'TAU_HIGH':<10} | {'TAU_LOW':<10} | "
+        f"{'SALIENCE_H':<11} | {'SALIENCE_L':<11} | {'CLOCK_RATE_H':<13} | {'CLOCK_RATE_L':<13} | {'DRIFT'}"
+    )
+    print("=" * 110)
     
     # Run for 10 "Real" Seconds
     start_time = time.time()
@@ -49,6 +52,8 @@ def run_twin_experiment():
             psi=high_psi,
             recursion_depth=0,
             clock_rate=high_clock_rate,
+            H=0.0,
+            V=0.0,
         ).to_packet()
         low_packet = ChronometricVector(
             wall_clock_time=wall_time,
@@ -56,13 +61,18 @@ def run_twin_experiment():
             psi=low_psi,
             recursion_depth=0,
             clock_rate=low_clock_rate,
+            H=0.0,
+            V=0.0,
         ).to_packet()
         
-        print(f"{i+1:<15} | {clock_high_salience.subjective_age:<10.2f} | {clock_low_salience.subjective_age:<10.2f} | {drift:+.2f}s")
+        print(
+            f"{i+1:<8} | {clock_high_salience.subjective_age:<10.2f} | {clock_low_salience.subjective_age:<10.2f} | "
+            f"{high_psi:<11.3f} | {low_psi:<11.3f} | {high_clock_rate:<13.4f} | {low_clock_rate:<13.4f} | {drift:+.2f}s"
+        )
         print(f"{'HIGH':<15} | {high_packet}")
         print(f"{'LOW':<15} | {low_packet}")
 
-    print("=" * 60)
+    print("=" * 110)
     print("CONCLUSION:")
     print(f"High-load regime accumulated {clock_high_salience.subjective_age:.2f} internal seconds.")
     print(f"Low-load regime accumulated {clock_low_salience.subjective_age:.2f} internal seconds.")

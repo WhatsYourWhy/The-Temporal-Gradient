@@ -5,17 +5,17 @@ The Temporal Gradient outputs **Internal State Telemetry** rather than conventio
 This table shows how the internal clock-rate is reparameterized by salience load (surprise × value).
 
 ```text
-WALL T   | INTERNAL τ | INPUT                               | PRIORITY | CLOCK RATE (dτ/dt)
+WALL_T   | TAU | INPUT                               | SALIENCE | CLOCK_RATE (dτ/dt)
 ============================================================================================
 1.0      | 0.15       | "CRITICAL: SECURITY BREACH..."      | 1.5      | 0.15x
 2.0      | 1.15       | "Checking local weather..."         | 0.4      | 1.00x
 ```
 
 Key metrics:
-- **WALL T:** External time elapsed (seconds).
-- **INTERNAL τ:** Internal time accumulator after clock-rate reparameterization.
-- **PRIORITY:** Surprise×value score from the valuator.
-- **CLOCK RATE (dτ/dt):** Internal clock multiplier after salience modulation.
+- **WALL_T:** External time elapsed (seconds).
+- **TAU:** Internal time accumulator after clock-rate reparameterization.
+- **SALIENCE:** Surprise×value score from the valuator.
+- **CLOCK_RATE (dτ/dt):** Internal clock multiplier after salience modulation.
 
 Interpretation:
 - A CLOCK RATE below 1.0x means the internal clock slowed to process a high-load event (reduced internal clock rate), not “bullet time.”
@@ -30,7 +30,7 @@ At the end of the simulation, the decay engine reports which memories stayed abo
 [DEAD ] Content: "Rain. Water. Liquid."
 ```
 
-- **ALIVE:** The memory stayed above the pruning threshold because it started with a high priority or was reconsolidated.
+- **ALIVE:** The memory stayed above the pruning threshold because it started with high salience or was reconsolidated.
 - **DEAD:** The memory decayed below the threshold and was pruned.
 
 ## 3. Configuration hints
