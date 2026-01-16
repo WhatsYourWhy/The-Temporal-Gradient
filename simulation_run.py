@@ -6,6 +6,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
 from chronos_engine import ClockRateModulator
+from chronometric_vector import ChronometricVector
 from entropic_decay import (
     DecayEngine,
     EntropicMemory,
@@ -39,6 +40,8 @@ def run_simulation():
     print(f"\n{'WALL T':<8} | {'INTERNAL τ':<12} | {'INPUT':<35} | {'PRIO':<4} | {'CLOCK RATE'}")
     print("=" * 85)
 
+    start_time = time.time()
+
     for i, text in enumerate(inputs):
         time.sleep(1.0) # Wait 1 real second
         
@@ -58,13 +61,27 @@ def run_simulation():
             mem = EntropicMemory(text, initial_weight=strength)
             decay.add_memory(mem, subjective_now)
             
-        # D. Print Status
+        # D. Emit Chronometric Packet
+        wall_time = time.time() - start_time
+        vector = ChronometricVector(
+            wall_clock_time=wall_time,
+            tau=subjective_now,
+            psi=sal.psi,
+            recursion_depth=0,
+            clock_rate=dilation,
+            H=sal.novelty,
+            V=sal.value,
+        )
+        packet = vector.to_packet()
+
+        # E. Print Status
         print(f"{1.0 * (i+1):<8} | {subjective_now:<12.2f} | {text[:35]:<35} | {sal.psi:<4.1f} | {dilation:.2f}x")
+        print(f"{'PACKET':<8} | {packet}")
 
     print("=" * 85)
     print(">>> MEMORY AUDIT (Post-Simulation)")
     
-    # E. Check what survived
+    # F. Check what survived
     current_subj_time = clock.subjective_age
     survivors, dead = decay.entropy_sweep(current_subj_time)
     

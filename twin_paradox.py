@@ -25,19 +25,42 @@ def run_twin_experiment():
     print("=" * 60)
     
     # Run for 10 "Real" Seconds
+    start_time = time.time()
     for i in range(10):
         time.sleep(1.0) # 1 Wall Second Passes
         
         # 1. Tick the Monk (Heavy Load)
-        monk_state = clock_monk.tick(input_monk)
+        monk_psi = min(4.0, len(input_monk) / 20)
+        monk_clock_rate = clock_monk.clock_rate_from_psi(monk_psi)
+        clock_monk.tick(monk_psi, input_context=input_monk)
         
         # 2. Tick the Clerk (Light Load)
-        clerk_state = clock_clerk.tick(input_clerk)
+        clerk_psi = min(4.0, len(input_clerk) / 20)
+        clerk_clock_rate = clock_clerk.clock_rate_from_psi(clerk_psi)
+        clock_clerk.tick(clerk_psi, input_context=input_clerk)
         
         # 3. Calculate the "Temporal Drift" (How far apart are they?)
-        drift = clerk_state['subjective_age'] - monk_state['subjective_age']
+        drift = clock_clerk.subjective_age - clock_monk.subjective_age
+
+        wall_time = time.time() - start_time
+        monk_packet = ChronometricVector(
+            wall_clock_time=wall_time,
+            tau=clock_monk.subjective_age,
+            psi=monk_psi,
+            recursion_depth=0,
+            clock_rate=monk_clock_rate,
+        ).to_packet()
+        clerk_packet = ChronometricVector(
+            wall_clock_time=wall_time,
+            tau=clock_clerk.subjective_age,
+            psi=clerk_psi,
+            recursion_depth=0,
+            clock_rate=clerk_clock_rate,
+        ).to_packet()
         
-        print(f"{i+1:<15} | {monk_state['subjective_age']:<10.2f} | {clerk_state['subjective_age']:<10.2f} | {drift:+.2f}s")
+        print(f"{i+1:<15} | {clock_monk.subjective_age:<10.2f} | {clock_clerk.subjective_age:<10.2f} | {drift:+.2f}s")
+        print(f"{'MONK':<15} | {monk_packet}")
+        print(f"{'CLERK':<15} | {clerk_packet}")
 
     print("=" * 60)
     print("CONCLUSION:")
