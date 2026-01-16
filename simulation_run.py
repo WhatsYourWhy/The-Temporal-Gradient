@@ -37,7 +37,7 @@ def run_simulation():
         "System standby."
     ]
 
-    print(f"\n{'WALL_T':<8} | {'TAU':<12} | {'INPUT':<35} | {'SALIENCE':<8} | {'CLOCK_RATE'}")
+    print(f"\n{'WALL_T':<8} | {'TAU':<12} | {'INPUT (CLI)':<35} | {'SALIENCE':<8} | {'CLOCK_RATE'}")
     print("=" * 85)
 
     start_time = time.time()

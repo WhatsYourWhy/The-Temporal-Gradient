@@ -17,7 +17,7 @@ The telemetry packet is versioned and split into **required** vs **optional** ke
 - `H`
 - `V`
 
-CLI tables should print **only canonical columns** by default (`WALL_T`, `TAU`, `SALIENCE`, `CLOCK_RATE`, `MEMORY_S`, `DEPTH`). Extended fields like `H` and `V` are intended for verbose/debug output, not the base schema.
+CLI tables should print **only canonical columns** by default (`WALL_T`, `TAU`, `SALIENCE`, `CLOCK_RATE`, `MEMORY_S`, `DEPTH`). Extended fields like `H` and `V` are intended for verbose/debug output, not the base schema. Demo scripts may also include an `INPUT` column for readability; it is not part of the canonical packet schema.
 
 ## 1. The clock-rate table
 This table shows how the internal clock-rate is reparameterized by salience load (surprise × value).

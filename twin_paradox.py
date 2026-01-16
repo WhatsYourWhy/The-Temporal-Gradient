@@ -26,8 +26,9 @@ def run_twin_experiment():
     input_low_salience = "Ping. Pong. Ping. Pong."
     
     print(
-        f"\n{'WALL_T':<8} | {'TAU_HIGH':<10} | {'TAU_LOW':<10} | "
-        f"{'SALIENCE_H':<11} | {'SALIENCE_L':<11} | {'CLOCK_RATE_H':<13} | {'CLOCK_RATE_L':<13} | {'DRIFT'}"
+        f"\n{'WALL_T':<8} | {'TAU(HIGH)':<10} | {'TAU(LOW)':<10} | "
+        f"{'SALIENCE(HIGH)':<14} | {'SALIENCE(LOW)':<13} | "
+        f"{'CLOCK_RATE(HIGH)':<16} | {'CLOCK_RATE(LOW)':<15} | {'DRIFT'}"
     )
     print("=" * 110)
     
