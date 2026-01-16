@@ -49,8 +49,7 @@ def run_simulation():
         sal = salience.evaluate(text)
         
         # B. Clock tick (clock-rate reparameterization)
-        # We pass the text so the clock can estimate salience load of the moment
-        clock.tick(sal.psi, input_context=text)
+        clock.tick(sal.psi)
         subjective_now = clock.subjective_age
         dilation = clock.clock_rate_from_psi(sal.psi)
         

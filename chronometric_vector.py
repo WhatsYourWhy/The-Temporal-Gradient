@@ -46,9 +46,13 @@ class ChronometricVector:
         return json.dumps(packet)
 
     @staticmethod
-    def from_packet(json_str):
+    def from_packet(json_str, salience_mode="canonical"):
         data = json.loads(json_str)
+        if salience_mode not in {"canonical", "legacy_density"}:
+            raise ValueError("salience_mode must be 'canonical' or 'legacy_density'.")
         psi = data.get('SALIENCE')
+        if psi is None and salience_mode == "legacy_density":
+            psi = data.get('semantic_density', data.get('SEMANTIC_DENSITY'))
         return ChronometricVector(
             wall_clock_time=data['WALL_T'],
             tau=data['TAU'],
