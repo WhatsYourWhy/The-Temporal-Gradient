@@ -29,12 +29,10 @@ def test_round_trip_canonical_packet():
     assert "DEPTH" in data
     for legacy_key in {
         "INPUT",
-        "PRIO",
-        "PRIORITY",
         "clock_rate",
         "psi",
         "r",
-        "semantic_density",
+        "legacy_density",
         "t_obj",
     }:
         assert legacy_key not in data

@@ -64,7 +64,7 @@ S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
 - **MEMORY_S**: current memory strength \(S\)
 - **DEPTH**: recursion depth (if used)
 
-Some CLI tables include an **INPUT** column for readability; it is not part of the packet payload.
+Some CLI tables include a prompt column for readability; it is not part of the packet payload.
 
 ## Review-Only Notice
 Per LICENSE, this repository is provided for educational and academic review.  

@@ -26,10 +26,10 @@ def run_twin_experiment():
     input_low_salience = "Ping. Pong. Ping. Pong."
     
     print(
-        f"\n{'WALL_T':<8} | {'STREAM':<6} | {'TAU':<10} | {'SALIENCE':<10} | "
-        f"{'CLOCK_RATE':<12} | {'MEMORY_S':<8} | {'DEPTH':<5} | {'DRIFT'}"
+        f"\n{'WALL_T':<8} | {'TAU (HIGH)':<11} | {'SALIENCE (HIGH)':<15} | {'CLOCK_RATE (HIGH)':<18} | "
+        f"{'TAU (LOW)':<10} | {'SALIENCE (LOW)':<14} | {'CLOCK_RATE (LOW)':<17} | {'DRIFT'}"
     )
-    print("=" * 103)
+    print("=" * 126)
     
     # Run for 10 "Real" Seconds
     start_time = time.time()
@@ -74,17 +74,13 @@ def run_twin_experiment():
         ).to_packet()
         
         print(
-            f"{i+1:<8} | {'HIGH':<6} | {clock_high_salience.tau:<10.2f} | {high_psi:<10.3f} | "
-            f"{high_clock_rate:<12.4f} | {0.0:<8.2f} | {0:<5} | {drift:+.2f}s"
+            f"{i+1:<8} | {clock_high_salience.tau:<11.2f} | {high_psi:<15.3f} | {high_clock_rate:<18.4f} | "
+            f"{clock_low_salience.tau:<10.2f} | {low_psi:<14.3f} | {low_clock_rate:<17.4f} | {drift:+.2f}s"
         )
-        print(f"{'PACKET':<8} | {high_packet}")
-        print(
-            f"{i+1:<8} | {'LOW':<6} | {clock_low_salience.tau:<10.2f} | {low_psi:<10.3f} | "
-            f"{low_clock_rate:<12.4f} | {0.0:<8.2f} | {0:<5} | {drift:+.2f}s"
-        )
-        print(f"{'PACKET':<8} | {low_packet}")
+        print(f"{'PACKET(HIGH)':<13} | {high_packet}")
+        print(f"{'PACKET(LOW)':<13} | {low_packet}")
 
-    print("=" * 110)
+    print("=" * 126)
     print("CONCLUSION:")
     print(f"High-load regime accumulated {clock_high_salience.tau:.2f} internal seconds.")
     print(f"Low-load regime accumulated {clock_low_salience.tau:.2f} internal seconds.")

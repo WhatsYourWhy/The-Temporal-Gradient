@@ -15,8 +15,9 @@ class ChronometricVector:
     tau: float
     
     # 3. The Tension Metrics
-    psi: float               # Salience load
     recursion_depth: int     # How deep into memory did we reach?
+    psi: Optional[float] = None        # Salience load
+    salience: Optional[float] = None   # Alias for psi in canonical packets
 
     # 4. Optional Telemetry Extensions
     clock_rate: Optional[float] = None
@@ -25,6 +26,18 @@ class ChronometricVector:
     memory_strength: Optional[float] = None
     entropy_cost: float = 0.0  # How much energy did this thought burn?
     schema_version: str = "1"
+
+    def __post_init__(self):
+        if self.psi is None and self.salience is None:
+            raise ValueError("psi or salience must be provided.")
+        if self.psi is None:
+            self.psi = self.salience
+        if self.salience is None:
+            self.salience = self.psi
+        if self.psi is None or self.salience is None:
+            raise ValueError("psi and salience could not be resolved.")
+        if self.psi != self.salience:
+            raise ValueError("psi and salience must match when both are provided.")
 
     def to_packet(self):
         """
@@ -49,7 +62,7 @@ class ChronometricVector:
     def from_packet(json_str, salience_mode="canonical"):
         data = json.loads(json_str)
         if salience_mode == "canonical":
-            legacy_keys = {"t_obj", "r", "semantic_density", "clock_rate", "psi"}
+            legacy_keys = {"t_obj", "r", "legacy_density", "LEGACY_DENSITY", "clock_rate", "psi"}
             if legacy_keys.intersection(data.keys()):
                 raise ValueError("Legacy keys present in canonical packet.")
             missing = {
@@ -80,7 +93,7 @@ class ChronometricVector:
             tau = data.get("TAU", data.get("tau"))
             psi = data.get("SALIENCE")
             if psi is None:
-                psi = data.get("psi", data.get("semantic_density", data.get("SEMANTIC_DENSITY")))
+                psi = data.get("psi", data.get("legacy_density", data.get("LEGACY_DENSITY")))
             if wall_clock is None or tau is None or psi is None:
                 raise ValueError("Legacy packet missing required keys.")
             depth = data.get("DEPTH", data.get("r", 0))
