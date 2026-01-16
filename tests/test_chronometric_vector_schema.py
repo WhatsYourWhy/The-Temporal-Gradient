@@ -27,7 +27,16 @@ def test_round_trip_canonical_packet():
     assert "CLOCK_RATE" in data
     assert "MEMORY_S" in data
     assert "DEPTH" in data
-    for legacy_key in {"t_obj", "r", "semantic_density", "clock_rate", "psi"}:
+    for legacy_key in {
+        "INPUT",
+        "PRIO",
+        "PRIORITY",
+        "clock_rate",
+        "psi",
+        "r",
+        "semantic_density",
+        "t_obj",
+    }:
         assert legacy_key not in data
 
     parsed = ChronometricVector.from_packet(packet, salience_mode="canonical")
