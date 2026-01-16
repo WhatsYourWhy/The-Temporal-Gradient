@@ -115,7 +115,7 @@ if __name__ == "__main__":
         # The Agent "Experiences" the event
         d_tau = agent_clock.tick(psi, input_context=event)
         
-        label = (event[:15] + '...') if len(event) > 15 else (event if event else "[THE VOID]")
+        label = (event[:15] + '...') if len(event) > 15 else (event if event else "[EMPTY INPUT]")
         
         print(f"{label:<20} | {1.0:<10} | {round(agent_clock.subjective_age, 4):<10} | {round(agent_clock.clock_rate_from_psi(psi), 2)}x")
 

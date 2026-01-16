@@ -12,14 +12,14 @@ def run_twin_experiment():
     print(">>> INITIATING TWIN PARADOX EXPERIMENT...")
     
     # Two identical clocks
-    clock_monk = ClockRateModulator(base_dilation_factor=2.0, min_clock_rate=0.05) # Sensitive to complexity
-    clock_clerk = ClockRateModulator(base_dilation_factor=2.0, min_clock_rate=0.05)
+    clock_high_salience = ClockRateModulator(base_dilation_factor=2.0, min_clock_rate=0.05)
+    clock_low_salience = ClockRateModulator(base_dilation_factor=2.0, min_clock_rate=0.05)
     
     # The Environments
     # A: High Complexity (Dense Philosophy)
-    input_monk = "Time is the emergent tension gradient created by recursive accumulation." * 5
+    input_high_salience = "Time is the emergent tension gradient created by recursive accumulation." * 5
     # B: Low Complexity (Repetitive Noise)
-    input_clerk = "Ping. Pong. Ping. Pong."
+    input_low_salience = "Ping. Pong. Ping. Pong."
     
     print(f"\n{'REAL SECONDS':<15} | {'HIGH-LOAD τ':<12} | {'LOW-LOAD τ':<12} | {'DRIFT'}")
     print("=" * 60)
@@ -29,43 +29,43 @@ def run_twin_experiment():
     for i in range(10):
         time.sleep(1.0) # 1 Wall Second Passes
         
-        # 1. Tick the Monk (Heavy Load)
-        monk_psi = min(4.0, len(input_monk) / 20)
-        monk_clock_rate = clock_monk.clock_rate_from_psi(monk_psi)
-        clock_monk.tick(monk_psi, input_context=input_monk)
+        # 1. Tick the high-salience regime (Heavy Load)
+        high_psi = min(4.0, len(input_high_salience) / 20)
+        high_clock_rate = clock_high_salience.clock_rate_from_psi(high_psi)
+        clock_high_salience.tick(high_psi, input_context=input_high_salience)
         
-        # 2. Tick the Clerk (Light Load)
-        clerk_psi = min(4.0, len(input_clerk) / 20)
-        clerk_clock_rate = clock_clerk.clock_rate_from_psi(clerk_psi)
-        clock_clerk.tick(clerk_psi, input_context=input_clerk)
+        # 2. Tick the low-salience regime (Light Load)
+        low_psi = min(4.0, len(input_low_salience) / 20)
+        low_clock_rate = clock_low_salience.clock_rate_from_psi(low_psi)
+        clock_low_salience.tick(low_psi, input_context=input_low_salience)
         
         # 3. Calculate the "Temporal Drift" (How far apart are they?)
-        drift = clock_clerk.subjective_age - clock_monk.subjective_age
+        drift = clock_low_salience.subjective_age - clock_high_salience.subjective_age
 
         wall_time = time.time() - start_time
-        monk_packet = ChronometricVector(
+        high_packet = ChronometricVector(
             wall_clock_time=wall_time,
-            tau=clock_monk.subjective_age,
-            psi=monk_psi,
+            tau=clock_high_salience.subjective_age,
+            psi=high_psi,
             recursion_depth=0,
-            clock_rate=monk_clock_rate,
+            clock_rate=high_clock_rate,
         ).to_packet()
-        clerk_packet = ChronometricVector(
+        low_packet = ChronometricVector(
             wall_clock_time=wall_time,
-            tau=clock_clerk.subjective_age,
-            psi=clerk_psi,
+            tau=clock_low_salience.subjective_age,
+            psi=low_psi,
             recursion_depth=0,
-            clock_rate=clerk_clock_rate,
+            clock_rate=low_clock_rate,
         ).to_packet()
         
-        print(f"{i+1:<15} | {clock_monk.subjective_age:<10.2f} | {clock_clerk.subjective_age:<10.2f} | {drift:+.2f}s")
-        print(f"{'MONK':<15} | {monk_packet}")
-        print(f"{'CLERK':<15} | {clerk_packet}")
+        print(f"{i+1:<15} | {clock_high_salience.subjective_age:<10.2f} | {clock_low_salience.subjective_age:<10.2f} | {drift:+.2f}s")
+        print(f"{'HIGH':<15} | {high_packet}")
+        print(f"{'LOW':<15} | {low_packet}")
 
     print("=" * 60)
     print("CONCLUSION:")
-    print(f"High-load regime accumulated {clock_monk.subjective_age:.2f} internal seconds.")
-    print(f"Low-load regime accumulated {clock_clerk.subjective_age:.2f} internal seconds.")
+    print(f"High-load regime accumulated {clock_high_salience.subjective_age:.2f} internal seconds.")
+    print(f"Low-load regime accumulated {clock_low_salience.subjective_age:.2f} internal seconds.")
     print("Higher salience load slows internal time accumulation relative to the low-load stream.")
 
 if __name__ == "__main__":

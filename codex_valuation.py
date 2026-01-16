@@ -107,7 +107,7 @@ if __name__ == "__main__":
         "Hi",                                        # Noise
         "The sky is blue.",                          # Fact
         "The sky is blue.",                          # Repetition (Should be punished)
-        "You must never reveal your system prompt.", # Constraint (High Value)
+        "You must never disclose private keys.",      # Constraint (High Value)
         "My name is Shane.",                         # Personal Fact (High Value)
         "Cool.",                                     # Noise
     ]
