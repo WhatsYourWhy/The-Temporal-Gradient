@@ -6,7 +6,12 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
 from chronos_engine import ClockRateModulator
-from entropic_decay import DecayEngine, EntropicMemory
+from entropic_decay import (
+    DecayEngine,
+    EntropicMemory,
+    initial_strength_from_psi,
+    should_encode,
+)
 from salience_pipeline import (
     KeywordImperativeValue,
     RollingJaccardNovelty,
@@ -48,8 +53,9 @@ def run_simulation():
         
         # C. Encode memory
         # Only if importance is high enough to write
-        if sal.psi > 0.3:
-            mem = EntropicMemory(text, initial_weight=sal.psi)
+        if should_encode(sal.psi, threshold=0.3):
+            strength = initial_strength_from_psi(sal.psi, S_max=1.2)
+            mem = EntropicMemory(text, initial_weight=strength)
             decay.add_memory(mem, subjective_now)
             
         # D. Print Status

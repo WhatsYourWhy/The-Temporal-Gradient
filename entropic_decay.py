@@ -2,6 +2,25 @@ import math
 import uuid
 import time
 
+def _clamp(value, min_value=0.0, max_value=1.0):
+    return max(min_value, min(max_value, value))
+
+
+def should_encode(psi, threshold=0.3):
+    """
+    Decide whether an input is salient enough to write as memory.
+    """
+    return psi >= threshold
+
+
+def initial_strength_from_psi(psi, S_max=1.2):
+    """
+    Map salience (psi) to a bounded initial memory strength.
+    """
+    normalized = _clamp(psi, 0.0, 1.0)
+    return normalized * S_max
+
+
 class EntropicMemory:
     """
     A single unit of memory that fights against decay.
