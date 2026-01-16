@@ -2,6 +2,9 @@ import time
 import math
 import textwrap
 
+from chronometric_vector import ChronometricVector
+from salience_pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+
 class ClockRateModulator:
     """
     Clock-rate reparameterization for the internal time accumulator (τ).
@@ -121,9 +124,13 @@ class ClockRateModulator:
 
 if __name__ == "__main__":
     agent_clock = ClockRateModulator()
+    salience = SaliencePipeline(RollingJaccardNovelty(), KeywordImperativeValue())
     
-    print(f"{'EVENT':<20} | {'WALL TIME':<10} | {'INTERNAL τ':<10} | {'CLOCK RATE'}")
-    print("-" * 60)
+    print(
+        f"{'EVENT':<20} | {'WALL_T':<8} | {'TAU':<10} | {'SALIENCE':<9} | "
+        f"{'CLOCK_RATE':<10} | {'MEMORY_S':<8} | {'DEPTH'}"
+    )
+    print("-" * 90)
 
     simulated_events = [
         "",                                      # The Void (No data)
@@ -137,20 +144,38 @@ if __name__ == "__main__":
         """) * 5 
     ]
 
+    start_time = time.time()
     for event in simulated_events:
         # Simulate processing time (Wall Clock moves forward)
         time.sleep(1.0) 
         
-        psi = min(1.0, len(event) / 200) if event else 0.0
+        sal = salience.evaluate(event)
+        psi = sal.psi
 
         # The Agent "Experiences" the event
         d_tau = agent_clock.tick(psi)
+        wall_time = time.time() - start_time
         
         label = (event[:15] + '...') if len(event) > 15 else (event if event else "[EMPTY INPUT]")
         
-        print(f"{label:<20} | {1.0:<10} | {round(agent_clock.tau, 4):<10} | {round(agent_clock.clock_rate_from_psi(psi), 2)}x")
+        packet = ChronometricVector(
+            wall_clock_time=wall_time,
+            tau=agent_clock.tau,
+            psi=psi,
+            recursion_depth=0,
+            clock_rate=agent_clock.clock_rate_from_psi(psi),
+            H=sal.novelty,
+            V=sal.value,
+            memory_strength=0.0,
+        ).to_packet()
 
-    print("-" * 60)
+        print(
+            f"{label:<20} | {wall_time:<8.2f} | {agent_clock.tau:<10.4f} | {psi:<9.3f} | "
+            f"{agent_clock.clock_rate_from_psi(psi):<10.4f} | {0.0:<8.2f} | {0}"
+        )
+        print(f"{'PACKET':<8} | {packet}")
+
+    print("-" * 90)
     print("OBSERVATION:")
     print("In the empty input, 1 wall second ≈ 1 internal second (baseline rate).")
     print("During the high-load event, internal time advances more slowly (reduced clock rate).")
