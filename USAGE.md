@@ -17,6 +17,8 @@ The telemetry packet is versioned and split into **required** vs **optional** ke
 - `H`
 - `V`
 
+`CLOCK_RATE` and `MEMORY_S` are always present in the packet, but may be `null` if they were not set when the packet was created.
+
 CLI tables should print **only canonical columns** by default (`WALL_T`, `TAU`, `SALIENCE`, `CLOCK_RATE`, `MEMORY_S`, `DEPTH`). Extended fields like `H` and `V` are intended for verbose/debug output, not the base schema. Demo scripts may also include an `INPUT` column for readability; it is not part of the canonical packet schema.
 
 ## 1. The clock-rate table
@@ -45,11 +47,11 @@ At the end of the simulation, the decay engine reports which memories stayed abo
 ```
 >>> MEMORY AUDIT (Post-Simulation)
 [ALIVE] Strength: 1.42 | Content: "My name is Sentinel."
-[DEAD ] Content: "Rain. Water. Liquid."
+[PRUNED ] Content: "Rain. Water. Liquid."
 ```
 
 - **ALIVE:** The memory stayed above the pruning threshold because it started with high salience or was reconsolidated.
-- **DEAD:** The memory decayed below the threshold and was pruned.
+- **PRUNED:** The memory decayed below the threshold and was pruned.
 
 ## 3. Configuration hints
 Adjust these parameters in `simulation_run.py` and the supporting modules to shape the simulation:

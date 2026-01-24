@@ -51,6 +51,35 @@ S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
 - **Simulation Examples (`simulation_run.py`, `twin_paradox.py`)**  
   Demonstrations comparing high-salience vs low-salience regimes and their effects on \(\tau\) and \(S\).
 
+## Minimal usage (library-style)
+```python
+from chronos_engine import ClockRateModulator
+from chronometric_vector import ChronometricVector
+from salience_pipeline import RollingJaccardNovelty, KeywordImperativeValue, SaliencePipeline
+
+clock = ClockRateModulator(base_dilation_factor=1.0, min_clock_rate=0.05)
+salience = SaliencePipeline(RollingJaccardNovelty(), KeywordImperativeValue())
+
+text = "CRITICAL: SECURITY BREACH DETECTED."
+sal = salience.evaluate(text)
+
+# Use a fixed wall_delta to avoid relying on real time in a demo.
+clock.tick(psi=sal.psi, wall_delta=1.0)
+
+packet = ChronometricVector(
+    wall_clock_time=1.0,
+    tau=clock.tau,
+    psi=sal.psi,
+    recursion_depth=0,
+    clock_rate=clock.clock_rate_from_psi(sal.psi),
+    H=sal.novelty,
+    V=sal.value,
+    memory_strength=0.0,
+).to_packet()
+
+print(packet)
+```
+
 ## Stability Constraints
 - **Clock floor:** \(d\tau/dt\) clamps to a minimum value so \(\tau\) cannot stall under extreme salience loads.
 - **Reconsolidation diminishing returns:** \(\Delta_k\) decreases as access count rises to avoid runaway reinforcement.
