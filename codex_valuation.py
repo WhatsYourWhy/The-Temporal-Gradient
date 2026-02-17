@@ -98,7 +98,7 @@ class CodexValuator:
 # --- SIMULATION ---
 
 if __name__ == "__main__":
-    from salience_pipeline import CodexNoveltyAdapter, CodexValueAdapter, SaliencePipeline
+    from temporal_gradient.salience.pipeline import CodexNoveltyAdapter, CodexValueAdapter, SaliencePipeline
 
     judge = CodexValuator()
     pipeline = SaliencePipeline(CodexNoveltyAdapter(judge), CodexValueAdapter(judge))

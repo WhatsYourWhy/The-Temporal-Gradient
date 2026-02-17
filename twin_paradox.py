@@ -1,13 +1,8 @@
 import time
-import sys
-import os
 
-# Link to your src folder
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
-
-from chronos_engine import ClockRateModulator
-from chronometric_vector import ChronometricVector
-from salience_pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+from temporal_gradient.clock.chronos import ClockRateModulator
+from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
+from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
 
 def run_twin_experiment():
     print(">>> INITIATING TWIN PARADOX EXPERIMENT...")

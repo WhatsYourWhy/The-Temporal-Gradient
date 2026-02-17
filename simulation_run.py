@@ -1,19 +1,13 @@
 import time
-import sys
-import os
-
-# Add src to path so we can import modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
-
-from chronos_engine import ClockRateModulator
-from chronometric_vector import ChronometricVector
-from entropic_decay import (
+from temporal_gradient.clock.chronos import ClockRateModulator
+from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
+from temporal_gradient.memory.decay import (
     DecayEngine,
     EntropicMemory,
     initial_strength_from_psi,
     should_encode,
 )
-from salience_pipeline import (
+from temporal_gradient.salience.pipeline import (
     KeywordImperativeValue,
     RollingJaccardNovelty,
     SaliencePipeline,

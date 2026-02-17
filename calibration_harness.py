@@ -3,9 +3,9 @@ import random
 import statistics
 import time
 
-from chronos_engine import ClockRateModulator
-from entropic_decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
-from salience_pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+from temporal_gradient.clock.chronos import ClockRateModulator
+from temporal_gradient.memory.decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
+from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
 from temporal_gradient.config import load_config
 
 

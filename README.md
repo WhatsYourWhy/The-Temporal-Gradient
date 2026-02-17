@@ -42,20 +42,20 @@ S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
 - \(S_{\max}\): maximum memory strength cap (dimensionless)
 
 ## Architecture
-- **Clock-rate Reparameterization (`chronos_engine.py`)**  
+- **Clock-rate Reparameterization (`temporal_gradient/clock/chronos.py`)**  
   Maps salience load \(\Psi(t)\) to \(d\tau/dt\). Includes an explicit floor so \(\tau\) always advances.
-- **Entropic Memory Decay (`entropic_decay.py`)**  
+- **Entropic Memory Decay (`temporal_gradient/memory/decay.py`)**  
   Applies exponential decay over \(\tau\) and reconsolidates on access with diminishing returns and optional cooldown.
-- **Chronometric Vector (`chronometric_vector.py`)**  
+- **Chronometric Vector (`temporal_gradient/telemetry/chronometric_vector.py`)**  
   Telemetry packet carrying wall time, internal \(\tau\), salience load, and recursion depth for downstream logging.
 - **Simulation Examples (`simulation_run.py`, `twin_paradox.py`)**  
   Demonstrations comparing high-salience vs low-salience regimes and their effects on \(\tau\) and \(S\).
 
 ## Minimal usage (library-style)
 ```python
-from chronos_engine import ClockRateModulator
-from chronometric_vector import ChronometricVector
-from salience_pipeline import RollingJaccardNovelty, KeywordImperativeValue, SaliencePipeline
+from temporal_gradient.clock.chronos import ClockRateModulator
+from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
+from temporal_gradient.salience.pipeline import RollingJaccardNovelty, KeywordImperativeValue, SaliencePipeline
 
 clock = ClockRateModulator(base_dilation_factor=1.0, min_clock_rate=0.05)
 salience = SaliencePipeline(RollingJaccardNovelty(), KeywordImperativeValue())
