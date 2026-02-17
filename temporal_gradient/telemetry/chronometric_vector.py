@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Optional
 import json
 
+from .schema import validate_packet_schema
+
 @dataclass
 class ChronometricVector:
     """
@@ -65,17 +67,7 @@ class ChronometricVector:
             legacy_keys = {"t_obj", "r", "legacy_density", "LEGACY_DENSITY", "clock_rate", "psi"}
             if legacy_keys.intersection(data.keys()):
                 raise ValueError("Legacy keys present in canonical packet.")
-            missing = {
-                "SCHEMA_VERSION",
-                "WALL_T",
-                "TAU",
-                "SALIENCE",
-                "CLOCK_RATE",
-                "MEMORY_S",
-                "DEPTH",
-            } - set(data.keys())
-            if missing:
-                raise ValueError(f"Missing required keys: {sorted(missing)}")
+            validate_packet_schema(data, salience_mode="canonical")
             return ChronometricVector(
                 wall_clock_time=data["WALL_T"],
                 tau=data["TAU"],

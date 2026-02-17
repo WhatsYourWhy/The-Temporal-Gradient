@@ -53,6 +53,34 @@ def test_canonical_fixture_round_trip():
     assert round_trip.psi == pytest.approx(parsed.psi)
 
 
+def test_reject_out_of_range_salience_in_canonical_mode():
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": 1.0,
+        "TAU": 0.9,
+        "SALIENCE": 1.5,
+        "CLOCK_RATE": 0.6667,
+        "MEMORY_S": 0.4,
+        "DEPTH": 0,
+    }
+    with pytest.raises(ValueError, match="SALIENCE"):
+        ChronometricVector.from_packet(json.dumps(packet), salience_mode="canonical")
+
+
+def test_reject_wrong_types_for_required_fields_in_canonical_mode():
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": "1.0",
+        "TAU": 0.9,
+        "SALIENCE": 0.5,
+        "CLOCK_RATE": 0.6667,
+        "MEMORY_S": 0.4,
+        "DEPTH": "0",
+    }
+    with pytest.raises(TypeError):
+        ChronometricVector.from_packet(json.dumps(packet), salience_mode="canonical")
+
+
 def test_legacy_packet_requires_legacy_mode():
     legacy_packet = (FIXTURES / "legacy.jsonl").read_text().strip()
     with pytest.raises(ValueError):
