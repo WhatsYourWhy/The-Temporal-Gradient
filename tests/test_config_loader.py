@@ -3,7 +3,7 @@ import textwrap
 import pytest
 
 from temporal_gradient.clock.chronos import ClockRateModulator
-from temporal_gradient.config import ConfigValidationError, load_config
+from temporal_gradient.config_loader import ConfigValidationError, load_config
 
 
 def write_config(tmp_path, body: str):

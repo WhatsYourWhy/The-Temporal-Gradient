@@ -64,3 +64,15 @@ def test_harness_uses_config_path_for_runtime_behavior(tmp_path):
     summary_faster_wall, _ = run_harness(events, config_path=fast_cfg)
 
     assert summary_faster_wall["tau_final"] > summary_default["tau_final"]
+
+
+def test_harness_validates_every_packet(monkeypatch):
+    calls = []
+
+    def _capture(packet, **_kwargs):
+        calls.append(packet)
+
+    monkeypatch.setattr("sanity_harness.validate_packet", _capture)
+    events = ["a", "b", "c"]
+    _summary, packets = run_harness(events)
+    assert len(calls) == len(packets)

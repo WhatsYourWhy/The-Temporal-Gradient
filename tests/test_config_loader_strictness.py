@@ -2,7 +2,7 @@ import textwrap
 
 import pytest
 
-from temporal_gradient.config import ConfigValidationError, load_config
+from temporal_gradient.config_loader import ConfigValidationError, load_config
 
 
 def _write(tmp_path, body: str):

@@ -5,9 +5,10 @@ from typing import Dict, List, Tuple
 
 from temporal_gradient.clock.chronos import ClockRateModulator
 from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
+from temporal_gradient.telemetry.schema import validate_packet
 from temporal_gradient.memory.decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
 from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
-from temporal_gradient.config import TemporalGradientConfig, load_config
+from temporal_gradient.config_loader import TemporalGradientConfig, load_config
 
 
 def run_harness(
@@ -70,7 +71,9 @@ def run_harness(
             V=sal.value,
             memory_strength=memory_strength,
         )
-        packets.append(json.loads(vector.to_packet()))
+        packet = json.loads(vector.to_packet())
+        validate_packet(packet)
+        packets.append(packet)
         psi_values.append(sal.psi)
         clock_rates.append(dilation)
 
