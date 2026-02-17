@@ -1,6 +1,6 @@
 import math
 
-from chronos_engine import ClockRateModulator
+from temporal_gradient.clock.chronos import ClockRateModulator
 
 
 def test_clock_rate_monotonic_and_floor():

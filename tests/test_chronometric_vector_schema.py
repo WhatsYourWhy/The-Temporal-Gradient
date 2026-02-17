@@ -2,7 +2,7 @@ import json
 import pathlib
 import pytest
 
-from chronometric_vector import ChronometricVector
+from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 
 FIXTURES = pathlib.Path(__file__).parent / "fixtures" / "packets"
 

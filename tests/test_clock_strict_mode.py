@@ -1,6 +1,6 @@
 import pytest
 
-from chronos_engine import ClockRateModulator
+from temporal_gradient.clock.chronos import ClockRateModulator
 
 
 def test_canonical_requires_psi():

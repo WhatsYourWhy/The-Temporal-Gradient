@@ -1,6 +1,6 @@
 import math
 
-from salience_pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
 
 
 def test_salience_pipeline_bounds_and_product():
