@@ -7,6 +7,7 @@ from temporal_gradient.clock.chronos import ClockRateModulator
 from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 from temporal_gradient.telemetry.schema import validate_packet_schema
 from temporal_gradient.memory.decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
+from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
 from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
 from temporal_gradient.config_loader import TemporalGradientConfig, load_config
 
@@ -27,7 +28,10 @@ def run_harness(
     decay = DecayEngine(
         half_life=active_config.memory.half_life,
         prune_threshold=active_config.memory.prune_threshold,
+        decay_lambda=active_config.memory.decay_lambda,
+        s_max=active_config.memory.s_max,
     )
+    cooldown = ComputeCooldownPolicy(cooldown_tau=active_config.policies.cooldown_tau)
     salience = SaliencePipeline(
         RollingJaccardNovelty(window_size=active_config.salience.window_size),
         KeywordImperativeValue(
@@ -43,6 +47,7 @@ def run_harness(
     psi_values: List[float] = []
     clock_rates: List[float] = []
     memories_written = 0
+    last_memory_write_tau = float("-inf")
 
     for text in events:
         wall_time += active_config.policies.event_wall_delta
@@ -51,15 +56,17 @@ def run_harness(
         dilation = clock.clock_rate_from_psi(sal.psi)
 
         memory_strength = 0.0
-        if should_encode(sal.psi, threshold=active_config.memory.encode_threshold):
-            strength = initial_strength_from_psi(
-                sal.psi,
-                S_max=active_config.memory.initial_strength_max,
-            )
+        elapsed_since_write = clock.tau - last_memory_write_tau
+        if should_encode(sal.psi, threshold=active_config.memory.encode_threshold) and cooldown.allows_compute(
+            elapsed_tau=elapsed_since_write
+        ):
+            strength_cap = min(active_config.memory.initial_strength_max, active_config.memory.s_max)
+            strength = initial_strength_from_psi(sal.psi, S_max=strength_cap)
             memory_strength = strength
-            mem = EntropicMemory(text, initial_weight=strength)
+            mem = EntropicMemory(text, initial_weight=strength, s_max=active_config.memory.s_max)
             decay.add_memory(mem, clock.tau)
             memories_written += 1
+            last_memory_write_tau = clock.tau
 
         vector = ChronometricVector(
             wall_clock_time=wall_time,

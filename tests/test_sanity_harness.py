@@ -3,7 +3,16 @@ import textwrap
 from sanity_harness import run_harness
 
 
-def _write_config(tmp_path, filename: str, event_wall_delta: float):
+def _write_config(
+    tmp_path,
+    filename: str,
+    event_wall_delta: float,
+    *,
+    cooldown_tau: float = 0.0,
+    initial_strength_max: float = 1.2,
+    s_max: float = 1.5,
+    encode_threshold: float = 0.3,
+):
     path = tmp_path / filename
     path.write_text(
         textwrap.dedent(
@@ -22,12 +31,14 @@ def _write_config(tmp_path, filename: str, event_wall_delta: float):
             memory:
               half_life: 20.0
               prune_threshold: 0.2
-              encode_threshold: 0.3
-              initial_strength_max: 1.2
+              encode_threshold: {encode_threshold}
+              initial_strength_max: {initial_strength_max}
+              decay_lambda: 0.05
+              s_max: {s_max}
             policies:
               deterministic_seed: 1337
               event_wall_delta: {event_wall_delta}
-              cooldown_tau: 0.0
+              cooldown_tau: {cooldown_tau}
               calibration_post_sweep_wall_delta: 5.0
             """
         )
@@ -76,3 +87,45 @@ def test_harness_validates_every_packet(monkeypatch):
     events = ["a", "b", "c"]
     _summary, packets = run_harness(events)
     assert len(calls) == len(packets)
+
+
+def test_harness_applies_cooldown_policy_to_writes(tmp_path):
+    events = [
+        "CRITICAL input one",
+        "CRITICAL input two",
+        "CRITICAL input three",
+        "CRITICAL input four",
+    ]
+    no_cooldown_cfg = _write_config(
+        tmp_path,
+        "tg-no-cooldown.yaml",
+        event_wall_delta=1.0,
+        cooldown_tau=0.0,
+        encode_threshold=0.0,
+    )
+    with_cooldown_cfg = _write_config(
+        tmp_path,
+        "tg-with-cooldown.yaml",
+        event_wall_delta=1.0,
+        cooldown_tau=2.0,
+        encode_threshold=0.0,
+    )
+
+    summary_no_cooldown, _ = run_harness(events, config_path=no_cooldown_cfg)
+    summary_with_cooldown, _ = run_harness(events, config_path=with_cooldown_cfg)
+
+    assert summary_with_cooldown["memories_written"] < summary_no_cooldown["memories_written"]
+
+
+def test_harness_caps_initial_memory_strength_by_s_max(tmp_path):
+    cfg = _write_config(
+        tmp_path,
+        "tg-cap.yaml",
+        event_wall_delta=1.0,
+        initial_strength_max=2.0,
+        s_max=1.0,
+    )
+
+    _summary, packets = run_harness(["CRITICAL input"], config_path=cfg)
+
+    assert packets[0]["MEMORY_S"] <= 1.0

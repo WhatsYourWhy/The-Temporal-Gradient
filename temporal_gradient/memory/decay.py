@@ -19,19 +19,26 @@ def initial_strength_from_psi(psi, S_max=1.2):
     return normalized * S_max
 
 
-def decay_strength(strength: float, elapsed_tau: float, half_life: float) -> float:
+def decay_strength(strength: float, elapsed_tau: float, half_life: float | None = None, decay_lambda: float | None = None) -> float:
     if elapsed_tau < 0.0:
         elapsed_tau = 0.0
-    decayed_value = strength * (0.5 ** (elapsed_tau / half_life))
+
+    if decay_lambda is not None:
+        decayed_value = strength * math.exp(-decay_lambda * elapsed_tau)
+    elif half_life is not None:
+        decayed_value = strength * (0.5 ** (elapsed_tau / half_life))
+    else:
+        raise ValueError("either half_life or decay_lambda must be provided")
     return max(0.0, decayed_value)
 
 
 class EntropicMemory:
-    def __init__(self, content, initial_weight=1.0, tags=None):
+    def __init__(self, content, initial_weight=1.0, tags=None, s_max: float = S_MAX):
         self.id = str(uuid.uuid4())[:8]
         self.content = content
         self.tags = tags or []
         self.strength = initial_weight
+        self.s_max = s_max
         self.created_at_tau = 0.0
         self.last_accessed_tau = 0.0
         self.access_count = 1
@@ -43,19 +50,21 @@ class EntropicMemory:
 
         if elapsed >= cooldown:
             boost = max(0.02, 0.1 / self.access_count)
-            self.strength = min(S_MAX, self.strength + boost)
+            self.strength = min(self.s_max, self.strength + boost)
 
         return self.strength
 
 
 class DecayEngine:
-    def __init__(self, half_life=50.0, prune_threshold=0.2):
+    def __init__(self, half_life=50.0, prune_threshold=0.2, decay_lambda: float | None = None, s_max: float = S_MAX):
         self.half_life = half_life
+        self.decay_lambda = decay_lambda
         self.prune_threshold = prune_threshold
+        self.s_max = s_max
         self.store = DecayMemoryStore(
             calculate_strength=self.calculate_current_strength,
             prune_threshold=prune_threshold,
-            s_max=S_MAX,
+            s_max=s_max,
         )
 
     @property
@@ -65,6 +74,8 @@ class DecayEngine:
     def add_memory(self, memory_obj, current_tau):
         memory_obj.created_at_tau = current_tau
         memory_obj.last_accessed_tau = current_tau
+        if hasattr(memory_obj, "s_max"):
+            memory_obj.s_max = self.s_max
         self.store.add(memory_obj)
 
     def get_memory(self, memory_id):
@@ -80,7 +91,12 @@ class DecayEngine:
 
         effective_strength = max(memory.strength, 1e-12)
         adjusted_elapsed = elapsed / effective_strength
-        return decay_strength(memory.strength, adjusted_elapsed, self.half_life)
+        return decay_strength(
+            memory.strength,
+            adjusted_elapsed,
+            half_life=self.half_life,
+            decay_lambda=self.decay_lambda,
+        )
 
     def entropy_sweep(self, current_tau):
         survivors, forgotten = self.store.sweep(current_tau)
