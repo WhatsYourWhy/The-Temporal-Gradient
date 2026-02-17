@@ -147,6 +147,9 @@ Validation:
 - Cooldown window prevents rapid repeated reinforcement.
 - Canonical mode enforces salience normalization.
 
+## Changelog
+See `CHANGELOG.md` for the full release history, including `v0.2.0` canonicalization and policy formalization details.
+
 ## Testing
 Run:
 - `pytest -q`
