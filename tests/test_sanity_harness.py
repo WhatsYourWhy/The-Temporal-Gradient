@@ -72,7 +72,7 @@ def test_harness_validates_every_packet(monkeypatch):
     def _capture(packet, **_kwargs):
         calls.append(packet)
 
-    monkeypatch.setattr("sanity_harness.validate_packet", _capture)
+    monkeypatch.setattr("sanity_harness.validate_packet_schema", _capture)
     events = ["a", "b", "c"]
     _summary, packets = run_harness(events)
     assert len(calls) == len(packets)
