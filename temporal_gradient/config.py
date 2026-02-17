@@ -6,12 +6,43 @@ from typing import Any, Mapping
 
 try:
     import yaml  # type: ignore
-except ModuleNotFoundError:  # pragma: no cover - exercised in environments without PyYAML
+except ModuleNotFoundError:  # pragma: no cover
     yaml = None
 
 
 class ConfigValidationError(ValueError):
     """Raised when tg.yaml is malformed or out of bounds."""
+
+
+DEFAULTS: dict[str, dict[str, Any]] = {
+    "salience": {
+        "window_size": 5,
+        "keywords": ["must", "never", "critical", "always", "don't", "stop", "urgent"],
+        "base_value": 0.1,
+        "hit_value": 0.2,
+        "max_value": 1.0,
+    },
+    "clock": {
+        "base_dilation_factor": 1.0,
+        "min_clock_rate": 0.05,
+        "salience_mode": "canonical",
+        "legacy_density_scale": 100.0,
+    },
+    "memory": {
+        "half_life": 20.0,
+        "prune_threshold": 0.2,
+        "encode_threshold": 0.3,
+        "initial_strength_max": 1.2,
+        "decay_lambda": 0.05,
+        "s_max": 1.5,
+    },
+    "policies": {
+        "deterministic_seed": 1337,
+        "event_wall_delta": 1.0,
+        "cooldown_tau": 0.0,
+        "calibration_post_sweep_wall_delta": 5.0,
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -37,6 +68,8 @@ class MemoryConfig:
     prune_threshold: float
     encode_threshold: float
     initial_strength_max: float
+    decay_lambda: float
+    s_max: float
 
 
 @dataclass(frozen=True)
@@ -61,27 +94,21 @@ def _require_mapping(value: Any, section_name: str) -> Mapping[str, Any]:
     return value
 
 
-def _require_key(data: Mapping[str, Any], key: str, section_name: str) -> Any:
-    if key not in data:
-        raise ConfigValidationError(f"Missing required key: {section_name}.{key}")
-    return data[key]
+def _reject_unknown_keys(data: Mapping[str, Any], allowed: set[str], section_name: str) -> None:
+    unknown = sorted(set(data.keys()) - allowed)
+    if unknown:
+        raise ConfigValidationError(f"Unknown key(s) in {section_name}: {', '.join(unknown)}")
 
 
-def _require_number(data: Mapping[str, Any], key: str, section_name: str) -> float:
-    value = _require_key(data, key, section_name)
-    if not isinstance(value, (int, float)):
-        raise ConfigValidationError(f"{section_name}.{key} must be numeric")
-    return float(value)
-
-
-def _require_int(data: Mapping[str, Any], key: str, section_name: str) -> int:
-    value = _require_key(data, key, section_name)
-    if not isinstance(value, int):
-        raise ConfigValidationError(f"{section_name}.{key} must be an integer")
-    return value
-
-
-def _check_range(value: float, section_name: str, key: str, lower: float | None = None, upper: float | None = None, inclusive_lower: bool = True, inclusive_upper: bool = True) -> None:
+def _check_range(
+    value: float,
+    section_name: str,
+    key: str,
+    lower: float | None = None,
+    upper: float | None = None,
+    inclusive_lower: bool = True,
+    inclusive_upper: bool = True,
+) -> None:
     if lower is not None:
         if inclusive_lower and value < lower:
             raise ConfigValidationError(f"{section_name}.{key} must be >= {lower}")
@@ -94,59 +121,79 @@ def _check_range(value: float, section_name: str, key: str, lower: float | None 
             raise ConfigValidationError(f"{section_name}.{key} must be < {upper}")
 
 
+def _coerce_number(value: Any, section_name: str, key: str) -> float:
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        raise ConfigValidationError(f"{section_name}.{key} must be numeric")
+    return float(value)
+
+
+def _coerce_int(value: Any, section_name: str, key: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ConfigValidationError(f"{section_name}.{key} must be an integer")
+    return value
+
+
 def load_config(path: str | Path = "tg.yaml") -> TemporalGradientConfig:
     config_path = Path(path)
     raw_text = config_path.read_text()
-    if yaml is not None:
-        raw = yaml.safe_load(raw_text)
-    else:
-        raw = _parse_simple_yaml(raw_text)
+    raw = yaml.safe_load(raw_text) if yaml is not None else _parse_simple_yaml(raw_text)
     root = _require_mapping(raw, "root")
 
-    salience_raw = _require_mapping(_require_key(root, "salience", "root"), "salience")
-    clock_raw = _require_mapping(_require_key(root, "clock", "root"), "clock")
-    memory_raw = _require_mapping(_require_key(root, "memory", "root"), "memory")
-    policies_raw = _require_mapping(_require_key(root, "policies", "root"), "policies")
+    _reject_unknown_keys(root, set(DEFAULTS.keys()), "root")
 
-    window_size = _require_int(salience_raw, "window_size", "salience")
+    normalized: dict[str, dict[str, Any]] = {}
+    for section, defaults in DEFAULTS.items():
+        section_raw = _require_mapping(root.get(section, {}), section)
+        _reject_unknown_keys(section_raw, set(defaults.keys()), section)
+        merged = dict(defaults)
+        merged.update(section_raw)
+        normalized[section] = merged
+
+    salience_raw = normalized["salience"]
+    window_size = _coerce_int(salience_raw["window_size"], "salience", "window_size")
     _check_range(window_size, "salience", "window_size", lower=1)
-
-    keywords = _require_key(salience_raw, "keywords", "salience")
+    keywords = salience_raw["keywords"]
     if not isinstance(keywords, list) or not keywords or not all(isinstance(item, str) for item in keywords):
         raise ConfigValidationError("salience.keywords must be a non-empty list of strings")
-
-    base_value = _require_number(salience_raw, "base_value", "salience")
-    hit_value = _require_number(salience_raw, "hit_value", "salience")
-    max_value = _require_number(salience_raw, "max_value", "salience")
+    base_value = _coerce_number(salience_raw["base_value"], "salience", "base_value")
+    hit_value = _coerce_number(salience_raw["hit_value"], "salience", "hit_value")
+    max_value = _coerce_number(salience_raw["max_value"], "salience", "max_value")
     for key_name, val in (("base_value", base_value), ("hit_value", hit_value), ("max_value", max_value)):
         _check_range(val, "salience", key_name, lower=0.0, upper=1.0)
 
-    base_dilation = _require_number(clock_raw, "base_dilation_factor", "clock")
-    min_clock_rate = _require_number(clock_raw, "min_clock_rate", "clock")
-    legacy_density_scale = _require_number(clock_raw, "legacy_density_scale", "clock")
-    salience_mode = _require_key(clock_raw, "salience_mode", "clock")
+    clock_raw = normalized["clock"]
+    base_dilation = _coerce_number(clock_raw["base_dilation_factor"], "clock", "base_dilation_factor")
+    min_clock_rate = _coerce_number(clock_raw["min_clock_rate"], "clock", "min_clock_rate")
+    legacy_density_scale = _coerce_number(clock_raw["legacy_density_scale"], "clock", "legacy_density_scale")
+    salience_mode = clock_raw["salience_mode"]
     if salience_mode not in {"canonical", "legacy_density"}:
         raise ConfigValidationError("clock.salience_mode must be 'canonical' or 'legacy_density'")
     _check_range(base_dilation, "clock", "base_dilation_factor", lower=0.0, inclusive_lower=False)
     _check_range(min_clock_rate, "clock", "min_clock_rate", lower=0.0, upper=1.0, inclusive_lower=False)
     _check_range(legacy_density_scale, "clock", "legacy_density_scale", lower=0.0, inclusive_lower=False)
 
-    half_life = _require_number(memory_raw, "half_life", "memory")
-    prune_threshold = _require_number(memory_raw, "prune_threshold", "memory")
-    encode_threshold = _require_number(memory_raw, "encode_threshold", "memory")
-    initial_strength_max = _require_number(memory_raw, "initial_strength_max", "memory")
+    memory_raw = normalized["memory"]
+    half_life = _coerce_number(memory_raw["half_life"], "memory", "half_life")
+    prune_threshold = _coerce_number(memory_raw["prune_threshold"], "memory", "prune_threshold")
+    encode_threshold = _coerce_number(memory_raw["encode_threshold"], "memory", "encode_threshold")
+    initial_strength_max = _coerce_number(memory_raw["initial_strength_max"], "memory", "initial_strength_max")
+    decay_lambda = _coerce_number(memory_raw["decay_lambda"], "memory", "decay_lambda")
+    s_max = _coerce_number(memory_raw["s_max"], "memory", "s_max")
     _check_range(half_life, "memory", "half_life", lower=0.0, inclusive_lower=False)
     _check_range(prune_threshold, "memory", "prune_threshold", lower=0.0, upper=1.0)
     _check_range(encode_threshold, "memory", "encode_threshold", lower=0.0, upper=1.0)
     _check_range(initial_strength_max, "memory", "initial_strength_max", lower=0.0, inclusive_lower=False)
+    _check_range(decay_lambda, "memory", "decay_lambda", lower=0.0)
+    _check_range(s_max, "memory", "s_max", lower=0.0, inclusive_lower=False)
 
-    deterministic_seed = _require_int(policies_raw, "deterministic_seed", "policies")
-    event_wall_delta = _require_number(policies_raw, "event_wall_delta", "policies")
-    cooldown_tau = _require_number(policies_raw, "cooldown_tau", "policies")
-    calibration_post_sweep_wall_delta = _require_number(
-        policies_raw,
-        "calibration_post_sweep_wall_delta",
+    policies_raw = normalized["policies"]
+    deterministic_seed = _coerce_int(policies_raw["deterministic_seed"], "policies", "deterministic_seed")
+    event_wall_delta = _coerce_number(policies_raw["event_wall_delta"], "policies", "event_wall_delta")
+    cooldown_tau = _coerce_number(policies_raw["cooldown_tau"], "policies", "cooldown_tau")
+    calibration_post_sweep_wall_delta = _coerce_number(
+        policies_raw["calibration_post_sweep_wall_delta"],
         "policies",
+        "calibration_post_sweep_wall_delta",
     )
     _check_range(event_wall_delta, "policies", "event_wall_delta", lower=0.0, inclusive_lower=False)
     _check_range(cooldown_tau, "policies", "cooldown_tau", lower=0.0)
@@ -177,6 +224,8 @@ def load_config(path: str | Path = "tg.yaml") -> TemporalGradientConfig:
             prune_threshold=prune_threshold,
             encode_threshold=encode_threshold,
             initial_strength_max=initial_strength_max,
+            decay_lambda=decay_lambda,
+            s_max=s_max,
         ),
         policies=PoliciesConfig(
             deterministic_seed=deterministic_seed,
@@ -187,11 +236,16 @@ def load_config(path: str | Path = "tg.yaml") -> TemporalGradientConfig:
     )
 
 
+# Lightweight fallback parser retained for environments without PyYAML.
 def _parse_simple_yaml(raw_text: str) -> Mapping[str, Any]:
     lines = raw_text.splitlines()
 
     def parse_scalar(token: str) -> Any:
         token = token.strip()
+        if token == "{}":
+            return {}
+        if token == "[]":
+            return []
         if token.startswith("[") and token.endswith("]"):
             inside = token[1:-1].strip()
             if not inside:
@@ -210,7 +264,6 @@ def _parse_simple_yaml(raw_text: str) -> Mapping[str, Any]:
             return token
 
     def parse_block(index: int, indent: int) -> tuple[Any, int]:
-        # Skip blank/comment lines.
         while index < len(lines) and (not lines[index].strip() or lines[index].lstrip().startswith("#")):
             index += 1
         if index >= len(lines):

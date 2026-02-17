@@ -1,6 +1,5 @@
 from numbers import Real
-from typing import Mapping, Any, Optional, Tuple
-
+from typing import Any, Mapping, Optional, Tuple
 
 REQUIRED_CANONICAL_KEYS = {
     "SCHEMA_VERSION",
@@ -11,7 +10,7 @@ REQUIRED_CANONICAL_KEYS = {
     "MEMORY_S",
     "DEPTH",
 }
-
+OPTIONAL_CANONICAL_KEYS = {"H", "V", "entropy_cost"}
 
 NUMERIC_FIELDS = {
     "WALL_T",
@@ -32,13 +31,22 @@ def validate_packet_schema(
     salience_mode: str = "canonical",
     clock_rate_bounds: Optional[Tuple[float, float]] = None,
 ) -> None:
-    """Validate telemetry packet fields for canonical schema packets."""
+    """Validate canonical telemetry packets with explicit typing (no coercion)."""
     if salience_mode != "canonical":
         return
 
-    missing = REQUIRED_CANONICAL_KEYS - set(packet.keys())
+    keys = set(packet.keys())
+    missing = REQUIRED_CANONICAL_KEYS - keys
     if missing:
         raise ValueError(f"Missing required keys: {sorted(missing)}")
+
+    unknown = keys - REQUIRED_CANONICAL_KEYS - OPTIONAL_CANONICAL_KEYS
+    if unknown:
+        raise ValueError(f"Unknown telemetry keys: {sorted(unknown)}")
+
+    schema_version = packet["SCHEMA_VERSION"]
+    if not isinstance(schema_version, str):
+        raise TypeError("SCHEMA_VERSION must be a string")
 
     for field in NUMERIC_FIELDS:
         if not _is_numeric(packet[field]):

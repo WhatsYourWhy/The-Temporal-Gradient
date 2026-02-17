@@ -23,6 +23,8 @@ memory:
   prune_threshold: 0.2
   encode_threshold: 0.3
   initial_strength_max: 1.2
+  decay_lambda: 0.05
+  s_max: 1.5
 
 policies:
   deterministic_seed: 1337
