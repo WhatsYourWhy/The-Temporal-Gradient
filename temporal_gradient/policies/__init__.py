@@ -1,3 +1,6 @@
-from .compute_budget import ComputeBudgetPolicy, allows_compute
+"""Policy helpers for compute cooldown gating."""
 
-__all__ = ["ComputeBudgetPolicy", "allows_compute"]
+from .compute_budget import ComputeBudgetPolicy
+from .compute_cooldown import ComputeCooldownPolicy, allows_compute
+
+__all__ = ["ComputeCooldownPolicy", "ComputeBudgetPolicy", "allows_compute"]

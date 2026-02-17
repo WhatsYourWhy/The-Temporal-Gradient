@@ -1,4 +1,6 @@
 import json
+import re
+from pathlib import Path
 
 from calibration_harness import run_calibration
 from sanity_harness import run_harness
@@ -36,3 +38,11 @@ policies: {}
     run_calibration(str(cfg))
     second = json.loads(capsys.readouterr().out)
     assert first == second
+
+
+def test_harnesses_use_only_config_loader_imports():
+    harness_files = ["sanity_harness.py", "calibration_harness.py"]
+    for harness_file in harness_files:
+        source = Path(harness_file).read_text()
+        assert "temporal_gradient.config_loader" in source
+        assert not re.search(r"(?:from|import)\s+temporal_gradient\.config\b", source)
