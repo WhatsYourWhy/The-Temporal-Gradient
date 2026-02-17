@@ -6,7 +6,7 @@ import time
 from temporal_gradient.clock.chronos import ClockRateModulator
 from temporal_gradient.memory.decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
 from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
-from temporal_gradient.config import load_config
+from temporal_gradient.config_loader import load_config
 
 
 def deterministic_tick(clock, psi, wall_delta, current_time):

@@ -67,3 +67,17 @@ def validate_packet_schema(
         clock_rate = packet["CLOCK_RATE"]
         if clock_rate < lower or clock_rate > upper:
             raise ValueError(f"CLOCK_RATE must be within [{lower}, {upper}]")
+
+
+def validate_packet(
+    packet: Mapping[str, Any],
+    *,
+    salience_mode: str = "canonical",
+    clock_rate_bounds: Optional[Tuple[float, float]] = None,
+) -> None:
+    """Backward-compatible alias for packet schema validation."""
+    validate_packet_schema(
+        packet,
+        salience_mode=salience_mode,
+        clock_rate_bounds=clock_rate_bounds,
+    )
