@@ -1,7 +1,7 @@
 # Temporal Gradient: Internal Timebase + Entropic Memory
 
 ## Status
-- Current Version: 0.1.0
+- Current Version: 0.2.0
 - License: See LICENSE (proprietary source-available; educational review only; **execution prohibited without permission**)
 
 ## Canonical Summary
@@ -79,6 +79,17 @@ packet = ChronometricVector(
 
 print(packet)
 ```
+
+
+## API Stability (v0.2.x)
+Stable import paths in the v0.2.x line:
+- `import temporal_gradient as tg`
+- `tg.clock`, `tg.memory`, `tg.salience`, `tg.telemetry`
+- `tg.load_config(...)`
+
+## Testing
+Run the same command used by CI:
+- `pytest -q`
 
 ## Stability Constraints
 - **Clock floor:** \(d\tau/dt\) clamps to a minimum value so \(\tau\) cannot stall under extreme salience loads.

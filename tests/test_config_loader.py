@@ -12,7 +12,7 @@ def write_config(tmp_path, body: str):
     return path
 
 
-def test_missing_required_keys_fail_fast(tmp_path):
+def test_missing_root_sections_are_defaulted(tmp_path):
     config_path = write_config(
         tmp_path,
         """
@@ -35,8 +35,8 @@ def test_missing_required_keys_fail_fast(tmp_path):
         """,
     )
 
-    with pytest.raises(ConfigValidationError, match="Missing required key: root.policies"):
-        load_config(config_path)
+    cfg = load_config(config_path)
+    assert cfg.policies.event_wall_delta > 0
 
 
 def test_out_of_range_values_fail_fast(tmp_path):

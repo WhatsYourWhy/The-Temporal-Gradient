@@ -46,6 +46,15 @@ class RollingJaccardNovelty:
 
     def score(self, text: str) -> Tuple[float, Dict[str, float]]:
         tokens = self._tokenize(text)
+        if not tokens:
+            self._history.append(tokens)
+            if len(self._history) > self.window_size:
+                self._history = self._history[-self.window_size :]
+            return 0.0, {
+                "H_jaccard_max": 0.0,
+                "H_tokens": 0.0,
+                "H_history": float(len(self._history)),
+            }
         max_similarity = 0.0
 
         if tokens and self._history:
@@ -57,7 +66,7 @@ class RollingJaccardNovelty:
                     similarity = len(tokens & past_tokens) / len(union)
                 max_similarity = max(max_similarity, similarity)
 
-        novelty = 1.0 - max_similarity
+        novelty = max(0.0, min(1.0, 1.0 - max_similarity))
 
         self._history.append(tokens)
         if len(self._history) > self.window_size:
@@ -94,6 +103,7 @@ class KeywordImperativeValue:
             if pattern.search(lowered):
                 hits += 1
         value = min(self.max_value, self.base_value + (self.hit_value * hits))
+        value = max(0.0, min(1.0, value))
         diagnostics = {
             "V_keyword_hits": float(hits),
             "V_keyword_count": float(len(self.keywords)),
@@ -110,7 +120,9 @@ class SaliencePipeline:
     def evaluate(self, text: str) -> SalienceComponents:
         novelty, novelty_diag = self.novelty_scorer.score(text)
         value, value_diag = self.value_scorer.score(text)
-        psi = novelty * value
+        novelty = max(0.0, min(1.0, novelty))
+        value = max(0.0, min(1.0, value))
+        psi = max(0.0, min(1.0, novelty * value))
         diagnostics: Dict[str, float] = {}
         diagnostics.update(novelty_diag)
         diagnostics.update(value_diag)
