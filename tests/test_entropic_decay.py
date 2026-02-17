@@ -29,3 +29,36 @@ def test_reconsolidation_cooldown_enforced():
     strength_after = memory.reconsolidate(current_tau=0.5, cooldown=1.0)
 
     assert math.isclose(strength_after, initial_strength)
+
+
+def test_entropy_sweep_evicts_pruned_memories_from_store():
+    engine = DecayEngine(half_life=10.0, prune_threshold=0.2)
+    persistent = EntropicMemory("persistent", initial_weight=1.2)
+    fragile = EntropicMemory("fragile", initial_weight=0.25)
+
+    engine.add_memory(persistent, current_tau=0.0)
+    engine.add_memory(fragile, current_tau=0.0)
+
+    survivors, forgotten = engine.entropy_sweep(current_tau=20.0)
+
+    survivor_ids = {memory.id for memory, _ in survivors}
+    forgotten_ids = {memory.id for memory in forgotten}
+
+    assert persistent.id in survivor_ids
+    assert fragile.id in forgotten_ids
+
+    assert engine.get_memory(persistent.id) is persistent
+    assert engine.get_memory(fragile.id) is None
+    assert fragile not in engine.vault
+
+
+def test_touch_memory_reconsolidates_through_store_api():
+    engine = DecayEngine(half_life=10.0, prune_threshold=0.2)
+    memory = EntropicMemory("touch", initial_weight=0.9)
+    engine.add_memory(memory, current_tau=0.0)
+
+    strength_before = memory.strength
+    touched_strength = engine.touch_memory(memory.id, current_tau=5.0, cooldown=0.0)
+
+    assert touched_strength is not None
+    assert touched_strength >= strength_before

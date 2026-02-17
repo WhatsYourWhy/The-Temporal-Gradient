@@ -1,6 +1,7 @@
 import math
 import uuid
-import time
+
+from .store import DecayMemoryStore
 
 S_MAX = 1.5
 
@@ -69,12 +70,26 @@ class DecayEngine:
         # 'half_life' is the internal time (τ) it takes for a memory to lose 50% strength
         self.half_life = half_life
         self.prune_threshold = prune_threshold
-        self.vault = []
+        self.store = DecayMemoryStore(
+            calculate_strength=self.calculate_current_strength,
+            prune_threshold=prune_threshold,
+        )
+
+    @property
+    def vault(self):
+        """Backward-compatible view of active memory records."""
+        return list(self.store.records)
 
     def add_memory(self, memory_obj, current_tau):
         memory_obj.created_at_tau = current_tau
         memory_obj.last_accessed_tau = current_tau
-        self.vault.append(memory_obj)
+        self.store.add(memory_obj)
+
+    def get_memory(self, memory_id):
+        return self.store.get(memory_id)
+
+    def touch_memory(self, memory_id, current_tau, cooldown=0.0):
+        return self.store.touch(memory_id, current_tau, cooldown=cooldown)
 
     def calculate_current_strength(self, memory, current_tau):
         """
@@ -99,21 +114,7 @@ class DecayEngine:
         """
         Applies decay and removes memories below the configured threshold.
         """
-        survivors = []
-        forgotten = []
-        
-        for mem in self.vault:
-            current_val = self.calculate_current_strength(mem, current_tau)
-            
-            if current_val > self.prune_threshold:
-                # Update the stored strength for next pass (optional, but realistic)
-                # In a strict Ebbinghaus model, you calculate from last access.
-                # Here, we just track survivors.
-                survivors.append((mem, current_val))
-            else:
-                forgotten.append(mem)
-        
-        # Output the report
+        survivors, forgotten = self.store.sweep(current_tau)
         return survivors, forgotten
 
 # --- SIMULATION ---
