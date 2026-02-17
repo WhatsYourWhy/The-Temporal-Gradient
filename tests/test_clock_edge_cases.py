@@ -29,3 +29,9 @@ def test_tick_and_rate_validation_are_consistent_in_strict_mode():
         clock.clock_rate_from_psi(1.5)
     with pytest.raises(ValueError):
         clock.tick(psi=1.5, wall_delta=1.0)
+
+
+def test_tick_rejects_negative_wall_delta():
+    clock = ClockRateModulator()
+    with pytest.raises(ValueError, match="wall_delta must be non-negative"):
+        clock.tick(psi=0.5, wall_delta=-0.1)

@@ -84,6 +84,8 @@ class ClockRateModulator:
         if wall_delta is None:
             wall_delta = current_wall_time - self.last_tick
         else:
+            if wall_delta < 0:
+                raise ValueError("wall_delta must be non-negative")
             current_wall_time = self.last_tick + wall_delta
 
         clock_rate = self.clock_rate_from_psi(psi)
