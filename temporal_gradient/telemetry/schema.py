@@ -1,4 +1,5 @@
 from numbers import Real
+from typing import Mapping, Any, Optional, Tuple
 
 
 REQUIRED_CANONICAL_KEYS = {
@@ -21,11 +22,17 @@ NUMERIC_FIELDS = {
 }
 
 
-def _is_numeric(value):
+def _is_numeric(value: Any) -> bool:
     return isinstance(value, Real) and not isinstance(value, bool)
 
 
-def validate_packet_schema(packet, *, salience_mode="canonical", clock_rate_bounds=None):
+def validate_packet_schema(
+    packet: Mapping[str, Any],
+    *,
+    salience_mode: str = "canonical",
+    clock_rate_bounds: Optional[Tuple[float, float]] = None,
+) -> None:
+    """Validate telemetry packet fields for canonical schema packets."""
     if salience_mode != "canonical":
         return
 
