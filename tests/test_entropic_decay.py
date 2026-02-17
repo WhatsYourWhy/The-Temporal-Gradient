@@ -1,6 +1,6 @@
 import math
 
-from entropic_decay import DecayEngine, EntropicMemory, S_MAX
+from temporal_gradient.memory.decay import DecayEngine, EntropicMemory, S_MAX
 
 
 def test_decay_strength_nonincreasing_over_time():
