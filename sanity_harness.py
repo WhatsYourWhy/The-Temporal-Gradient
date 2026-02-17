@@ -7,12 +7,35 @@ from chronos_engine import ClockRateModulator
 from chronometric_vector import ChronometricVector
 from entropic_decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
 from salience_pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+from temporal_gradient.config import TemporalGradientConfig, load_config
 
 
-def run_harness(events: List[str]) -> Tuple[Dict[str, float], List[Dict[str, float]]]:
-    clock = ClockRateModulator(base_dilation_factor=1.0, min_clock_rate=0.05)
-    decay = DecayEngine(half_life=20.0, prune_threshold=0.2)
-    salience = SaliencePipeline(RollingJaccardNovelty(), KeywordImperativeValue())
+def run_harness(
+    events: List[str],
+    config: TemporalGradientConfig | None = None,
+    config_path: str = "tg.yaml",
+) -> Tuple[Dict[str, float], List[Dict[str, float]]]:
+    active_config = config or load_config(config_path)
+
+    clock = ClockRateModulator(
+        base_dilation_factor=active_config.clock.base_dilation_factor,
+        min_clock_rate=active_config.clock.min_clock_rate,
+        salience_mode=active_config.clock.salience_mode,
+        legacy_density_scale=active_config.clock.legacy_density_scale,
+    )
+    decay = DecayEngine(
+        half_life=active_config.memory.half_life,
+        prune_threshold=active_config.memory.prune_threshold,
+    )
+    salience = SaliencePipeline(
+        RollingJaccardNovelty(window_size=active_config.salience.window_size),
+        KeywordImperativeValue(
+            keywords=active_config.salience.keywords,
+            base_value=active_config.salience.base_value,
+            hit_value=active_config.salience.hit_value,
+            max_value=active_config.salience.max_value,
+        ),
+    )
 
     wall_time = 0.0
     packets: List[Dict[str, float]] = []
@@ -21,14 +44,17 @@ def run_harness(events: List[str]) -> Tuple[Dict[str, float], List[Dict[str, flo
     memories_written = 0
 
     for text in events:
-        wall_time += 1.0
+        wall_time += active_config.policies.event_wall_delta
         sal = salience.evaluate(text)
-        clock.tick(sal.psi, wall_delta=1.0)
+        clock.tick(sal.psi, wall_delta=active_config.policies.event_wall_delta)
         dilation = clock.clock_rate_from_psi(sal.psi)
 
         memory_strength = 0.0
-        if should_encode(sal.psi, threshold=0.3):
-            strength = initial_strength_from_psi(sal.psi, S_max=1.2)
+        if should_encode(sal.psi, threshold=active_config.memory.encode_threshold):
+            strength = initial_strength_from_psi(
+                sal.psi,
+                S_max=active_config.memory.initial_strength_max,
+            )
             memory_strength = strength
             mem = EntropicMemory(text, initial_weight=strength)
             decay.add_memory(mem, clock.tau)

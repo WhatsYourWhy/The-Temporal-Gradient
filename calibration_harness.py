@@ -6,6 +6,7 @@ import time
 from chronos_engine import ClockRateModulator
 from entropic_decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
 from salience_pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+from temporal_gradient.config import load_config
 
 
 def deterministic_tick(clock, psi, wall_delta, current_time):
@@ -20,8 +21,9 @@ def deterministic_tick(clock, psi, wall_delta, current_time):
     return next_time
 
 
-def run_calibration():
-    random.seed(1337)
+def run_calibration(config_path: str = "tg.yaml"):
+    config = load_config(config_path)
+    random.seed(config.policies.deterministic_seed)
 
     events = [
         "Boot sequence initiated.",
@@ -32,9 +34,25 @@ def run_calibration():
         "System idle. Monitoring continues.",
     ]
 
-    salience = SaliencePipeline(RollingJaccardNovelty(), KeywordImperativeValue())
-    clock = ClockRateModulator(base_dilation_factor=1.0, min_clock_rate=0.05)
-    decay = DecayEngine(half_life=30.0, prune_threshold=0.2)
+    salience = SaliencePipeline(
+        RollingJaccardNovelty(window_size=config.salience.window_size),
+        KeywordImperativeValue(
+            keywords=config.salience.keywords,
+            base_value=config.salience.base_value,
+            hit_value=config.salience.hit_value,
+            max_value=config.salience.max_value,
+        ),
+    )
+    clock = ClockRateModulator(
+        base_dilation_factor=config.clock.base_dilation_factor,
+        min_clock_rate=config.clock.min_clock_rate,
+        salience_mode=config.clock.salience_mode,
+        legacy_density_scale=config.clock.legacy_density_scale,
+    )
+    decay = DecayEngine(
+        half_life=config.memory.half_life,
+        prune_threshold=config.memory.prune_threshold,
+    )
 
     clock.start_wall_time = 0.0
     clock.last_tick = 0.0
@@ -45,16 +63,26 @@ def run_calibration():
 
     for text in events:
         sal = salience.evaluate(text)
-        wall_time = deterministic_tick(clock, sal.psi, wall_delta=1.0, current_time=wall_time)
+        wall_time = deterministic_tick(
+            clock,
+            sal.psi,
+            wall_delta=config.policies.event_wall_delta,
+            current_time=wall_time,
+        )
         psi_values.append(sal.psi)
         clock_rates.append(clock.clock_rate_from_psi(sal.psi))
 
-        if should_encode(sal.psi, threshold=0.3):
-            strength = initial_strength_from_psi(sal.psi, S_max=1.2)
+        if should_encode(sal.psi, threshold=config.memory.encode_threshold):
+            strength = initial_strength_from_psi(sal.psi, S_max=config.memory.initial_strength_max)
             memory = EntropicMemory(text, initial_weight=strength)
             decay.add_memory(memory, clock.tau)
 
-    wall_time = deterministic_tick(clock, psi=0.0, wall_delta=5.0, current_time=wall_time)
+    wall_time = deterministic_tick(
+        clock,
+        psi=0.0,
+        wall_delta=config.policies.calibration_post_sweep_wall_delta,
+        current_time=wall_time,
+    )
     survivors, pruned = decay.entropy_sweep(clock.tau)
 
     summary = {
