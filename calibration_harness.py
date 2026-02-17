@@ -5,6 +5,7 @@ import time
 
 from temporal_gradient.clock.chronos import ClockRateModulator
 from temporal_gradient.memory.decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
+from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
 from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
 from temporal_gradient.config_loader import load_config
 
@@ -52,7 +53,10 @@ def run_calibration(config_path: str = "tg.yaml"):
     decay = DecayEngine(
         half_life=config.memory.half_life,
         prune_threshold=config.memory.prune_threshold,
+        decay_lambda=config.memory.decay_lambda,
+        s_max=config.memory.s_max,
     )
+    cooldown = ComputeCooldownPolicy(cooldown_tau=config.policies.cooldown_tau)
 
     clock.start_wall_time = 0.0
     clock.last_tick = 0.0
@@ -60,6 +64,7 @@ def run_calibration(config_path: str = "tg.yaml"):
 
     psi_values = []
     clock_rates = []
+    last_memory_write_tau = float("-inf")
 
     for text in events:
         sal = salience.evaluate(text)
@@ -72,10 +77,15 @@ def run_calibration(config_path: str = "tg.yaml"):
         psi_values.append(sal.psi)
         clock_rates.append(clock.clock_rate_from_psi(sal.psi))
 
-        if should_encode(sal.psi, threshold=config.memory.encode_threshold):
-            strength = initial_strength_from_psi(sal.psi, S_max=config.memory.initial_strength_max)
-            memory = EntropicMemory(text, initial_weight=strength)
+        elapsed_since_write = clock.tau - last_memory_write_tau
+        if should_encode(sal.psi, threshold=config.memory.encode_threshold) and cooldown.allows_compute(
+            elapsed_tau=elapsed_since_write
+        ):
+            strength_cap = min(config.memory.initial_strength_max, config.memory.s_max)
+            strength = initial_strength_from_psi(sal.psi, S_max=strength_cap)
+            memory = EntropicMemory(text, initial_weight=strength, s_max=config.memory.s_max)
             decay.add_memory(memory, clock.tau)
+            last_memory_write_tau = clock.tau
 
     wall_time = deterministic_tick(
         clock,
