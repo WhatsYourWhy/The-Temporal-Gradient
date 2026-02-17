@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 from typing import Dict, List, Tuple
 
-from chronos_engine import ClockRateModulator
-from chronometric_vector import ChronometricVector
-from entropic_decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
-from salience_pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+from temporal_gradient.clock.chronos import ClockRateModulator
+from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
+from temporal_gradient.memory.decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
+from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
 from temporal_gradient.config import TemporalGradientConfig, load_config
 
 
