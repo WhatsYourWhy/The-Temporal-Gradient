@@ -1,0 +1,54 @@
+from numbers import Real
+
+
+REQUIRED_CANONICAL_KEYS = {
+    "SCHEMA_VERSION",
+    "WALL_T",
+    "TAU",
+    "SALIENCE",
+    "CLOCK_RATE",
+    "MEMORY_S",
+    "DEPTH",
+}
+
+
+NUMERIC_FIELDS = {
+    "WALL_T",
+    "TAU",
+    "SALIENCE",
+    "CLOCK_RATE",
+    "MEMORY_S",
+}
+
+
+def _is_numeric(value):
+    return isinstance(value, Real) and not isinstance(value, bool)
+
+
+def validate_packet_schema(packet, *, salience_mode="canonical", clock_rate_bounds=None):
+    if salience_mode != "canonical":
+        return
+
+    missing = REQUIRED_CANONICAL_KEYS - set(packet.keys())
+    if missing:
+        raise ValueError(f"Missing required keys: {sorted(missing)}")
+
+    for field in NUMERIC_FIELDS:
+        if not _is_numeric(packet[field]):
+            raise TypeError(f"{field} must be numeric")
+
+    salience = packet["SALIENCE"]
+    if not 0.0 <= salience <= 1.0:
+        raise ValueError("SALIENCE must be within [0.0, 1.0] in canonical mode")
+
+    depth = packet["DEPTH"]
+    if not isinstance(depth, int) or isinstance(depth, bool):
+        raise TypeError("DEPTH must be an integer")
+    if depth < 0:
+        raise ValueError("DEPTH must be non-negative")
+
+    if clock_rate_bounds is not None and packet.get("CLOCK_RATE") is not None:
+        lower, upper = clock_rate_bounds
+        clock_rate = packet["CLOCK_RATE"]
+        if clock_rate < lower or clock_rate > upper:
+            raise ValueError(f"CLOCK_RATE must be within [{lower}, {upper}]")
