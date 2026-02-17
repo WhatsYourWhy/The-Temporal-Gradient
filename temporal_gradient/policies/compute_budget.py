@@ -1,18 +1,11 @@
-from __future__ import annotations
+"""Backward-compatible shim for cooldown-based compute policy names.
 
-from dataclasses import dataclass
+Canonical API lives in :mod:`temporal_gradient.policies.compute_cooldown`.
+"""
 
+from .compute_cooldown import ComputeCooldownPolicy, allows_compute
 
-@dataclass(frozen=True)
-class ComputeBudgetPolicy:
-    """Simple cooldown-based compute gating policy."""
+# Backward-compatible alias retained for v0.2.0 import stability.
+ComputeBudgetPolicy = ComputeCooldownPolicy
 
-    cooldown_tau: float = 0.0
-
-    def allows_compute(self, *, elapsed_tau: float) -> bool:
-        return elapsed_tau >= self.cooldown_tau
-
-
-def allows_compute(*, elapsed_tau: float, cooldown_tau: float = 0.0) -> bool:
-    """Return whether compute is allowed under a cooldown budget."""
-    return ComputeBudgetPolicy(cooldown_tau=cooldown_tau).allows_compute(elapsed_tau=elapsed_tau)
+__all__ = ["ComputeCooldownPolicy", "ComputeBudgetPolicy", "allows_compute"]

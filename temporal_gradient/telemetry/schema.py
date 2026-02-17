@@ -1,3 +1,5 @@
+"""Telemetry packet schema validation for canonical v0.2.0 packets."""
+
 from numbers import Real
 from typing import Any, Mapping, Optional, Tuple
 
@@ -75,7 +77,7 @@ def validate_packet(
     salience_mode: str = "canonical",
     clock_rate_bounds: Optional[Tuple[float, float]] = None,
 ) -> None:
-    """Backward-compatible alias for packet schema validation."""
+    """Backward-compatible alias for :func:`validate_packet_schema`."""
     validate_packet_schema(
         packet,
         salience_mode=salience_mode,

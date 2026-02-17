@@ -22,3 +22,8 @@ def test_contracts_all_contains_protocols():
         "TelemetryPacketContract",
     }
     assert required.issubset(set(c.__all__))
+
+
+def test_policies_exports_include_cooldown_and_budget_compat():
+    assert hasattr(tg.policies, "ComputeCooldownPolicy")
+    assert hasattr(tg.policies, "ComputeBudgetPolicy")
