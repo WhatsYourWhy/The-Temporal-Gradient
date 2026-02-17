@@ -1,0 +1,31 @@
+salience:
+  window_size: 5
+  keywords:
+    - must
+    - never
+    - critical
+    - always
+    - don't
+    - stop
+    - urgent
+  base_value: 0.1
+  hit_value: 0.2
+  max_value: 1.0
+
+clock:
+  base_dilation_factor: 1.0
+  min_clock_rate: 0.05
+  salience_mode: canonical
+  legacy_density_scale: 100.0
+
+memory:
+  half_life: 20.0
+  prune_threshold: 0.2
+  encode_threshold: 0.3
+  initial_strength_max: 1.2
+
+policies:
+  deterministic_seed: 1337
+  event_wall_delta: 1.0
+  cooldown_tau: 0.0
+  calibration_post_sweep_wall_delta: 5.0
