@@ -17,9 +17,11 @@ The telemetry packet is versioned and split into **required** vs **optional** ke
 - `H`
 - `V`
 
-`CLOCK_RATE` and `MEMORY_S` are always present in the packet, but may be `null` if they were not set when the packet was created.
+`CLOCK_RATE` and `MEMORY_S` are always present in canonical packets. If unset at construction time, serialization currently emits numeric fallbacks (`0.0`), not `null`.
 
 CLI tables should print **only canonical columns** by default (`WALL_T`, `TAU`, `SALIENCE`, `CLOCK_RATE`, `MEMORY_S`, `DEPTH`). Extended fields like `H` and `V` are intended for verbose/debug output, not the base schema. Demo scripts may also include an `INPUT` column for readability; it is not part of the canonical packet schema.
+
+Legacy-mode note: `salience_mode="legacy_density"` is compatibility behavior. In this mode, salience is derived from entropy density and clamped into `[0,1]`, and canonical telemetry schema strictness is not enforced.
 
 ## 1. The clock-rate table
 This table shows how the internal clock-rate is reparameterized by salience load (surprise × value).
