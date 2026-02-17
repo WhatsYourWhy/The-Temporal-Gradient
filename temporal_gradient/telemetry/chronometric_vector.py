@@ -61,13 +61,17 @@ class ChronometricVector:
         return json.dumps(packet)
 
     @staticmethod
-    def from_packet(json_str, salience_mode="canonical"):
+    def from_packet(json_str, salience_mode="canonical", clock_rate_bounds=None):
         data = json.loads(json_str)
         if salience_mode == "canonical":
             legacy_keys = {"t_obj", "r", "legacy_density", "LEGACY_DENSITY", "clock_rate", "psi"}
             if legacy_keys.intersection(data.keys()):
                 raise ValueError("Legacy keys present in canonical packet.")
-            validate_packet_schema(data, salience_mode="canonical")
+            validate_packet_schema(
+                data,
+                salience_mode="canonical",
+                clock_rate_bounds=clock_rate_bounds,
+            )
             return ChronometricVector(
                 wall_clock_time=data["WALL_T"],
                 tau=data["TAU"],

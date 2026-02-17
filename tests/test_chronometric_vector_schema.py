@@ -81,6 +81,25 @@ def test_reject_wrong_types_for_required_fields_in_canonical_mode():
         ChronometricVector.from_packet(json.dumps(packet), salience_mode="canonical")
 
 
+def test_optional_clock_rate_bounds_in_canonical_mode():
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": 1.0,
+        "TAU": 0.9,
+        "SALIENCE": 0.5,
+        "CLOCK_RATE": 2.0,
+        "MEMORY_S": 0.4,
+        "DEPTH": 0,
+    }
+
+    with pytest.raises(ValueError, match="CLOCK_RATE"):
+        ChronometricVector.from_packet(
+            json.dumps(packet),
+            salience_mode="canonical",
+            clock_rate_bounds=(0.0, 1.0),
+        )
+
+
 def test_legacy_packet_requires_legacy_mode():
     legacy_packet = (FIXTURES / "legacy.jsonl").read_text().strip()
     with pytest.raises(ValueError):
