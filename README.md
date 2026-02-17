@@ -66,6 +66,7 @@ S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
 - `ComputeCooldownPolicy`
 - `allows_compute(...)` gate
 - This is a cooldown gate, not a compute-step allocator (`compute_budget` is a compatibility shim)
+- Canonical policy surface is provided by the library, but enforcement is not globally auto-wired; each harness/runtime must instantiate and apply the policy gate explicitly
 
 ### Telemetry Layer
 - `temporal_gradient.telemetry`
@@ -140,12 +141,14 @@ Compatibility shims are retained for one release window but are not canonical.
 Validation:
 - `validate_packet_schema(...)` is canonical
 - `validate_packet(...)` is compatibility alias
+- In `legacy_density` mode, canonical packet validation is intentionally bypassed for backward compatibility
 
 ## Stability Constraints
 - Clock rate has an explicit minimum floor.
 - Reconsolidation boost is bounded and diminishes.
 - Cooldown window prevents rapid repeated reinforcement.
 - Canonical mode enforces salience normalization.
+- Legacy density mode derives/clamps salience from entropy density and does not enforce canonical packet-schema strictness.
 
 ## Changelog
 See `CHANGELOG.md` for the full release history, including `v0.2.0` canonicalization and policy formalization details.
