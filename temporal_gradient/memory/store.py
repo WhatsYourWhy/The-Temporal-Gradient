@@ -1,28 +1,33 @@
 from __future__ import annotations
 
-from typing import Dict, List, Sequence, Tuple
+from abc import ABC, abstractmethod
+from typing import Callable, Dict, List, Sequence, Tuple
 
 
-class MemoryStore:
+class MemoryStore(ABC):
     """Storage interface for active memories managed by the decay engine."""
 
+    @abstractmethod
     def add(self, record):
-        raise NotImplementedError
+        """Insert a record into active storage."""
 
+    @abstractmethod
     def get(self, record_id: str):
-        raise NotImplementedError
+        """Fetch a record by id from active storage."""
 
+    @abstractmethod
     def sweep(self, current_tau: float):
-        raise NotImplementedError
+        """Apply pruning and return diagnostics for survivors and forgotten memories."""
 
+    @abstractmethod
     def touch(self, record_id: str, current_tau: float, cooldown: float = 0.0):
-        raise NotImplementedError
+        """Reconsolidate a record through the store API."""
 
 
 class DecayMemoryStore(MemoryStore):
     """In-memory store backed by a retained-record index for pruning sweeps."""
 
-    def __init__(self, calculate_strength, prune_threshold: float):
+    def __init__(self, calculate_strength: Callable[[object, float], float], prune_threshold: float):
         self._calculate_strength = calculate_strength
         self.prune_threshold = prune_threshold
         self._records_by_id: Dict[str, object] = {}
@@ -31,6 +36,11 @@ class DecayMemoryStore(MemoryStore):
     @property
     def records(self) -> Sequence[object]:
         return [self._records_by_id[record_id] for record_id in self._active_order]
+
+    @property
+    def active_ids(self) -> Tuple[str, ...]:
+        """Current retained memory ids in deterministic insertion order."""
+        return tuple(self._active_order)
 
     def add(self, record):
         self._records_by_id[record.id] = record

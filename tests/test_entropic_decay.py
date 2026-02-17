@@ -49,6 +49,8 @@ def test_entropy_sweep_evicts_pruned_memories_from_store():
 
     assert engine.get_memory(persistent.id) is persistent
     assert engine.get_memory(fragile.id) is None
+    assert engine.store.active_ids == (persistent.id,)
+    assert [memory.id for memory in engine.vault] == [persistent.id]
     assert fragile not in engine.vault
 
 
