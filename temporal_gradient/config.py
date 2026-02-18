@@ -41,6 +41,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "event_wall_delta": 1.0,
         "cooldown_tau": 0.0,
         "calibration_post_sweep_wall_delta": 5.0,
+        "replay_require_provenance_hash": False,
     },
 }
 
@@ -78,6 +79,7 @@ class PoliciesConfig:
     event_wall_delta: float
     cooldown_tau: float
     calibration_post_sweep_wall_delta: float
+    replay_require_provenance_hash: bool
 
 
 @dataclass(frozen=True)
@@ -195,6 +197,9 @@ def load_config(path: str | Path = "tg.yaml") -> TemporalGradientConfig:
         "policies",
         "calibration_post_sweep_wall_delta",
     )
+    replay_require_provenance_hash = policies_raw["replay_require_provenance_hash"]
+    if not isinstance(replay_require_provenance_hash, bool):
+        raise ConfigValidationError("policies.replay_require_provenance_hash must be a boolean")
     _check_range(event_wall_delta, "policies", "event_wall_delta", lower=0.0, inclusive_lower=False)
     _check_range(cooldown_tau, "policies", "cooldown_tau", lower=0.0)
     _check_range(
@@ -232,6 +237,7 @@ def load_config(path: str | Path = "tg.yaml") -> TemporalGradientConfig:
             event_wall_delta=event_wall_delta,
             cooldown_tau=cooldown_tau,
             calibration_post_sweep_wall_delta=calibration_post_sweep_wall_delta,
+            replay_require_provenance_hash=replay_require_provenance_hash,
         ),
     )
 

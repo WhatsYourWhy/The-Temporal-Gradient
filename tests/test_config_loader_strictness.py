@@ -106,3 +106,27 @@ def test_load_config_fallback_parser_accepts_scientific_notation(tmp_path, monke
     cfg = load_config(path)
     assert cfg.clock.min_clock_rate == pytest.approx(0.05)
     assert cfg.memory.decay_lambda == pytest.approx(0.05)
+
+
+def test_load_config_rejects_non_boolean_replay_require_provenance_hash(tmp_path):
+    path = _write(tmp_path, """
+    salience: {}
+    clock: {}
+    memory: {}
+    policies:
+      replay_require_provenance_hash: 1
+    """)
+    with pytest.raises(ConfigValidationError, match="replay_require_provenance_hash"):
+        load_config(path)
+
+
+def test_load_config_defaults_replay_require_provenance_hash_to_false(tmp_path):
+    path = _write(tmp_path, """
+    salience: {}
+    clock: {}
+    memory: {}
+    policies: {}
+    """)
+
+    cfg = load_config(path)
+    assert cfg.policies.replay_require_provenance_hash is False

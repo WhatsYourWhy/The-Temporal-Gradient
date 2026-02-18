@@ -106,3 +106,41 @@ def test_legacy_packet_requires_legacy_mode():
         ChronometricVector.from_packet(legacy_packet, salience_mode="canonical")
     parsed = ChronometricVector.from_packet(legacy_packet, salience_mode="legacy_density")
     assert parsed.psi == pytest.approx(0.5)
+
+
+def test_canonical_from_packet_strict_mode_requires_provenance_hash():
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": 1.0,
+        "TAU": 0.9,
+        "SALIENCE": 0.5,
+        "CLOCK_RATE": 0.6667,
+        "MEMORY_S": 0.4,
+        "DEPTH": 0,
+    }
+
+    with pytest.raises(ValueError, match="PROVENANCE_HASH is required"):
+        ChronometricVector.from_packet(
+            json.dumps(packet),
+            salience_mode="canonical",
+            require_provenance_hash=True,
+        )
+
+
+def test_canonical_from_packet_compatibility_mode_allows_missing_provenance_hash():
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": 1.0,
+        "TAU": 0.9,
+        "SALIENCE": 0.5,
+        "CLOCK_RATE": 0.6667,
+        "MEMORY_S": 0.4,
+        "DEPTH": 0,
+    }
+
+    parsed = ChronometricVector.from_packet(
+        json.dumps(packet),
+        salience_mode="canonical",
+        require_provenance_hash=False,
+    )
+    assert parsed.provenance_hash is None

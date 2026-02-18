@@ -37,10 +37,19 @@ policies:
   event_wall_delta: 1.0
   cooldown_tau: {cooldown_tau}
   calibration_post_sweep_wall_delta: {sweep_every}
+  replay_require_provenance_hash: {replay_require_provenance_hash}
 """
 
 
-def _write_cfg(*, cooldown_tau: float, encode_threshold: float, s_max: float, decay_lambda: float, sweep_every: float) -> str:
+def _write_cfg(
+    *,
+    cooldown_tau: float,
+    encode_threshold: float,
+    s_max: float,
+    decay_lambda: float,
+    sweep_every: float,
+    replay_require_provenance_hash: bool = False,
+) -> str:
     tmp = tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False)
     tmp.write(
         BASE_CONFIG.format(
@@ -49,6 +58,7 @@ def _write_cfg(*, cooldown_tau: float, encode_threshold: float, s_max: float, de
             s_max=s_max,
             decay_lambda=decay_lambda,
             sweep_every=sweep_every,
+            replay_require_provenance_hash=str(replay_require_provenance_hash).lower(),
         )
     )
     tmp.flush()
@@ -86,3 +96,19 @@ def test_run_poc_knobs_change_observable_outputs():
     assert high["total_swept_forgotten"] >= low["total_swept_forgotten"]
     assert high["memories_forgotten"] == high["total_swept_forgotten"]
     assert low["memories_alive"] == low["total_swept_survivors"]
+
+
+def test_run_poc_replay_strict_mode_uses_provenance_hashes():
+    cfg = _write_cfg(
+        cooldown_tau=0.0,
+        encode_threshold=0.0,
+        s_max=1.5,
+        decay_lambda=0.05,
+        sweep_every=5.0,
+        replay_require_provenance_hash=True,
+    )
+
+    result = run_poc(config_path=cfg, n_events=10)
+
+    assert all(packet["PROVENANCE_HASH"] for packet in result["head"])
+    assert all(packet["PROVENANCE_HASH"] for packet in result["tail"])

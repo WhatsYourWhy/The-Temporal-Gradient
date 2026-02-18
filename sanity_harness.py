@@ -9,6 +9,7 @@ from temporal_gradient.telemetry.schema import validate_packet_schema
 from temporal_gradient.memory.decay import DecayEngine, EntropicMemory, initial_strength_from_psi, should_encode
 from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
 from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+from temporal_gradient.salience.provenance import compute_provenance_hash
 from temporal_gradient.config_loader import TemporalGradientConfig, load_config
 
 
@@ -16,9 +17,14 @@ def run_harness(
     events: List[str],
     config: TemporalGradientConfig | None = None,
     config_path: str = "tg.yaml",
-    require_provenance_hash: bool = False,
+    require_provenance_hash: bool | None = None,
 ) -> Tuple[Dict[str, float], List[Dict[str, float]]]:
     active_config = config or load_config(config_path)
+    strict_replay_mode = (
+        active_config.policies.replay_require_provenance_hash
+        if require_provenance_hash is None
+        else require_provenance_hash
+    )
 
     clock = ClockRateModulator(
         base_dilation_factor=active_config.clock.base_dilation_factor,
@@ -79,9 +85,10 @@ def run_harness(
             H=sal.novelty,
             V=sal.value,
             memory_strength=memory_strength,
+            provenance_hash=compute_provenance_hash(sal.provenance) if strict_replay_mode else None,
         )
         packet = json.loads(vector.to_packet())
-        validate_packet_schema(packet, require_provenance_hash=require_provenance_hash)
+        validate_packet_schema(packet, require_provenance_hash=strict_replay_mode)
         packets.append(packet)
         psi_values.append(sal.psi)
         clock_rates.append(dilation)
