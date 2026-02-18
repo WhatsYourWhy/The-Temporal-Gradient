@@ -9,11 +9,25 @@ if TYPE_CHECKING:
 
 
 class NoveltyScorer(Protocol):
+    """Interface for novelty scoring components used by :class:`SaliencePipeline`.
+
+    Implementations may be stateless or history-aware. If mutable runtime
+    history is used, implement :class:`ResettableScorer` as well so callers can
+    clear run-local state before deterministic replay.
+    """
+
     def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         ...
 
 
 class ValueScorer(Protocol):
+    """Interface for value scoring components used by :class:`SaliencePipeline`.
+
+    Value scorers are expected to keep configuration stable across calls. If an
+    implementation also carries mutable runtime history, expose ``reset()`` via
+    :class:`ResettableScorer`.
+    """
+
     def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         ...
 
@@ -64,6 +78,7 @@ class RollingJaccardNovelty:
         return set(self._token_pattern.findall(text.lower()))
 
     def reset(self) -> None:
+        """Clear only rolling token history, preserving configured window size."""
         self._history.clear()
 
     def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
