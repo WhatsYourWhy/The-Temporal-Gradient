@@ -16,6 +16,19 @@ Use canonical imports for all new code. Compatibility shims are migration-only a
 
 Root-level shim set above is sourced from `CHANGELOG.md` (`v0.2.0` compatibility section).
 
+
+## Supported Shim Symbols (v0.2.x compatibility window)
+
+The following shim modules intentionally expose only these names:
+
+- `chronos_engine`: `ClockRateModulator`
+- `chronometric_vector`: `ChronometricVector`
+- `salience_pipeline`: `SaliencePipeline`, `SalienceComponents`, `RollingJaccardNovelty`, `KeywordImperativeValue`, `CodexNoveltyAdapter`, `CodexValueAdapter`, `NoveltyScorer`, `ValueScorer`, `ResettableScorer`
+- `entropic_decay`: `DecayEngine`, `EntropicMemory`, `initial_strength_from_psi`, `should_encode`, `S_MAX`, `DecayMemoryStore`
+- `temporal_gradient.policies.compute_budget`: `ComputeCooldownPolicy`, `ComputeBudgetPolicy`, `allows_compute`
+
+Any additional symbols previously reachable via wildcard shim imports are not part of the supported compatibility contract.
+
 ## Copy/Paste Migration Snippets
 
 ### 1) Clock modulator import

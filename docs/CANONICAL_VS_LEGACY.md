@@ -79,6 +79,8 @@ from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 4. Validate telemetry packets using canonical schema checks in development workflows.
 5. When touching compatibility code, leave explicit migration notes in PR descriptions and changelog entries.
 
+Compatibility note: root-level shim modules are intentionally narrow in v0.2.x and expose only documented compatibility symbols (see `docs/CANONICAL_SURFACES.md`). Treat any non-documented shim attributes as unsupported internals.
+
 ## Deprecation Timeline (release-labeled)
 
 - **v0.2.x**: Canonical mode is the default contributor target; legacy mode and compatibility shims remain available for migration.
