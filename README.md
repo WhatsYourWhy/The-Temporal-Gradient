@@ -160,6 +160,16 @@ Validation:
 ## Changelog
 See `CHANGELOG.md` for the full release history, including `v0.2.0` canonicalization and policy formalization details.
 
+
+## Deterministic Embedding Replay Demo
+Run:
+- `python examples/embedding_novelty_replay_demo.py`
+
+Expected behavior:
+- The script uses a fixed event list and deterministic fake embeddings cached in local JSON files under `examples/.cache/` (no model downloads).
+- It runs the salience pipeline in deterministic mode, emits packet summaries including `PROVENANCE_HASH`, resets the pipeline, and reruns with an exact output-equality assertion.
+- It then changes novelty configuration (`window_size`) and reruns; at least one `PROVENANCE_HASH` index must change, demonstrating replay provenance sensitivity to config changes.
+
 ## Testing
 Run:
 - `pytest -q`
