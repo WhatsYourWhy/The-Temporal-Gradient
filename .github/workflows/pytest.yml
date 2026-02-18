@@ -23,5 +23,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Run docs consistency check
         run: python scripts/check_docs_consistency.py
+      - name: Run runtime packet contract check
+        run: python scripts/check_to_packet_contract.py
       - name: Run tests
         run: pytest -q
