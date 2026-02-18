@@ -45,7 +45,7 @@ S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
 
 ## Architecture (v0.2.x)
 
-Canonical module map: see `docs/CANONICAL_SURFACES.md`.
+Canonical module map: see [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md).
 
 The architecture is organized into canonical package layers for clock, salience, memory, policies, and telemetry, with root-level modules retained only as compatibility shims during migration windows.
 
@@ -107,7 +107,7 @@ Policy:
 
 Compatibility shims are retained for one release window and are compatibility-only (not canonical).
 
-See `docs/CANONICAL_SURFACES.md` for the canonical vs compatibility map.
+See [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md) for the canonical vs compatibility map.
 For shim-by-shim replacements and copy/paste migration examples, see `docs/MIGRATION_SHIMS.md`.
 
 ## Telemetry Schema (canonical keys)

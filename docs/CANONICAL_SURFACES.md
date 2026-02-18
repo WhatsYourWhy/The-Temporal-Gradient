@@ -1,33 +1,66 @@
-# Canonical Surfaces and Documentation Owners
+# Canonical Surfaces
 
-This document is the source-of-truth map for **canonical** module surfaces and explicit documentation ownership.
+This document is the source-of-truth mapping for canonical module surfaces, public symbols, and compatibility aliases/shims.
 
-## Canonical module surfaces
+## clock
+- **Canonical module path:** `temporal_gradient.clock.chronos`
+- **Canonical public symbols:** `ClockRateModulator`
+- **Known compatibility aliases/shims:**
+  - `temporal_gradient.clock.ClockRateModulator` (package re-export)
+  - `chronos_engine.py` (root compatibility shim)
 
-| Subsystem | Canonical surface |
-| --- | --- |
-| clock | `temporal_gradient.clock.chronos` |
-| salience | `temporal_gradient.salience.pipeline` |
-| memory | `temporal_gradient.memory.*` |
-| telemetry | `temporal_gradient.telemetry.*` |
-| policies | `temporal_gradient.policies.compute_cooldown` |
+## salience
+- **Canonical module path:** `temporal_gradient.salience.pipeline`
+- **Canonical public symbols:**
+  - `SaliencePipeline`
+  - `SalienceComponents`
+  - `RollingJaccardNovelty`
+  - `KeywordImperativeValue`
+  - `CodexNoveltyAdapter`
+  - `CodexValueAdapter`
+  - `NoveltyScorer`
+  - `ValueScorer`
+  - `ResettableScorer`
+- **Known compatibility aliases/shims:**
+  - `temporal_gradient.salience.*` (package re-exports)
+  - `salience_pipeline.py` (root compatibility shim)
 
-## Compatibility notes
+## memory
+- **Canonical module path:**
+  - `temporal_gradient.memory.decay`
+  - `temporal_gradient.memory.store`
+- **Canonical public symbols:**
+  - `DecayEngine`
+  - `EntropicMemory`
+  - `initial_strength_from_psi`
+  - `should_encode`
+  - `S_MAX`
+  - `MemoryStore`
+  - `DecayMemoryStore`
+- **Known compatibility aliases/shims:**
+  - `temporal_gradient.memory.*` (package re-exports)
+  - `entropic_decay.py` (root compatibility shim)
 
-The following are compatibility shims and are **not canonical**:
-- top-level script/module shim (compatibility-only): `chronos_engine.py`
-- policy shim module (compatibility-only): `temporal_gradient.policies.compute_budget`
+## telemetry
+- **Canonical module path:**
+  - `temporal_gradient.telemetry.chronometric_vector`
+  - `temporal_gradient.telemetry.schema`
+- **Canonical public symbols:**
+  - `ChronometricVector`
+  - `validate_packet_schema`
+- **Known compatibility aliases/shims:**
+  - `temporal_gradient.telemetry.validate_packet` (compatibility alias)
+  - `chronometric_vector.py` (root compatibility shim)
 
-## Documentation maintainers / owners
+## policies
+- **Canonical module path:** `temporal_gradient.policies.compute_cooldown`
+- **Canonical public symbols:**
+  - `ComputeCooldownPolicy`
+  - `allows_compute`
+- **Known compatibility aliases/shims:**
+  - `temporal_gradient.policies.compute_budget.ComputeBudgetPolicy` (compatibility alias)
+  - `temporal_gradient.policies.compute_budget` (compatibility shim module)
 
-Use this ownership map for review routing when public behavior or naming changes.
+---
 
-| Document | Maintainer / owner |
-| --- | --- |
-| `README.md` | Temporal Gradient maintainers |
-| `USAGE.md` | Temporal Gradient maintainers |
-| `GLOSSARY.md` | Temporal Gradient maintainers |
-| `docs/CANONICAL_SURFACES.md` | Temporal Gradient maintainers |
-| `docs/DOC_CHANGE_CHECKLIST.md` | Temporal Gradient maintainers |
-
-If a change affects canonical/compatibility labels, update this file in the same PR.
+**Maintenance rule:** Any API, module-path, symbol-name, or naming-contract change must update this file in the same PR.

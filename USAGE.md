@@ -1,10 +1,11 @@
 # How to Read the Logs
 The Temporal Gradient outputs **Internal State Telemetry** rather than conventional debug lines. The goal is to show how internal time (τ) and memory retention respond to salience.
-Canonical module references and compatibility shims are listed in `docs/CANONICAL_SURFACES.md`.
+Canonical module references and compatibility shims are listed in [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md).
 
 
 ## 0. Telemetry contract (canonical vs extended)
 The telemetry packet is versioned and split into **required** vs **optional** keys.
+For canonical symbol/module ownership (including telemetry validators and compatibility aliases), see [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md).
 
 **Required keys (canonical schema):**
 - `SCHEMA_VERSION`
@@ -29,6 +30,8 @@ CLI tables should print **only canonical columns** by default (`WALL_T`, `TAU`, 
 Behavior summary:
 - Salience is derived from entropy density and clamped into `[0,1]`.
 - Canonical telemetry schema strictness is intentionally bypassed.
+
+Compatibility entry points referenced in this section are cataloged in [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md).
 
 Packet-shape examples:
 
