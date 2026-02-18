@@ -4,7 +4,7 @@ from temporal_gradient.clock.chronos import ClockRateModulator
 
 
 def test_clock_rate_monotonic_and_floor():
-    modulator = ClockRateModulator(base_dilation_factor=1.0, min_clock_rate=0.05)
+    modulator = ClockRateModulator(base_dilation_factor=1.0, min_clock_rate=0.05, salience_mode="legacy_density")
     psis = [0.0, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0]
     rates = [modulator.clock_rate_from_psi(psi) for psi in psis]
 

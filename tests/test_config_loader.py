@@ -107,5 +107,6 @@ def test_canonical_clock_constraints_remain_enforced(tmp_path):
         legacy_density_scale=cfg.clock.legacy_density_scale,
     )
 
-    with pytest.raises(ValueError, match=r"psi must be within \[0, 1\] in canonical mode"):
-        clock.tick(psi=1.5, wall_delta=1.0)
+    # Non-strict canonical mode clamps psi>1.0 instead of rejecting.
+    tau_delta = clock.tick(psi=1.5, wall_delta=1.0)
+    assert tau_delta == pytest.approx(clock.clock_rate_from_psi(1.0), rel=0.0, abs=1e-12)

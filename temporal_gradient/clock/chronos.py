@@ -8,7 +8,18 @@ from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 
 
 class ClockRateModulator:
-    """Clock-rate reparameterization for the internal time accumulator (τ)."""
+    """Clock-rate reparameterization for the internal time accumulator (τ).
+
+    Canonical psi policy (`salience_mode="canonical"`):
+    - `psi` is required, numeric (excluding bool), and finite.
+    - `psi < 0` is clamped to `0.0`.
+    - `psi > 1` is handled by `strict_psi_bounds`:
+      - `True`: reject with `ValueError`.
+      - `False`: clamp to `1.0`.
+
+    The same canonicalization/rejection path is used by both
+    :meth:`clock_rate_from_psi` and :meth:`tick`.
+    """
 
     def __init__(
         self,
@@ -63,12 +74,18 @@ class ClockRateModulator:
             raise ValueError("psi must be finite.")
         if psi < 0.0:
             psi = 0.0
-        if self.salience_mode == "canonical" and self.strict_psi_bounds and psi > 1.0:
-            raise ValueError("psi must be within [0, 1] in canonical mode.")
+        if self.salience_mode == "canonical" and psi > 1.0:
+            if self.strict_psi_bounds:
+                raise ValueError("psi must be within [0, 1] in canonical mode.")
+            psi = 1.0
         return psi
 
     def clock_rate_from_psi(self, psi):
-        """Map salience load (Ψ) to a clock-rate with a minimum floor."""
+        """Map salience load (Ψ) to a clock-rate with a minimum floor.
+
+        In canonical mode, this applies the same psi policy as :meth:`tick`:
+        strict mode rejects `psi > 1`, non-strict mode clamps it to `1.0`.
+        """
         psi = self._validate_psi(psi)
         scaled_psi = psi * self.base_dilation
         return max(self.min_clock_rate, 1 / (1 + scaled_psi))
@@ -88,6 +105,12 @@ class ClockRateModulator:
         return max(0.0, min(1.0, scaled))
 
     def tick(self, psi=None, input_context=None, wall_delta=None):
+        """Advance τ by one tick.
+
+        In canonical mode, psi validation/canonicalization is identical to
+        :meth:`clock_rate_from_psi` (same exceptions and clamping behavior for
+        `strict_psi_bounds=True/False`).
+        """
         density = None
         if self.salience_mode == "legacy_density" and psi is None:
             if input_context is None:
@@ -96,8 +119,6 @@ class ClockRateModulator:
             psi = self._psi_from_legacy_density(density)
 
         psi = self._validate_psi(psi)
-        if self.salience_mode == "canonical" and not 0.0 <= psi <= 1.0:
-            raise ValueError("psi must be within [0, 1] in canonical mode.")
 
         current_wall_time = time.time()
         if wall_delta is None:
