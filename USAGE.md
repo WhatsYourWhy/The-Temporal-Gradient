@@ -22,6 +22,8 @@ For canonical symbol/module ownership (including telemetry validators and compat
 
 `CLOCK_RATE` and `MEMORY_S` are always present in canonical packets. If unset at construction time, serialization currently emits numeric fallbacks (`0.0`), not `null`.
 
+`SCHEMA_VERSION` policy is strict: canonical serialization must emit exactly `"1.0"`. For migration input only, validators accept legacy `"1"` and normalize it to `"1.0"` on canonical re-serialization.
+
 CLI tables should print **only canonical columns** by default (`WALL_T`, `TAU`, `SALIENCE`, `CLOCK_RATE`, `MEMORY_S`, `DEPTH`). Extended fields like `H` and `V` are intended for verbose/debug output, not the base schema. Demo scripts may also include an `INPUT` column for readability; it is not part of the canonical packet schema.
 
 ### Legacy mode compatibility (`legacy_density`)

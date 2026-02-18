@@ -4,6 +4,9 @@ import math
 from numbers import Real
 from typing import Any, Mapping, Optional, Tuple
 
+CANONICAL_SCHEMA_VERSION = "1.0"
+LEGACY_SCHEMA_VERSIONS = {"1"}
+
 REQUIRED_CANONICAL_KEYS = {
     "SCHEMA_VERSION",
     "WALL_T",
@@ -32,6 +35,23 @@ def _is_finite_numeric(value: Any) -> bool:
     return _is_numeric(value) and math.isfinite(value)
 
 
+def normalize_schema_version(schema_version: str) -> str:
+    """Normalize schema version values to the canonical version string.
+
+    Canonical packets must serialize as ``"1.0"``. Legacy packets that still
+    carry ``"1"`` are accepted for migration and normalized to ``"1.0"``.
+    """
+    if schema_version == CANONICAL_SCHEMA_VERSION:
+        return CANONICAL_SCHEMA_VERSION
+    if schema_version in LEGACY_SCHEMA_VERSIONS:
+        return CANONICAL_SCHEMA_VERSION
+
+    raise ValueError(
+        "SCHEMA_VERSION must be canonical \"1.0\"; accepted legacy values "
+        f"for migration: {sorted(LEGACY_SCHEMA_VERSIONS)}. Got: {schema_version!r}"
+    )
+
+
 def validate_packet_schema(
     packet: Mapping[str, Any],
     *,
@@ -54,7 +74,11 @@ def validate_packet_schema(
 
     schema_version = packet["SCHEMA_VERSION"]
     if not isinstance(schema_version, str):
-        raise TypeError("SCHEMA_VERSION must be a string")
+        raise TypeError(
+            "SCHEMA_VERSION must be a string equal to canonical \"1.0\" "
+            "(legacy \"1\" is accepted for migration input)"
+        )
+    normalize_schema_version(schema_version)
 
     provenance_hash = packet.get("PROVENANCE_HASH")
     if require_provenance_hash and provenance_hash is None:
