@@ -41,6 +41,7 @@ def run_harness(
             max_value=active_config.salience.max_value,
         ),
     )
+    salience.reset()
 
     wall_time = 0.0
     packets: List[Dict[str, float]] = []
