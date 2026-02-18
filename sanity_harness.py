@@ -87,7 +87,7 @@ def run_harness(
             memory_strength=memory_strength,
             provenance_hash=compute_provenance_hash(sal.provenance) if strict_replay_mode else None,
         )
-        packet = json.loads(vector.to_packet())
+        packet = vector.to_packet()
         validate_packet_schema(packet, require_provenance_hash=strict_replay_mode)
         packets.append(packet)
         psi_values.append(sal.psi)
