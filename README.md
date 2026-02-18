@@ -42,34 +42,37 @@ S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
 
 ## Architecture (v0.2.x)
 
+Canonical module map: see `docs/CANONICAL_SURFACES.md`.
+
 ### Clock Layer
-- `temporal_gradient.clock.chronos`
+- Canonical surface: `temporal_gradient.clock.chronos`
+- Compatibility surfaces: root-level shims such as `chronos_engine.py` are compatibility-only
 - Maps salience load \(\Psi\) to internal clock rate \(d\tau/dt\)
 - Canonical mode enforces normalized salience bounds
 - Explicit minimum clock floor prevents stalling
 
 ### Salience Layer
-- `temporal_gradient.salience.pipeline`
+- Canonical surface: `temporal_gradient.salience.pipeline`
 - Rolling novelty scoring
 - Keyword-based imperative/value scoring
 - Canonical salience product \(\Psi = H\cdot V\)
 
 ### Memory Layer
-- `temporal_gradient.memory.decay`
+- Canonical surface: `temporal_gradient.memory.*` (for example, `temporal_gradient.memory.decay`)
 - Exponential decay over internal time
 - Strength cap
 - Diminishing reconsolidation
 - Optional cooldown window
 
 ### Policy Layer
-- `temporal_gradient.policies.compute_cooldown`
-- `ComputeCooldownPolicy`
+- Canonical surface: `temporal_gradient.policies.compute_cooldown`
+- Canonical policy class: `ComputeCooldownPolicy`
 - `allows_compute(...)` gate
 - This is a cooldown gate, not a compute-step allocator (`compute_budget` is a compatibility shim)
 - Canonical policy surface is provided by the library, but enforcement is not globally auto-wired; each harness/runtime must instantiate and apply the policy gate explicitly
 
 ### Telemetry Layer
-- `temporal_gradient.telemetry`
+- Canonical surface: `temporal_gradient.telemetry.*`
 - `ChronometricVector`
 - `validate_packet_schema` (canonical)
 - `validate_packet` (compatibility alias)
@@ -128,7 +131,9 @@ Canonical imports:
 Policy:
 - `from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy`
 
-Compatibility shims are retained for one release window but are not canonical.
+Compatibility shims are retained for one release window and are compatibility-only (not canonical).
+
+See `docs/CANONICAL_SURFACES.md` for the canonical vs compatibility map.
 
 ## Telemetry Schema (canonical keys)
 - `WALL_T`
@@ -140,7 +145,7 @@ Compatibility shims are retained for one release window but are not canonical.
 
 Validation:
 - `validate_packet_schema(...)` is canonical
-- `validate_packet(...)` is compatibility alias
+- `validate_packet(...)` is a compatibility alias
 - In `legacy_density` mode, canonical packet validation is intentionally bypassed for backward compatibility
 
 ## Stability Constraints

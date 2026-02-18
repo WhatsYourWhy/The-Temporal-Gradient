@@ -1,5 +1,7 @@
 # How to Read the Logs
 The Temporal Gradient outputs **Internal State Telemetry** rather than conventional debug lines. The goal is to show how internal time (τ) and memory retention respond to salience.
+Canonical module references and compatibility shims are listed in `docs/CANONICAL_SURFACES.md`.
+
 
 ## 0. Telemetry contract (canonical vs extended)
 The telemetry packet is versioned and split into **required** vs **optional** keys.
@@ -21,7 +23,7 @@ The telemetry packet is versioned and split into **required** vs **optional** ke
 
 CLI tables should print **only canonical columns** by default (`WALL_T`, `TAU`, `SALIENCE`, `CLOCK_RATE`, `MEMORY_S`, `DEPTH`). Extended fields like `H` and `V` are intended for verbose/debug output, not the base schema. Demo scripts may also include an `INPUT` column for readability; it is not part of the canonical packet schema.
 
-Legacy-mode note: `salience_mode="legacy_density"` is compatibility behavior. In this mode, salience is derived from entropy density and clamped into `[0,1]`, and canonical telemetry schema strictness is not enforced.
+Compatibility-mode note: `salience_mode="legacy_density"` is compatibility behavior, not canonical behavior. In this mode, salience is derived from entropy density and clamped into `[0,1]`, and canonical telemetry schema strictness is not enforced.
 
 ## 1. The clock-rate table
 This table shows how the internal clock-rate is reparameterized by salience load (surprise × value).
@@ -56,7 +58,7 @@ At the end of the simulation, the decay engine reports which memories stayed abo
 - **PRUNED:** The memory decayed below the threshold and was pruned.
 
 ## 3. Configuration hints
-Adjust these parameters in `simulation_run.py` and the supporting modules to shape the simulation:
+Adjust these parameters in `simulation_run.py` and the supporting modules to shape the simulation (canonical policy surface: `temporal_gradient.policies.compute_cooldown`; compatibility shim: `temporal_gradient.policies.compute_budget`):
 - `base_dilation_factor` and `min_clock_rate` in `ClockRateModulator` to control the clock-rate floor and sensitivity to salience load.
 - `half_life` in `DecayEngine` to control decay speed.
 - Reconsolidation cooldowns and diminishing returns in `EntropicMemory.reconsolidate` to avoid runaway reinforcement.
