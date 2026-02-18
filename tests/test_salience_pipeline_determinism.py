@@ -17,7 +17,13 @@ def _pipeline():
     return SaliencePipeline(RollingJaccardNovelty(window_size=3), KeywordImperativeValue())
 
 
-def _record_run(pipeline: SaliencePipeline, events: list[str]) -> list[dict[str, object]]:
+def _record_run(
+    pipeline: SaliencePipeline,
+    events: list[str],
+    *,
+    history_policy: str = "rolling_window",
+    reset_boundary: bool = False,
+) -> list[dict[str, object]]:
     packets: list[dict[str, object]] = []
     for event in events:
         result = pipeline.evaluate(event)
@@ -27,6 +33,10 @@ def _record_run(pipeline: SaliencePipeline, events: list[str]) -> list[dict[str,
                 "SALIENCE": result.psi,
                 "PROVENANCE_HASH": compute_provenance_hash(result.provenance),
                 "diagnostics": result.diagnostics,
+                "provenance_context": {
+                    "history_policy": history_policy,
+                    "reset_boundary": str(reset_boundary).lower(),
+                },
             }
         )
     return packets
@@ -58,7 +68,7 @@ def test_pipeline_replay_with_reset_matches_first_run():
 
     first_run = _record_run(pipeline, EVENT_SEQUENCE)
     pipeline.reset()
-    replay_run = _record_run(pipeline, EVENT_SEQUENCE)
+    replay_run = _record_run(pipeline, EVENT_SEQUENCE, reset_boundary=True)
 
     assert_strict_invariants(
         replay_run,
@@ -67,6 +77,16 @@ def test_pipeline_replay_with_reset_matches_first_run():
         expected_provenance_hashes=EXPECTED_PROVENANCE_HASHES,
     )
     assert_numeric_diagnostics_policy([first_run, replay_run])
+
+
+def test_pipeline_replay_packets_match_baseline_after_reset():
+    pipeline = _pipeline()
+    baseline = _record_run(pipeline, EVENT_SEQUENCE)
+
+    pipeline.reset()
+    replay = _record_run(pipeline, EVENT_SEQUENCE)
+
+    assert replay == baseline
 
 
 def test_pipeline_reset_preserves_scorer_configuration():
@@ -84,6 +104,34 @@ def test_pipeline_reset_preserves_scorer_configuration():
     assert value.keywords == keywords
     assert value.base_value == 0.15
     assert value.hit_value == 0.25
+
+
+def test_pipeline_reset_does_not_mutate_scorer_configuration_values():
+    novelty = RollingJaccardNovelty(window_size=7)
+    value = KeywordImperativeValue(keywords=("critical", "must"), base_value=0.21, hit_value=0.31, max_value=0.91)
+    pipeline = SaliencePipeline(novelty, value)
+
+    original_config = {
+        "window_size": novelty.window_size,
+        "keywords": value.keywords,
+        "base_value": value.base_value,
+        "hit_value": value.hit_value,
+        "max_value": value.max_value,
+    }
+
+    for event in ("critical update", "must patch now", "normal"):
+        pipeline.evaluate(event)
+    pipeline.reset()
+
+    current_config = {
+        "window_size": novelty.window_size,
+        "keywords": value.keywords,
+        "base_value": value.base_value,
+        "hit_value": value.hit_value,
+        "max_value": value.max_value,
+    }
+
+    assert current_config == original_config
 
 
 def test_pipeline_handles_empty_input_with_zero_or_defined_bounds():
