@@ -23,12 +23,29 @@ def test_tick_rejects_non_finite_psi():
         clock.tick(psi=math.inf, wall_delta=1.0)
 
 
-def test_tick_and_rate_validation_are_consistent_in_strict_mode():
-    clock = ClockRateModulator(salience_mode="canonical", strict_psi_bounds=True)
-    with pytest.raises(ValueError):
-        clock.clock_rate_from_psi(1.5)
-    with pytest.raises(ValueError):
-        clock.tick(psi=1.5, wall_delta=1.0)
+@pytest.mark.parametrize(
+    "strict, psi, should_raise",
+    [
+        (False, -0.5, False),
+        (False, 0.3, False),
+        (False, 1.5, False),
+        (True, -0.5, False),
+        (True, 0.3, False),
+        (True, 1.5, True),
+    ],
+)
+def test_tick_and_rate_have_identical_canonical_psi_policy(strict, psi, should_raise):
+    clock = ClockRateModulator(salience_mode="canonical", strict_psi_bounds=strict)
+
+    if should_raise:
+        with pytest.raises(ValueError, match=r"within \[0, 1\]"):
+            clock.clock_rate_from_psi(psi)
+        with pytest.raises(ValueError, match=r"within \[0, 1\]"):
+            clock.tick(psi=psi, wall_delta=1.0)
+    else:
+        rate = clock.clock_rate_from_psi(psi)
+        tick_delta = clock.tick(psi=psi, wall_delta=1.0)
+        assert tick_delta == pytest.approx(rate)
 
 
 def test_tick_rejects_negative_wall_delta():
