@@ -120,6 +120,60 @@ def test_load_config_rejects_non_boolean_replay_require_provenance_hash(tmp_path
         load_config(path)
 
 
+def test_load_config_fallback_parser_accepts_inline_comments(tmp_path, monkeypatch):
+    import temporal_gradient.config as config
+
+    path = _write(tmp_path, """
+    salience:
+      base_value: 0.1 # baseline
+      hit_value: 0.2 # increment
+      max_value: 1.0
+      keywords: [critical, urgent] # high-priority markers
+    clock:
+      base_dilation_factor: 1.0
+      min_clock_rate: 0.05 # lower clamp
+      legacy_density_scale: 100.0
+      salience_mode: canonical
+    memory:
+      half_life: 20.0
+      prune_threshold: 0.2
+      encode_threshold: 0.3
+      initial_strength_max: 1.2
+      decay_lambda: 0.05
+      s_max: 1.5
+    policies:
+      deterministic_seed: 1337
+      event_wall_delta: 1.0
+      cooldown_tau: 0.0
+      calibration_post_sweep_wall_delta: 5.0
+      replay_require_provenance_hash: false # optional strict replay mode
+    """)
+
+    monkeypatch.setattr(config, "yaml", None)
+
+    cfg = load_config(path)
+    assert cfg.clock.min_clock_rate == pytest.approx(0.05)
+    assert cfg.salience.keywords == ("critical", "urgent")
+    assert cfg.policies.replay_require_provenance_hash is False
+
+
+def test_load_config_fallback_parser_preserves_hash_inside_quotes(tmp_path, monkeypatch):
+    import temporal_gradient.config as config
+
+    path = _write(tmp_path, """
+    salience:
+      keywords: ['phase#1', "critical#path"]
+    clock: {}
+    memory: {}
+    policies: {}
+    """)
+
+    monkeypatch.setattr(config, "yaml", None)
+
+    cfg = load_config(path)
+    assert cfg.salience.keywords == ("phase#1", "critical#path")
+
+
 def test_load_config_defaults_replay_require_provenance_hash_to_false(tmp_path):
     path = _write(tmp_path, """
     salience: {}
