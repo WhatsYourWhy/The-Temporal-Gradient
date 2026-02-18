@@ -17,7 +17,7 @@ def test_telemetry_validator_canonical_and_compatibility_exports_match():
     assert validate_packet is not validate_packet_schema
 
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 0.0,
         "TAU": 0.0,
         "SALIENCE": 0.2,

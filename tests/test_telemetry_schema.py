@@ -5,7 +5,7 @@ from temporal_gradient.telemetry.schema import validate_packet, validate_packet_
 
 def _canonical_packet():
     return {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.8,
         "SALIENCE": 0.4,
@@ -22,6 +22,13 @@ def test_validate_packet_schema_accepts_canonical_packet():
 def test_validate_packet_schema_accepts_string_provenance_hash():
     packet = _canonical_packet()
     packet["PROVENANCE_HASH"] = "sha256:abc123"
+
+    validate_packet_schema(packet)
+
+
+def test_validate_packet_schema_accepts_legacy_version_for_migration_input():
+    packet = _canonical_packet()
+    packet["SCHEMA_VERSION"] = "1"
 
     validate_packet_schema(packet)
 

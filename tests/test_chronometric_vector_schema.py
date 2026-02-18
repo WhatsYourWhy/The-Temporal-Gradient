@@ -47,7 +47,7 @@ def test_round_trip_canonical_packet():
 def test_canonical_fixture_round_trip():
     canonical_packet = (FIXTURES / "canonical.jsonl").read_text().strip()
     parsed = ChronometricVector.from_packet(canonical_packet, salience_mode="canonical")
-    assert parsed.schema_version == "1"
+    assert parsed.schema_version == "1.0"
     round_trip = ChronometricVector.from_packet(parsed.to_packet(), salience_mode="canonical")
     assert round_trip.psi == pytest.approx(parsed.psi)
 
@@ -66,7 +66,7 @@ def test_to_packet_json_compatibility_output_matches_mapping_contract():
 
 def test_reject_out_of_range_salience_in_canonical_mode():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.9,
         "SALIENCE": 1.5,
@@ -80,7 +80,7 @@ def test_reject_out_of_range_salience_in_canonical_mode():
 
 def test_reject_wrong_types_for_required_fields_in_canonical_mode():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": "1.0",
         "TAU": 0.9,
         "SALIENCE": 0.5,
@@ -94,7 +94,7 @@ def test_reject_wrong_types_for_required_fields_in_canonical_mode():
 
 def test_optional_clock_rate_bounds_in_canonical_mode():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.9,
         "SALIENCE": 0.5,
@@ -121,7 +121,7 @@ def test_legacy_packet_requires_legacy_mode():
 
 def test_canonical_from_packet_strict_mode_requires_provenance_hash():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.9,
         "SALIENCE": 0.5,
@@ -140,7 +140,7 @@ def test_canonical_from_packet_strict_mode_requires_provenance_hash():
 
 def test_canonical_from_packet_compatibility_mode_allows_missing_provenance_hash():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.9,
         "SALIENCE": 0.5,

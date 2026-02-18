@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import json
 from typing import Any, Mapping, Optional
 
-from .schema import validate_packet_schema
+from .schema import CANONICAL_SCHEMA_VERSION, normalize_schema_version, validate_packet_schema
 
 
 @dataclass
@@ -18,7 +18,7 @@ class ChronometricVector:
     memory_strength: Optional[float] = None
     entropy_cost: float = 0.0
     provenance_hash: Optional[str] = None
-    schema_version: str = "1"
+    schema_version: str = CANONICAL_SCHEMA_VERSION
 
     def __post_init__(self):
         if self.psi is None and self.salience is None:
@@ -30,9 +30,13 @@ class ChronometricVector:
         if self.psi != self.salience:
             raise ValueError("psi and salience must match when both are provided.")
 
+        if not isinstance(self.schema_version, str):
+            raise TypeError("schema_version must be a string")
+        self.schema_version = normalize_schema_version(self.schema_version)
+
     def to_packet(self) -> dict[str, Any]:
         packet = {
-            "SCHEMA_VERSION": self.schema_version,
+            "SCHEMA_VERSION": CANONICAL_SCHEMA_VERSION,
             "WALL_T": round(float(self.wall_clock_time), 2),
             "TAU": round(float(self.tau), 2),
             "SALIENCE": round(float(self.psi), 3),
@@ -88,7 +92,7 @@ class ChronometricVector:
                 memory_strength=data.get("MEMORY_S"),
                 entropy_cost=data.get("entropy_cost", 0.0),
                 provenance_hash=data.get("PROVENANCE_HASH"),
-                schema_version=data.get("SCHEMA_VERSION", "1"),
+                schema_version=normalize_schema_version(data.get("SCHEMA_VERSION", CANONICAL_SCHEMA_VERSION)),
             )
         if salience_mode == "legacy_density":
             wall_clock = data.get("WALL_T", data.get("t_obj"))
@@ -99,6 +103,15 @@ class ChronometricVector:
             if wall_clock is None or tau is None or psi is None:
                 raise ValueError("Legacy packet missing required keys.")
             depth = data.get("DEPTH", data.get("r", 0))
+            legacy_schema_version = data.get("SCHEMA_VERSION", CANONICAL_SCHEMA_VERSION)
+            if isinstance(legacy_schema_version, str):
+                try:
+                    legacy_schema_version = normalize_schema_version(legacy_schema_version)
+                except ValueError:
+                    legacy_schema_version = CANONICAL_SCHEMA_VERSION
+            else:
+                legacy_schema_version = CANONICAL_SCHEMA_VERSION
+
             return ChronometricVector(
                 wall_clock_time=wall_clock,
                 tau=tau,
@@ -109,6 +122,6 @@ class ChronometricVector:
                 V=data.get("V"),
                 memory_strength=data.get("MEMORY_S", data.get("S")),
                 entropy_cost=data.get("entropy_cost", 0.0),
-                schema_version=data.get("SCHEMA_VERSION", "0"),
+                schema_version=legacy_schema_version,
             )
         raise ValueError(f"Unknown salience_mode: {salience_mode}")

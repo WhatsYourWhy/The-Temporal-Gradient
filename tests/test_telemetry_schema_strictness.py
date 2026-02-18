@@ -8,12 +8,12 @@ from temporal_gradient.telemetry.schema import validate_packet_schema
 
 def test_validate_packet_rejects_missing_required_fields():
     with pytest.raises(ValueError, match="Missing required keys"):
-        validate_packet_schema({"SCHEMA_VERSION": "1"})
+        validate_packet_schema({"SCHEMA_VERSION": "1.0"})
 
 
 def test_validate_packet_rejects_wrong_types_without_coercion():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": "1.0",
         "TAU": 0.1,
         "SALIENCE": 0.2,
@@ -27,7 +27,7 @@ def test_validate_packet_rejects_wrong_types_without_coercion():
 
 def test_validate_packet_rejects_non_string_provenance_hash():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.1,
         "SALIENCE": 0.2,
@@ -41,10 +41,10 @@ def test_validate_packet_rejects_non_string_provenance_hash():
         validate_packet_schema(packet)
 
 
-
-def test_validate_packet_accepts_minimal_valid_packet():
+@pytest.mark.parametrize("version", ["1.0", "1"])
+def test_validate_packet_accepts_canonical_and_legacy_migration_versions(version):
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": version,
         "WALL_T": 1.0,
         "TAU": 0.1,
         "SALIENCE": 0.2,
@@ -55,10 +55,25 @@ def test_validate_packet_accepts_minimal_valid_packet():
     validate_packet_schema(packet)
 
 
+@pytest.mark.parametrize("bad_version", ["1.00", "2", "v1", "", " 1.0 "])
+def test_validate_packet_rejects_non_policy_schema_versions(bad_version):
+    packet = {
+        "SCHEMA_VERSION": bad_version,
+        "WALL_T": 1.0,
+        "TAU": 0.1,
+        "SALIENCE": 0.2,
+        "CLOCK_RATE": 0.9,
+        "MEMORY_S": 0.1,
+        "DEPTH": 0,
+    }
+    with pytest.raises(ValueError, match="SCHEMA_VERSION must be canonical"):
+        validate_packet_schema(packet)
+
+
 @pytest.mark.parametrize("bad_value", [math.nan, math.inf, -math.inf])
 def test_validate_packet_rejects_non_finite_numeric_fields(bad_value):
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": bad_value,
         "TAU": 0.1,
         "SALIENCE": 0.2,
@@ -87,7 +102,7 @@ def test_chronometric_vector_to_packet_matches_schema():
 
 def test_validate_packet_rejects_missing_provenance_hash_when_required():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.1,
         "SALIENCE": 0.2,
@@ -102,7 +117,7 @@ def test_validate_packet_rejects_missing_provenance_hash_when_required():
 
 def test_validate_packet_rejects_empty_provenance_hash_string_when_required():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.1,
         "SALIENCE": 0.2,
@@ -118,7 +133,7 @@ def test_validate_packet_rejects_empty_provenance_hash_string_when_required():
 
 def test_validate_packet_accepts_missing_provenance_hash_in_compatibility_mode():
     packet = {
-        "SCHEMA_VERSION": "1",
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.1,
         "SALIENCE": 0.2,
