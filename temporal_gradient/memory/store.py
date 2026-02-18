@@ -1,12 +1,23 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List, Sequence, Tuple
+from typing import Callable, Dict, List, Literal, Sequence, Tuple
 
 
 class MemoryStore(ABC):
     @abstractmethod
-    def add(self, record):
+    def add(self, record, *, on_collision: Literal["reject", "merge"] = "reject", force: bool = False):
+        """Insert ``record`` into the store.
+
+        Args:
+            record: Memory-like object containing at least ``id`` and optionally
+                ``last_accessed_tau``.
+            on_collision: Behavior when ``record.id`` already exists.
+                ``"reject"`` raises an error; ``"merge"`` delegates to upsert
+                semantics.
+            force: Explicit override for ``"merge"`` collisions that allows tau
+                regression for the existing ``record.id``.
+        """
         pass
 
     @abstractmethod
@@ -53,6 +64,14 @@ class DecayMemoryStore(MemoryStore):
         return current_strength <= self.prune_threshold
 
     def upsert(self, record, *, allow_tau_regression: bool = False):
+        """Insert or replace a record while enforcing store invariants.
+
+        Args:
+            record: Memory-like object containing at least ``id`` and optionally
+                ``last_accessed_tau`` and ``strength``.
+            allow_tau_regression: If ``False`` (default), updating an existing
+                ID with a smaller ``last_accessed_tau`` raises ``ValueError``.
+        """
         self._validate_record(record, allow_tau_regression=allow_tau_regression)
         self._records_by_id[record.id] = record
         if getattr(record, "last_accessed_tau", None) is not None:
@@ -60,8 +79,32 @@ class DecayMemoryStore(MemoryStore):
         if record.id not in self._active_order:
             self._active_order.append(record.id)
 
-    def add(self, record):
-        self.upsert(record, allow_tau_regression=True)
+    def add(self, record, *, on_collision: Literal["reject", "merge"] = "reject", force: bool = False):
+        """Insert a record with explicit collision policy.
+
+        Args:
+            record: Memory-like object containing at least ``id``.
+            on_collision: ``"reject"`` raises ``ValueError`` when ``record.id``
+                already exists. ``"merge"`` updates the existing record via
+                :meth:`upsert`.
+            force: Explicit override that only applies when
+                ``on_collision="merge"``. When ``True``, tau regression is
+                allowed for the colliding record.
+
+        Raises:
+            ValueError: If ``on_collision`` is invalid, a collision is rejected,
+                or merge attempts tau regression without ``force=True``.
+        """
+        if on_collision not in ("reject", "merge"):
+            raise ValueError("on_collision must be one of: 'reject', 'merge'")
+
+        if record.id in self._records_by_id:
+            if on_collision == "reject":
+                raise ValueError(f"record with id {record.id!r} already exists")
+            self.upsert(record, allow_tau_regression=force)
+            return
+
+        self.upsert(record)
 
     def get(self, record_id: str):
         return self._records_by_id.get(record_id)
