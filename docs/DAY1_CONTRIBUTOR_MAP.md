@@ -58,26 +58,26 @@ Use these starter templates for small, high-signal first contributions.
 - **Goal:** Make `clock.chronology` the preferred attribute while preserving `chronolog` as a temporary alias.
 - **Likely files:** `temporal_gradient/clock/chronos.py`, relevant docs/tests discovered during search.
 - **Checklist:**
-  - [ ] Add/confirm canonical attribute and compatibility alias.
-  - [ ] Add a deprecation note for alias usage.
-  - [ ] Update docs/tests to prefer `chronology`.
-  - [ ] Run clock + API/docs tests listed above.
+  - [x] Add/confirm canonical attribute and compatibility alias.
+  - [x] Add a deprecation note for alias usage.
+  - [x] Update docs/tests to prefer `chronology`.
+  - [x] Run clock + API/docs tests listed above.
 
 ### Template B — TG-TASK-002 (anomaly PoC key alignment)
 - **Goal:** Align anomaly PoC output summary keys and test assertions to one canonical naming scheme.
 - **Likely files:** `anomaly_poc.py`, `tests/test_anomaly_poc.py`.
 - **Checklist:**
-  - [ ] Pick canonical key names and apply consistently.
-  - [ ] Keep temporary compatibility keys only if necessary (document if retained).
-  - [ ] Ensure `tests/test_anomaly_poc.py` passes with no key drift.
+  - [x] Pick canonical key names and apply consistently.
+  - [x] Keep temporary compatibility keys only if necessary (document if retained).
+  - [x] Ensure `tests/test_anomaly_poc.py` passes with no key drift.
 
 ### Template C — TG-TASK-004 (scientific-notation fallback parser coverage)
 - **Goal:** Add regression tests for scientific-notation numerics (for example `1e-3`) in fallback config parser mode.
 - **Likely files:** `temporal_gradient/config.py`, `tests/test_config_loader_strictness.py` (or dedicated fallback test file).
 - **Checklist:**
-  - [ ] Add failing regression coverage for pre-fix behavior.
-  - [ ] Validate fallback parser path where YAML support is unavailable.
-  - [ ] Confirm scientific-notation values are accepted for float fields.
+  - [x] Add failing regression coverage for pre-fix behavior.
+  - [x] Validate fallback parser path where YAML support is unavailable.
+  - [x] Confirm scientific-notation values are accepted for float fields.
 
 ## Practical Day 1 workflow
 

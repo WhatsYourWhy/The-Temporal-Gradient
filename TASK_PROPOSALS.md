@@ -4,10 +4,10 @@
 
 | Task ID | Title | Priority | Status | Owner | Target Version | Linked PR/Issue |
 | --- | --- | --- | --- | --- | --- | --- |
-| TG-001 | Rename `chronolog` to `chronology` in `ClockRateModulator` | Medium | Proposed | Unassigned | Next minor release | TBD |
-| TG-002 | Align anomaly PoC summary keys with tests to remove `KeyError` drift | High | Proposed | Unassigned | Next patch release | TBD |
-| TG-003 | Reconcile checklist guidance with executable test expectations for memory-decay sweep outputs | High | Proposed | Unassigned | Next patch release | TBD |
-| TG-004 | Add regression coverage for YAML scientific-notation numerics in fallback parser mode | Medium | Proposed | Unassigned | Next minor release | TBD |
+| TG-001 | Rename `chronolog` to `chronology` in `ClockRateModulator` | Medium | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
+| TG-002 | Align anomaly PoC summary keys with tests to remove `KeyError` drift | High | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
+| TG-003 | Reconcile checklist guidance with executable test expectations for memory-decay sweep outputs | High | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
+| TG-004 | Add regression coverage for YAML scientific-notation numerics in fallback parser mode | Medium | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
 
 ## Execution cadence
 
@@ -53,3 +53,10 @@ This board is reviewed and updated **weekly during engineering triage** and **be
 ## Archival guidance
 
 At release time, move completed entries from this file into `docs/archive/TASK_PROPOSALS_<release>.md` (for example, `docs/archive/TASK_PROPOSALS_v0.4.0.md`) and keep only active or deferred tasks in this tracker.
+
+## Completion updates (current pass)
+
+- **TG-001** complete: `ClockRateModulator.chronology` is canonical and `chronolog` is retained as a deprecated compatibility alias, with dedicated regression coverage.
+- **TG-002** complete: anomaly PoC summary uses canonical sweep keys with explicit one-release aliases to prevent key drift.
+- **TG-003** complete: checklist guidance reflects the canonical PoC summary schema (`total_swept_survivors` / `total_swept_forgotten`) and explicitly calls out alias deprecation.
+- **TG-004** complete: fallback parser path is regression-tested for YAML scientific-notation numerics (for example `1e-1`, `5e-2`) when PyYAML is unavailable.
