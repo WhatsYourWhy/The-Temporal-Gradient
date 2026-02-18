@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
         label = (event[:15] + "...") if len(event) > 15 else (event if event else "[EMPTY INPUT]")
 
-        packet = ChronometricVector(
+        packet_json = ChronometricVector(
             wall_clock_time=wall_time,
             tau=agent_clock.tau,
             psi=psi,
@@ -192,10 +192,10 @@ if __name__ == "__main__":
             H=sal.novelty,
             V=sal.value,
             memory_strength=0.0,
-        ).to_packet()
+        ).to_packet_json()
 
         print(
             f"{label:<20} | {wall_time:<8.2f} | {agent_clock.tau:<10.4f} | {psi:<9.3f} | "
             f"{agent_clock.clock_rate_from_psi(psi):<10.4f} | {0.0:<8.2f} | {0}"
         )
-        print(f"{'PACKET':<8} | {packet}")
+        print(f"{'PACKET':<8} | {packet_json}")
