@@ -1,8 +1,10 @@
 import textwrap
 import json
+from collections.abc import Mapping
 
 from sanity_harness import run_harness
 from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
+from temporal_gradient.telemetry.schema import validate_packet_schema
 
 
 def _write_config(
@@ -64,6 +66,8 @@ def test_harness_summary_bounds():
     assert summary["memories_written"] > 0
     assert len(packets) == len(events)
     for packet in packets:
+        assert isinstance(packet, Mapping)
+        validate_packet_schema(packet)
         for key in {"SCHEMA_VERSION", "WALL_T", "TAU", "SALIENCE", "CLOCK_RATE", "MEMORY_S", "DEPTH"}:
             assert key in packet
         for legacy_key in {"t_obj", "r", "legacy_density", "clock_rate", "psi"}:
@@ -117,8 +121,9 @@ def test_run_harness_to_packet_returns_mapping_contract(monkeypatch):
     _summary, packets = run_harness(events)
 
     assert len(packets) == 1
-    assert isinstance(packets[0], dict)
-    assert {
+    assert isinstance(packets[0], Mapping)
+    validate_packet_schema(packets[0])
+    canonical_keys = {
         "SCHEMA_VERSION",
         "WALL_T",
         "TAU",
@@ -126,7 +131,8 @@ def test_run_harness_to_packet_returns_mapping_contract(monkeypatch):
         "CLOCK_RATE",
         "MEMORY_S",
         "DEPTH",
-    }.issubset(packets[0])
+    }
+    assert canonical_keys.issubset(packets[0])
 
 
 def test_run_harness_to_packet_json_is_explicit_serialization_path():

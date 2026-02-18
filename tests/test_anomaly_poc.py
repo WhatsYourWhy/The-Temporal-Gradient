@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from collections.abc import Mapping
 from unittest.mock import patch
 
 from anomaly_poc import run_poc
@@ -143,8 +144,8 @@ def test_run_poc_to_packet_returns_mapping_contract():
     assert to_packet.called
     assert result["n_packets"] == 1
     packet = result["head"][0]
-    assert isinstance(packet, dict)
-    assert {
+    assert isinstance(packet, Mapping)
+    canonical_keys = {
         "SCHEMA_VERSION",
         "WALL_T",
         "TAU",
@@ -152,7 +153,9 @@ def test_run_poc_to_packet_returns_mapping_contract():
         "CLOCK_RATE",
         "MEMORY_S",
         "DEPTH",
-    }.issubset(packet)
+    }
+    assert canonical_keys.issubset(packet)
+    assert not {"t_obj", "r", "legacy_density", "clock_rate", "psi"}.intersection(packet)
 
 
 def test_run_poc_to_packet_json_is_explicit_serialization_path():

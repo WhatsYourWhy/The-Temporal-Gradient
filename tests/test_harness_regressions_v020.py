@@ -1,14 +1,16 @@
 import json
 import re
+from collections.abc import Mapping
 from pathlib import Path
 
 from calibration_harness import run_calibration
 from sanity_harness import run_harness
+from temporal_gradient.telemetry.schema import validate_packet_schema
 
 
 def test_sanity_harness_outputs_stable_summary_shape(capsys):
     events = ["a", "CRITICAL b", "c"]
-    summary, _ = run_harness(events)
+    summary, packets = run_harness(events)
     expected = {
         "psi_min",
         "psi_max",
@@ -21,6 +23,10 @@ def test_sanity_harness_outputs_stable_summary_shape(capsys):
         "memories_alive_after_tau",
     }
     assert expected.issubset(summary.keys())
+    assert len(packets) == len(events)
+    for packet in packets:
+        assert isinstance(packet, Mapping)
+        validate_packet_schema(packet)
 
 
 def test_calibration_harness_deterministic_given_fixed_inputs(tmp_path, capsys):
