@@ -150,12 +150,22 @@ Validation:
 - Canonical mode enforces salience normalization.
 - Legacy density mode derives/clamps salience from entropy density and does not enforce canonical packet-schema strictness.
 
+
+## Documentation Lifecycle
+- Active planning and implementation docs remain at the repository root for visibility.
+- Completed validation reports are archived under `docs/archive/`:
+  - `docs/archive/AUDIT_REPORT.md`
+  - `docs/archive/poc_validation_report.md`
+
 ## Changelog
 See `CHANGELOG.md` for the full release history, including `v0.2.0` canonicalization and policy formalization details.
 
 ## Testing
 Run:
 - `pytest -q`
+
+Latest document-review validation run (local):
+- `pytest -q` → `74 passed`
 
 CI uses the same command.
 
