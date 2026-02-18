@@ -113,19 +113,17 @@ def run_poc(
         if (idx + 1) % sweep_every == 0:
             decay.entropy_sweep(current_tau=clock.tau)
 
-        packet = json.loads(
-            ChronometricVector(
-                wall_clock_time=(idx + 1) * wall_delta,
-                tau=clock.tau,
-                psi=s.psi,
-                recursion_depth=0,
-                clock_rate=clock.clock_rate_from_psi(s.psi),
-                H=s.novelty,
-                V=s.value,
-                memory_strength=mem_strength,
-                provenance_hash=compute_provenance_hash(s.provenance) if strict_replay_mode else None,
-            ).to_packet()
-        )
+        packet = ChronometricVector(
+            wall_clock_time=(idx + 1) * wall_delta,
+            tau=clock.tau,
+            psi=s.psi,
+            recursion_depth=0,
+            clock_rate=clock.clock_rate_from_psi(s.psi),
+            H=s.novelty,
+            V=s.value,
+            memory_strength=mem_strength,
+            provenance_hash=compute_provenance_hash(s.provenance) if strict_replay_mode else None,
+        ).to_packet()
 
         validate_packet_schema(
             packet,

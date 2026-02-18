@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import tempfile
+from unittest.mock import patch
+
 from anomaly_poc import run_poc
 
 
@@ -112,6 +114,29 @@ def test_run_poc_replay_strict_mode_uses_provenance_hashes():
 
     assert all(packet["PROVENANCE_HASH"] for packet in result["head"])
     assert all(packet["PROVENANCE_HASH"] for packet in result["tail"])
+
+
+def test_run_poc_uses_dict_packet_from_chronometric_vector_directly():
+    cfg = _write_cfg(cooldown_tau=0.0, encode_threshold=0.0, s_max=1.5, decay_lambda=0.05, sweep_every=5.0)
+
+    with patch("anomaly_poc.ChronometricVector.to_packet", autospec=True) as to_packet:
+        to_packet.return_value = {
+            "SCHEMA_VERSION": "1.0",
+            "WALL_T": 1.0,
+            "TAU": 1.0,
+            "SALIENCE": 0.5,
+            "CLOCK_RATE": 1.0,
+            "MEMORY_S": 0.0,
+            "DEPTH": 0,
+            "H": 0.0,
+            "V": 0.0,
+        }
+
+        result = run_poc(config_path=cfg, n_events=1)
+
+    assert to_packet.called
+    assert result["n_packets"] == 1
+    assert result["head"][0]["SCHEMA_VERSION"] == "1.0"
 
 
 def test_run_poc_handles_empty_event_stream():
