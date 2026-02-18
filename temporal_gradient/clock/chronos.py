@@ -1,6 +1,7 @@
 import math
 import textwrap
 import time
+import warnings
 
 from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
 from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
@@ -25,7 +26,25 @@ class ClockRateModulator:
         self.salience_mode = self._validate_salience_mode(salience_mode)
         self.legacy_density_scale = legacy_density_scale
         self.strict_psi_bounds = strict_psi_bounds
-        self.chronolog = []
+        self.chronology = []
+
+    @property
+    def chronolog(self):
+        warnings.warn(
+            "ClockRateModulator.chronolog is deprecated; use chronology instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.chronology
+
+    @chronolog.setter
+    def chronolog(self, value):
+        warnings.warn(
+            "ClockRateModulator.chronolog is deprecated; use chronology instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.chronology = value
 
     def _validate_salience_mode(self, salience_mode):
         valid_modes = {"canonical", "legacy_density"}
@@ -101,7 +120,7 @@ class ClockRateModulator:
         }
         if density is not None:
             telemetry["diagnostic_density"] = round(density, 2)
-        self.chronolog.append(telemetry)
+        self.chronology.append(telemetry)
 
         self.last_tick = current_wall_time
         return tau_delta
