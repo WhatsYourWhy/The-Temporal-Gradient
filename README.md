@@ -105,6 +105,7 @@ Policy:
 Compatibility shims are retained for one release window and are compatibility-only (not canonical).
 
 See `docs/CANONICAL_SURFACES.md` for the canonical vs compatibility map.
+For shim-by-shim replacements and copy/paste migration examples, see `docs/MIGRATION_SHIMS.md`.
 
 ## Telemetry Schema (canonical keys)
 Canonical telemetry is validated against the required schema keys and should be the default for all new integrations.
