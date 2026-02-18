@@ -9,9 +9,9 @@
 | TG-003 | Reconcile checklist guidance with executable test expectations for memory-decay sweep outputs | High | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
 | TG-004 | Add regression coverage for YAML scientific-notation numerics in fallback parser mode | Medium | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
 | TG-005 | Plan final removal of misspelled `chronolog` compatibility alias | Medium | Proposed | Unassigned | v0.3.x | Follow-up cleanup task |
-| TG-006 | Harden fallback YAML parser to reject mismatched quote delimiters | High | Proposed | Unassigned | v0.3.x | Prevent malformed-config acceptance |
+| TG-006 | Harden fallback YAML parser to reject mismatched quote delimiters | High | Completed | Codex | v0.3.x | Covered by in-repo tests/docs |
 | TG-007 | Sync README test-count claim with current CI reality | Medium | Proposed | Unassigned | v0.2.x | Docs consistency fix |
-| TG-008 | Add negative tests for malformed fallback YAML quoting/arrays | Medium | Proposed | Unassigned | v0.3.x | Test hardening follow-up |
+| TG-008 | Add negative tests for malformed fallback YAML quoting/arrays | Medium | Completed | Codex | v0.3.x | Covered by in-repo tests/docs |
 
 ## Execution cadence
 
@@ -93,3 +93,5 @@ At release time, move completed entries from this file into `docs/archive/TASK_P
 - **TG-002** complete: anomaly PoC summary uses canonical sweep keys with explicit one-release aliases to prevent key drift.
 - **TG-003** complete: checklist guidance reflects the canonical PoC summary schema (`total_swept_survivors` / `total_swept_forgotten`) and explicitly calls out alias deprecation.
 - **TG-004** complete: fallback parser path is regression-tested for YAML scientific-notation numerics (for example `1e-1`, `5e-2`) when PyYAML is unavailable.
+- **TG-006** complete: fallback parser now rejects mismatched/unterminated quote delimiters with `ConfigValidationError` instead of silently accepting malformed scalars.
+- **TG-008** complete: strict fallback-parser regression tests cover malformed quoted scalars and malformed inline-array delimiters/items.
