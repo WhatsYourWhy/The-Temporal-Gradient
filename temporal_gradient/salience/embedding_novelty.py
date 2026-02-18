@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 import json
 from pathlib import Path
-from typing import Dict, List, MutableMapping, Optional, Protocol, Sequence, Tuple, runtime_checkable
+from typing import Dict, List, Mapping, MutableMapping, Optional, Protocol, Sequence, Tuple, runtime_checkable
 
 
 @runtime_checkable
@@ -63,6 +63,8 @@ class NoveltyScorerConfig:
     cache_backend: EmbeddingCacheBackend | None = None
     device: str = "cpu"
     dtype: str = "float32"
+    runtime_metadata: Mapping[str, str] | None = None
+    allow_nondeterministic_runtime: bool = False
     code_version: str | None = None
 
 
@@ -81,6 +83,8 @@ class NoveltyScorer:
         deterministic_mode: bool = False,
         device: str = "cpu",
         dtype: str = "float32",
+        runtime_metadata: Mapping[str, str] | None = None,
+        allow_nondeterministic_runtime: bool = False,
         code_version: str | None = None,
     ) -> None:
         if window_size <= 0:
@@ -93,8 +97,12 @@ class NoveltyScorer:
         self.deterministic_mode = deterministic_mode
         self.device = device
         self.dtype = dtype
+        self.runtime_metadata = dict(runtime_metadata or {})
+        self.allow_nondeterministic_runtime = allow_nondeterministic_runtime
         self.code_version = code_version
         self.novelty_method = "embedding_max_cosine_window"
+
+        self._enforce_deterministic_invariants()
 
         if cache_backend is not None:
             self.cache_backend = cache_backend
@@ -104,6 +112,40 @@ class NoveltyScorer:
             self.cache_backend = DictEmbeddingCache()
 
         self._history: List[Tuple[float, ...]] = []
+
+    def _enforce_deterministic_invariants(self) -> None:
+        if not self.deterministic_mode:
+            return
+
+        if self.quantization.strip().lower() == "none":
+            raise ValueError(
+                "Deterministic invariant failed [quantization]: deterministic_mode=True requires "
+                "quantization to be enabled (anything except 'none'). "
+                "Fix by configuring a deterministic quantization mode such as 'int8'."
+            )
+
+        if self.allow_nondeterministic_runtime:
+            return
+
+        policy = self.runtime_metadata.get("deterministic_runtime_policy", "").strip().lower()
+        metadata_device = self.runtime_metadata.get("execution_device", "").strip().lower()
+        metadata_dtype = self.runtime_metadata.get("compute_dtype", "").strip().lower()
+
+        has_explicit_policy = policy == "cpu_fp32"
+        has_cpu_fp32_metadata = metadata_device == "cpu" and metadata_dtype in {"float32", "fp32"}
+        has_cpu_fp32_runtime = self.device.strip().lower() == "cpu" and self.dtype.strip().lower() in {
+            "float32",
+            "fp32",
+        }
+
+        if not (has_explicit_policy or has_cpu_fp32_metadata or has_cpu_fp32_runtime):
+            raise ValueError(
+                "Deterministic invariant failed [runtime_metadata]: deterministic_mode=True requires "
+                "deterministic-safe runtime metadata (CPU + fp32) or explicit override. "
+                "Fix by setting runtime_metadata={'deterministic_runtime_policy': 'cpu_fp32'} "
+                "(or execution_device='cpu' and compute_dtype='float32'), or set "
+                "allow_nondeterministic_runtime=True to override intentionally."
+            )
 
     def reset(self) -> None:
         self._history.clear()
@@ -159,9 +201,10 @@ class NoveltyScorer:
         if cached_embedding is None:
             if self.deterministic_mode:
                 raise ValueError(
-                    "Deterministic novelty scoring requires precomputed embeddings in cache "
-                    f"for every input. Missing cache entry for text={text!r}. "
-                    "Precompute cache before deterministic replay."
+                    "Deterministic invariant failed [cache_hit_only]: deterministic_mode=True requires "
+                    "precomputed embeddings in cache for every input. "
+                    f"Missing cache entry for text={text!r}. "
+                    "Fix by precomputing and storing embeddings before deterministic replay."
                 )
             raise NotImplementedError(
                 "Operational mode cache miss: live embedding compute path is not implemented yet."
