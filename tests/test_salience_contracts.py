@@ -10,3 +10,5 @@ def test_salience_pipeline_matches_contract_shape():
     assert 0.0 <= result.value <= 1.0
     assert 0.0 <= result.psi <= 1.0
     assert "H_tokens" in result.diagnostics
+    assert "H_window_size" in result.provenance
+    assert "V_keyword_count" in result.provenance

@@ -13,3 +13,4 @@ class SalienceEvaluationResult:
     value: float
     psi: float
     diagnostics: Dict[str, float]
+    provenance: Dict[str, str]

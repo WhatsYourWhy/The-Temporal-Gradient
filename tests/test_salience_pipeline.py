@@ -16,3 +16,11 @@ def test_salience_pipeline_bounds_and_product():
         assert 0.0 <= result.value <= 1.0
         assert 0.0 <= result.psi <= 1.0
         assert math.isclose(result.psi, result.novelty * result.value, rel_tol=1e-9)
+        assert all(isinstance(v, float) for v in result.telemetry_dict().values())
+
+    assert first.provenance["H_window_size"] == "3"
+    assert first.provenance["V_keyword_count"] == "1"
+
+    provenance_copy = first.provenance_dict()
+    provenance_copy["mutated"] = "yes"
+    assert "mutated" not in first.provenance
