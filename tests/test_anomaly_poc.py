@@ -84,3 +84,5 @@ def test_run_poc_knobs_change_observable_outputs():
     assert len(cooldown["write_log"]) < len(baseline["write_log"])
     assert max(item["strength"] for item in capped["write_log"]) <= 0.05
     assert high["total_swept_forgotten"] >= low["total_swept_forgotten"]
+    assert high["memories_forgotten"] == high["total_swept_forgotten"]
+    assert low["memories_alive"] == low["total_swept_survivors"]

@@ -16,3 +16,14 @@ def test_clock_rate_monotonic_and_floor():
 
     high_rate = modulator.clock_rate_from_psi(1e6)
     assert math.isclose(high_rate, modulator.min_clock_rate)
+
+
+def test_clock_chronology_is_canonical_and_chronolog_is_deprecated_alias():
+    import pytest
+
+    modulator = ClockRateModulator()
+    modulator.tick(psi=0.0, wall_delta=1.0)
+
+    assert len(modulator.chronology) == 1
+    with pytest.deprecated_call(match="chronolog is deprecated"):
+        assert modulator.chronolog is modulator.chronology

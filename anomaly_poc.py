@@ -122,6 +122,8 @@ def run_poc(*, config_path: str = "tg.yaml", n_events: int = 50) -> dict[str, An
         packets.append(packet)
 
     alive, forgotten = decay.entropy_sweep(current_tau=clock.tau)
+    total_swept_survivors = len(alive)
+    total_swept_forgotten = len(forgotten)
 
     return {
         "config": {
@@ -137,8 +139,11 @@ def run_poc(*, config_path: str = "tg.yaml", n_events: int = 50) -> dict[str, An
         "max_salience": max(p["SALIENCE"] for p in packets),
         "encoded_count": sum(1 for p in packets if p["ENCODED"]),
         "compute_allowed_count": sum(1 for p in packets if p["COMPUTE_ALLOWED"]),
-        "memories_alive": len(alive),
-        "memories_forgotten": len(forgotten),
+        "total_swept_survivors": total_swept_survivors,
+        "total_swept_forgotten": total_swept_forgotten,
+        # Backward-compatible aliases maintained for one release window.
+        "memories_alive": total_swept_survivors,
+        "memories_forgotten": total_swept_forgotten,
         "write_log": write_log,
         "anomaly_packets": [p for p in packets if p["EVENT_KIND"] == "anomaly"][:5],
         "head": packets[:3],

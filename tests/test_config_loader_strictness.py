@@ -72,3 +72,37 @@ def test_load_config_returns_defaulted_structure(tmp_path):
     assert 0 < cfg.clock.min_clock_rate <= 1
     assert cfg.memory.decay_lambda >= 0
     assert cfg.memory.s_max > 0
+
+
+def test_load_config_fallback_parser_accepts_scientific_notation(tmp_path, monkeypatch):
+    import temporal_gradient.config as config
+
+    path = _write(tmp_path, """
+    salience:
+      base_value: 1e-1
+      hit_value: 2e-1
+      max_value: 1.0
+    clock:
+      base_dilation_factor: 1e0
+      min_clock_rate: 5e-2
+      legacy_density_scale: 1e2
+      salience_mode: canonical
+    memory:
+      half_life: 2e1
+      prune_threshold: 2e-1
+      encode_threshold: 3e-1
+      initial_strength_max: 1.2e0
+      decay_lambda: 5e-2
+      s_max: 1.5e0
+    policies:
+      deterministic_seed: 1337
+      event_wall_delta: 1e0
+      cooldown_tau: 0e0
+      calibration_post_sweep_wall_delta: 5e0
+    """)
+
+    monkeypatch.setattr(config, "yaml", None)
+
+    cfg = load_config(path)
+    assert cfg.clock.min_clock_rate == pytest.approx(0.05)
+    assert cfg.memory.decay_lambda == pytest.approx(0.05)

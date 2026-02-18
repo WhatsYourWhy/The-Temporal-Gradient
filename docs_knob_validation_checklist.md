@@ -22,6 +22,18 @@ Expected wiring signal: no strength should exceed 0.6.
 
 1. Keep `half_life` fixed.
 2. Run once with `decay_lambda: 0.05`, then with `decay_lambda: 0.5`.
-3. Compare `memories_alive` / `memories_forgotten` at same `tau_final`.
+3. Compare `total_swept_survivors` / `total_swept_forgotten` at same `tau_final`.
 
 Expected wiring signal: higher lambda should forget more memories by the final sweep.
+
+
+## PoC summary schema
+
+```json
+{
+  "total_swept_survivors": 12,
+  "total_swept_forgotten": 38
+}
+```
+
+Legacy aliases (`memories_alive`, `memories_forgotten`) may be present during deprecation but are not canonical.

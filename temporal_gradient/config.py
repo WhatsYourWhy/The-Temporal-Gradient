@@ -257,7 +257,8 @@ def _parse_simple_yaml(raw_text: str) -> Mapping[str, Any]:
         if lowered in {"true", "false"}:
             return lowered == "true"
         try:
-            if "." in token:
+            numeric_token = token.lower()
+            if "." in numeric_token or "e" in numeric_token:
                 return float(token)
             return int(token)
         except ValueError:
