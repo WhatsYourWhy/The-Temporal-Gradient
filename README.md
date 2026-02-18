@@ -114,6 +114,11 @@ For mode behavior deltas, migration matrix guidance, and release-labeled depreca
 ## Telemetry Schema (canonical keys)
 Canonical telemetry is validated against the required schema keys and should be the default for all new integrations.
 
+### Packet API contract
+- `to_packet()` => returns a Python `dict` mapping for schema validation and in-memory processing.
+- `to_packet_json()` => returns a JSON `str` for transport, storage, or logging contexts.
+- Do not call `json.loads(to_packet())`; `to_packet()` is already the structured mapping.
+
 - `WALL_T`
 - `TAU`
 - `SALIENCE`

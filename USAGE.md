@@ -7,6 +7,11 @@ Canonical module references and compatibility shims are listed in [`docs/CANONIC
 The telemetry packet is versioned and split into **required** vs **optional** keys.
 For canonical symbol/module ownership (including telemetry validators and compatibility aliases), see [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md).
 
+### Packet API contract
+- `to_packet()` => returns the packet as a `dict` mapping for schema checks and in-memory processing.
+- `to_packet_json()` => returns serialized JSON `str` for transport/logging boundaries.
+- Avoid `json.loads(to_packet())`; parse only the JSON text returned by `to_packet_json()`.
+
 **Required keys (canonical schema):**
 - `SCHEMA_VERSION`
 - `WALL_T`
