@@ -16,6 +16,7 @@ def run_harness(
     events: List[str],
     config: TemporalGradientConfig | None = None,
     config_path: str = "tg.yaml",
+    require_provenance_hash: bool = False,
 ) -> Tuple[Dict[str, float], List[Dict[str, float]]]:
     active_config = config or load_config(config_path)
 
@@ -80,7 +81,7 @@ def run_harness(
             memory_strength=memory_strength,
         )
         packet = json.loads(vector.to_packet())
-        validate_packet_schema(packet)
+        validate_packet_schema(packet, require_provenance_hash=require_provenance_hash)
         packets.append(packet)
         psi_values.append(sal.psi)
         clock_rates.append(dilation)

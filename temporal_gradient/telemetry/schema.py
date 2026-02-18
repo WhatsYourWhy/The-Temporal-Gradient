@@ -37,6 +37,7 @@ def validate_packet_schema(
     *,
     salience_mode: str = "canonical",
     clock_rate_bounds: Optional[Tuple[float, float]] = None,
+    require_provenance_hash: bool = False,
 ) -> None:
     """Validate canonical telemetry packets with explicit typing (no coercion)."""
     if salience_mode != "canonical":
@@ -56,8 +57,13 @@ def validate_packet_schema(
         raise TypeError("SCHEMA_VERSION must be a string")
 
     provenance_hash = packet.get("PROVENANCE_HASH")
-    if provenance_hash is not None and not isinstance(provenance_hash, str):
-        raise TypeError("PROVENANCE_HASH must be a string")
+    if require_provenance_hash and provenance_hash is None:
+        raise ValueError("PROVENANCE_HASH is required when require_provenance_hash=True")
+    if provenance_hash is not None:
+        if not isinstance(provenance_hash, str):
+            raise TypeError("PROVENANCE_HASH must be a string")
+        if not provenance_hash.strip():
+            raise ValueError("PROVENANCE_HASH must be a non-empty string")
 
     for field in NUMERIC_FIELDS:
         if not _is_finite_numeric(packet[field]):
@@ -85,10 +91,12 @@ def validate_packet(
     *,
     salience_mode: str = "canonical",
     clock_rate_bounds: Optional[Tuple[float, float]] = None,
+    require_provenance_hash: bool = False,
 ) -> None:
     """Backward-compatible alias for :func:`validate_packet_schema`."""
     validate_packet_schema(
         packet,
         salience_mode=salience_mode,
         clock_rate_bounds=clock_rate_bounds,
+        require_provenance_hash=require_provenance_hash,
     )

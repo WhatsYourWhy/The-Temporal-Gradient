@@ -46,7 +46,12 @@ def simulate_events(n: int = 50) -> list[SimulatedEvent]:
     return events
 
 
-def run_poc(*, config_path: str = "tg.yaml", n_events: int = 50) -> dict[str, Any]:
+def run_poc(
+    *,
+    config_path: str = "tg.yaml",
+    n_events: int = 50,
+    require_provenance_hash: bool = False,
+) -> dict[str, Any]:
     cfg = tg.load_config(config_path)
     random.seed(cfg.policies.deterministic_seed)
 
@@ -115,7 +120,11 @@ def run_poc(*, config_path: str = "tg.yaml", n_events: int = 50) -> dict[str, An
             ).to_packet()
         )
 
-        validate_packet_schema(packet, salience_mode=cfg.clock.salience_mode)
+        validate_packet_schema(
+            packet,
+            salience_mode=cfg.clock.salience_mode,
+            require_provenance_hash=require_provenance_hash,
+        )
         packet["EVENT_KIND"] = event.kind
         packet["ENCODED"] = bool(encoded)
         packet["COMPUTE_ALLOWED"] = bool(compute_allowed)
@@ -156,9 +165,18 @@ def main() -> None:
     parser.add_argument("--config", default="tg.yaml", help="Path to tg.yaml config")
     parser.add_argument("--events", type=int, default=50, help="Number of simulated events")
     parser.add_argument("--output", type=Path, help="Optional path to write full JSON summary")
+    parser.add_argument(
+        "--require-provenance-hash",
+        action="store_true",
+        help="Require PROVENANCE_HASH on canonical packets",
+    )
     args = parser.parse_args()
 
-    summary = run_poc(config_path=args.config, n_events=args.events)
+    summary = run_poc(
+        config_path=args.config,
+        n_events=args.events,
+        require_provenance_hash=args.require_provenance_hash,
+    )
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(summary, indent=2))
