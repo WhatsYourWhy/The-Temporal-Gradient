@@ -175,7 +175,11 @@ class CodexNoveltyAdapter:
 
     def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         score, diagnostics = self.codex.score_H(text)
-        return score, diagnostics, {"adapter": "CodexNoveltyAdapter"}
+        return score, diagnostics, {
+            "method": "codex_novelty",
+            "codex_version": str(getattr(self.codex, "version", "unknown")),
+            "adapter_class": self.__class__.__name__,
+        }
 
 
 class CodexValueAdapter:
@@ -184,4 +188,8 @@ class CodexValueAdapter:
 
     def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         score, diagnostics = self.codex.score_V(text)
-        return score, diagnostics, {"adapter": "CodexValueAdapter"}
+        return score, diagnostics, {
+            "method": "codex_value",
+            "codex_version": str(getattr(self.codex, "version", "unknown")),
+            "adapter_class": self.__class__.__name__,
+        }
