@@ -1,61 +1,88 @@
-# Canonical vs Legacy Density Modes
+# Canonical vs Legacy Mode Guide
 
-This guide defines the two supported salience/telemetry compatibility modes and when to use each.
+This document defines runtime mode behavior for contributors, provides import migration guidance, and sets the deprecation horizon for compatibility shims.
 
-## Supported modes
+## Mode Definitions
 
-- `canonical`
-- `legacy_density`
+### `canonical`
 
-`canonical` is the default and authoritative behavior for all new integrations.
+Use `canonical` mode for all new code and integrations.
 
-`legacy_density` exists only to preserve behavior for older harnesses that have not yet migrated to canonical packet production.
+- Enforces canonical telemetry schema validation with required canonical packet keys.
+- Treats normalized salience values as authoritative (`psi` from canonical salience pipeline outputs).
+- Rejects packet payloads that do not conform to canonical schema expectations.
 
-## Behavior differences
+### `legacy_density`
 
-| Area | `canonical` | `legacy_density` |
-|---|---|---|
-| Salience source | Uses canonical salience pipeline output (`psi = H × V`) | Derives salience from entropy density, then clamps to `[0,1]` |
-| Salience bounds | Enforced normalized bounds | Derived/clamped compatibility path |
-| Telemetry schema enforcement | `validate_packet_schema(...)` is enforced | Canonical strictness is intentionally bypassed for compatibility |
-| Accepted packet keys | Requires canonical schema keys; optional extended keys are additive | Accepts legacy-shaped packets used by historical integrations |
+`legacy_density` is a compatibility mode for older integrations.
 
-### Accepted packet keys
+- Preserves support for legacy packet shapes during migration windows.
+- Derives and clamps salience from entropy density when canonical salience inputs are absent.
+- Applies compatibility-oriented validation behavior rather than strict canonical enforcement.
 
-Canonical packet schema keys:
+## Behavior Deltas (`canonical` vs `legacy_density`)
 
-- `SCHEMA_VERSION`
-- `WALL_T`
-- `TAU`
-- `SALIENCE`
-- `CLOCK_RATE`
-- `MEMORY_S`
-- `DEPTH`
+| Behavior area | `canonical` | `legacy_density` |
+| --- | --- | --- |
+| Schema enforcement | Strict canonical schema validation; non-canonical packet shapes are rejected. | Compatibility-focused validation for legacy packet shapes; strict canonical schema requirements are relaxed. |
+| Packet keys | Canonical telemetry key set is required (for example: `WALL_T`, `TAU`, `SALIENCE`, `CLOCK_RATE`, `MEMORY_S`, `DEPTH`). | Legacy or mixed key sets may be accepted for backward compatibility. |
+| Salience derivation | Salience is expected from canonical salience pipeline outputs (`H`, `V`, and derived `psi`). | Salience may be derived from entropy density and clamped for compatibility with older emitters. |
 
-Extended telemetry keys allowed in canonical packet payloads:
+## Migration Matrix: Legacy/Shim Imports → Canonical Imports
 
-- `H`
-- `V`
+Use canonical imports in all new/modified files. Keep shim usage only as temporary migration scaffolding.
 
-Legacy integrations may continue emitting historical packet forms while `legacy_density` compatibility remains available.
+| Legacy / shim import | Canonical import | Example replacement |
+| --- | --- | --- |
+| `from chronos_engine import ClockRateModulator` | `from temporal_gradient.clock.chronos import ClockRateModulator` | Replace direct root-level shim import with canonical package path. |
+| `from compute_budget import ComputeBudgetPolicy` | `from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy` | Rename policy class and module to cooldown naming. |
+| `from temporal_gradient.policies.compute_budget import ComputeBudgetPolicy` | `from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy` | Update in-package compatibility alias imports to canonical policy module. |
+| `from chronometric_vector import ChronometricVector` | `from temporal_gradient.telemetry.chronometric_vector import ChronometricVector` | Migrate telemetry vector imports to canonical telemetry package. |
+| `from salience_pipeline import SaliencePipeline, RollingJaccardNovelty, KeywordImperativeValue` | `from temporal_gradient.salience.pipeline import SaliencePipeline, RollingJaccardNovelty, KeywordImperativeValue` | Move salience pipeline and primitives to canonical salience package imports. |
+| `from entropic_decay import DecayEngine` | `from temporal_gradient.memory.decay import DecayEngine` | Use canonical memory package path for decay engine access. |
 
-## Intended usage
+### Copy/Paste Migration Examples
 
-Use `canonical` when:
+#### Policy rename and import migration
 
-- building new features,
-- validating or analyzing telemetry,
-- publishing examples or integration docs.
+```python
+# Before (legacy/shim)
+from temporal_gradient.policies.compute_budget import ComputeBudgetPolicy
 
-Use `legacy_density` only when:
+policy = ComputeBudgetPolicy(cooldown_tau=0.5)
+```
 
-- you must keep older packet producers running during migration,
-- you need a temporary bridge while updating external consumers.
+```python
+# After (canonical)
+from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
 
-## Deprecation horizon
+policy = ComputeCooldownPolicy(cooldown_tau=0.5)
+```
 
-`legacy_density` is a migration compatibility mode and should be treated as temporary.
+#### Root-level shim to canonical telemetry import
 
-- Compatibility shims and legacy behavior are maintained for a release-window transition period.
-- Plan to migrate packet production and validation to `canonical` as soon as possible.
-- Future releases may remove compatibility-only behavior with normal release-note notice.
+```python
+# Before (legacy/shim)
+from chronometric_vector import ChronometricVector
+```
+
+```python
+# After (canonical)
+from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
+```
+
+## Operational Recommendations for New Contributors
+
+1. Default to `canonical` mode in local runs, tests, and examples.
+2. Use only canonical imports for new files and refactors.
+3. Treat `legacy_density` and root-level shims as migration-only compatibility paths.
+4. Validate telemetry packets using canonical schema checks in development workflows.
+5. When touching compatibility code, leave explicit migration notes in PR descriptions and changelog entries.
+
+## Deprecation Timeline (release-labeled)
+
+- **v0.2.x**: Canonical mode is the default contributor target; legacy mode and compatibility shims remain available for migration.
+- **v0.3.x**: Planned removal window for legacy compatibility shims and legacy-only naming aliases (for example, `compute_budget` imports).
+- **v0.4.0+**: Legacy/shim paths should be considered removed unless explicitly reintroduced with release notes.
+
+For release-by-release migration messaging, update `CHANGELOG.md` Unreleased using the compatibility template and keep this document aligned.
