@@ -246,8 +246,22 @@ def load_config(path: str | Path = "tg.yaml") -> TemporalGradientConfig:
 def _parse_simple_yaml(raw_text: str) -> Mapping[str, Any]:
     lines = raw_text.splitlines()
 
+    def strip_inline_comment(token: str) -> str:
+        in_single = False
+        in_double = False
+        for idx, char in enumerate(token):
+            if char == "'" and not in_double:
+                in_single = not in_single
+                continue
+            if char == '"' and not in_single:
+                in_double = not in_double
+                continue
+            if char == "#" and not in_single and not in_double:
+                return token[:idx].rstrip()
+        return token.rstrip()
+
     def parse_scalar(token: str) -> Any:
-        token = token.strip()
+        token = strip_inline_comment(token.strip())
         if token == "{}":
             return {}
         if token == "[]":
@@ -290,6 +304,7 @@ def _parse_simple_yaml(raw_text: str) -> Mapping[str, Any]:
                 if current_indent != indent or not raw.lstrip().startswith("-"):
                     raise ConfigValidationError("Invalid YAML list indentation")
                 content = raw.lstrip()[1:].strip()
+                content = strip_inline_comment(content)
                 index += 1
                 if content:
                     items.append(parse_scalar(content))
@@ -314,7 +329,7 @@ def _parse_simple_yaml(raw_text: str) -> Mapping[str, Any]:
                 raise ConfigValidationError("Invalid YAML key-value entry")
             key, value = stripped.split(":", 1)
             key = key.strip()
-            value = value.strip()
+            value = strip_inline_comment(value.strip())
             index += 1
             if value:
                 obj[key] = parse_scalar(value)
