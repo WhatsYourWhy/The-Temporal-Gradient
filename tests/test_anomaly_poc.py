@@ -112,3 +112,24 @@ def test_run_poc_replay_strict_mode_uses_provenance_hashes():
 
     assert all(packet["PROVENANCE_HASH"] for packet in result["head"])
     assert all(packet["PROVENANCE_HASH"] for packet in result["tail"])
+
+
+def test_run_poc_handles_empty_event_stream():
+    cfg = _write_cfg(cooldown_tau=0.0, encode_threshold=0.0, s_max=1.5, decay_lambda=0.05, sweep_every=5.0)
+
+    result = run_poc(config_path=cfg, n_events=0)
+
+    assert result["n_packets"] == 0
+    assert result["tau_final"] == 0.0
+    assert result["avg_salience"] == 0.0
+    assert result["max_salience"] == 0.0
+    assert result["encoded_count"] == 0
+    assert result["compute_allowed_count"] == 0
+    assert result["total_swept_survivors"] == 0
+    assert result["total_swept_forgotten"] == 0
+    assert result["memories_alive"] == 0
+    assert result["memories_forgotten"] == 0
+    assert result["head"] == []
+    assert result["tail"] == []
+    assert result["anomaly_packets"] == []
+    assert result["write_log"] == []
