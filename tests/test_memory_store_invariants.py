@@ -39,6 +39,22 @@ def test_upsert_rejects_last_tau_regression_for_same_key():
         assert True
 
 
+def test_touch_updates_last_tau_invariant_tracking():
+    store = _store()
+    memory = EntropicMemory("x", initial_weight=1.0)
+    memory.last_accessed_tau = 0.0
+    store.upsert(memory)
+
+    store.touch(memory.id, current_tau=5.0)
+    memory.last_accessed_tau = 4.0
+
+    try:
+        store.upsert(memory)
+        assert False
+    except ValueError:
+        assert True
+
+
 def test_prune_uses_threshold_rule_exactly():
     store = _store()
     memory = EntropicMemory("x", initial_weight=0.2)

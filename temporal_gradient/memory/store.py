@@ -91,4 +91,6 @@ class DecayMemoryStore(MemoryStore):
         record = self.get(record_id)
         if record is None:
             return None
-        return record.reconsolidate(current_tau=current_tau, cooldown=cooldown)
+        updated_strength = record.reconsolidate(current_tau=current_tau, cooldown=cooldown)
+        self._last_tau_by_id[record_id] = record.last_accessed_tau
+        return updated_strength
