@@ -13,6 +13,7 @@ def _make_scorer(*, cache_backend: DictEmbeddingCache, deterministic_mode: bool)
         deterministic_mode=deterministic_mode,
         device="cpu",
         dtype="float32",
+        runtime_metadata={"deterministic_runtime_policy": "cpu_fp32"},
         code_version="test-v1",
     )
 
@@ -45,8 +46,42 @@ def test_cache_hit_deterministic_replay_equality() -> None:
 def test_cache_miss_fails_in_deterministic_mode() -> None:
     scorer = _make_scorer(cache_backend=DictEmbeddingCache(), deterministic_mode=True)
 
-    with pytest.raises(ValueError, match="Precompute cache"):
+    with pytest.raises(ValueError, match=r"cache_hit_only"):
         scorer.score("missing")
+
+
+def test_deterministic_mode_fails_when_quantization_is_disabled() -> None:
+    with pytest.raises(ValueError, match=r"\[quantization\]"):
+        NoveltyScorer(
+            model_id="mini-embed",
+            model_hash="sha256:abc123",
+            window_size=2,
+            quantization="none",
+            cache_backend=DictEmbeddingCache(),
+            deterministic_mode=True,
+            device="cpu",
+            dtype="float32",
+            runtime_metadata={"deterministic_runtime_policy": "cpu_fp32"},
+        )
+
+
+def test_deterministic_mode_fails_with_incompatible_runtime_metadata() -> None:
+    with pytest.raises(ValueError, match=r"\[runtime_metadata\]"):
+        NoveltyScorer(
+            model_id="mini-embed",
+            model_hash="sha256:abc123",
+            window_size=2,
+            quantization="int8",
+            cache_backend=DictEmbeddingCache(),
+            deterministic_mode=True,
+            device="cuda",
+            dtype="float16",
+            runtime_metadata={
+                "deterministic_runtime_policy": "gpu_fp16",
+                "execution_device": "cuda",
+                "compute_dtype": "float16",
+            },
+        )
 
 
 def test_provenance_contains_required_keys() -> None:
