@@ -8,6 +8,10 @@
 | TG-002 | Align anomaly PoC summary keys with tests to remove `KeyError` drift | High | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
 | TG-003 | Reconcile checklist guidance with executable test expectations for memory-decay sweep outputs | High | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
 | TG-004 | Add regression coverage for YAML scientific-notation numerics in fallback parser mode | Medium | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
+| TG-005 | Plan final removal of misspelled `chronolog` compatibility alias | Medium | Proposed | Unassigned | v0.3.x | Follow-up cleanup task |
+| TG-006 | Harden fallback YAML parser to reject mismatched quote delimiters | High | Proposed | Unassigned | v0.3.x | Prevent malformed-config acceptance |
+| TG-007 | Sync README test-count claim with current CI reality | Medium | Proposed | Unassigned | v0.2.x | Docs consistency fix |
+| TG-008 | Add negative tests for malformed fallback YAML quoting/arrays | Medium | Proposed | Unassigned | v0.3.x | Test hardening follow-up |
 
 ## Execution cadence
 
@@ -49,6 +53,35 @@ This board is reviewed and updated **weekly during engineering triage** and **be
 - `tests/test_config_loader_strictness.py` (or a dedicated fallback parser regression test file)
 
 **Definition of done:** regression tests cover scientific-notation numerics (for example `1e-3`) in fallback parser mode, include at least one YAML-unavailable fallback-path test, and pass after parser behavior supports float-valued scientific notation.
+
+### TG-005
+
+**Implementation scope**
+- `temporal_gradient/clock/chronos.py`
+- migration docs that still reference alias lifecycle (`docs/CANONICAL_VS_LEGACY.md`, `docs/MIGRATION_SHIMS.md`)
+
+**Definition of done:** remove the deprecated `chronolog` alias at the next planned compatibility-window boundary, update migration docs/changelog, and keep tests green on canonical `chronology` usage only.
+
+### TG-006
+
+**Implementation scope**
+- `temporal_gradient/config.py` fallback parser (`_parse_simple_yaml`)
+
+**Definition of done:** fallback parser raises `ConfigValidationError` for malformed quoted scalars (for example mixed `'..."` delimiters) instead of silently normalizing them, with clear error text.
+
+### TG-007
+
+**Implementation scope**
+- `README.md` testing-status snippet
+
+**Definition of done:** README no longer reports stale "`74 passed`" output and instead reflects current test-suite status (or references a command without fixed count).
+
+### TG-008
+
+**Implementation scope**
+- `tests/test_config_loader_strictness.py`
+
+**Definition of done:** add fallback-parser regression tests that assert invalid quoted YAML content and malformed inline-array inputs are rejected with `ConfigValidationError`.
 
 ## Archival guidance
 
