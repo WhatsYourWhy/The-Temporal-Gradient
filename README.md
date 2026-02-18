@@ -4,6 +4,9 @@
 - Version: 0.2.0
 - License: Proprietary source-available (review only; execution requires permission — see LICENSE)
 
+## Contributor Onboarding
+- New contributors: start with `docs/DAY1_CONTRIBUTOR_MAP.md` for subsystem ownership, required test commands, first-PR templates, and canonical-vs-legacy gotchas.
+
 ## Canonical Summary
 Temporal Gradient is a simulation framework modeling:
 1. an internal time accumulator \(\tau\) whose rate is modulated by salience load \(\Psi\), and
