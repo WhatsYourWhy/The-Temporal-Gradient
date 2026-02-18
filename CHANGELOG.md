@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+Keep canonical-vs-legacy release messaging aligned with [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md) when adding entries below.
+
 
 ### Compatibility shims and legacy mode updates (template)
 
