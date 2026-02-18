@@ -1,56 +1,69 @@
-# Codebase Issue Triage: Proposed Follow-up Tasks
+# Codebase Issue Triage: Task Tracker
 
-## 1) Typo Fix Task
-**Title:** Rename `chronolog` to `chronology` in `ClockRateModulator`.
+## Active task index
 
-- **Why:** `chronolog` appears to be a typo/abbreviation that harms readability and discoverability for users inspecting telemetry history.
-- **Evidence:** `ClockRateModulator.__init__` initializes `self.chronolog = []` and `tick()` appends telemetry entries to it.
-- **Scope:**
-  - Rename attribute to `chronology` in `temporal_gradient/clock/chronos.py`.
-  - Keep a temporary compatibility alias (`chronolog`) for one release window, with deprecation note.
-  - Update any tests/docs referencing the old name.
-- **Acceptance criteria:**
-  - `clock.chronology` is the canonical attribute.
-  - Existing callers of `clock.chronolog` still function (with a clear deprecation path).
+| ID | Title | Type | Status | Owner | Linked Issue/PR | Target Release |
+| --- | --- | --- | --- | --- | --- | --- |
+| TG-TASK-001 | Rename `chronolog` to `chronology` in `ClockRateModulator` | Refactor / Typo fix | Proposed | Unassigned | TBD | Next minor release |
+| TG-TASK-002 | Align anomaly PoC summary keys with tests to remove `KeyError` drift | Bug fix | Proposed | Unassigned | TBD | Next patch release |
+| TG-TASK-003 | Reconcile checklist guidance with executable test expectations for memory-decay sweep outputs | Documentation / Test consistency | Proposed | Unassigned | TBD | Next patch release |
+| TG-TASK-004 | Add regression coverage for YAML scientific-notation numerics in fallback parser mode | Test improvement | Proposed | Unassigned | TBD | Next minor release |
 
-## 2) Bug Fix Task
-**Title:** Align anomaly PoC summary keys with tests (or vice versa) to remove the current failure.
+## Task details
 
-- **Why:** The current test suite fails with `KeyError: 'total_swept_forgotten'`.
-- **Evidence:**
-  - `run_poc()` returns `memories_forgotten` / `memories_alive` in the summary.
-  - `tests/test_anomaly_poc.py` expects `total_swept_forgotten`.
-- **Scope:**
-  - Choose a single canonical key naming scheme for forget/sweep statistics.
-  - Update `anomaly_poc.py` and tests to use the same schema.
-  - If backward compatibility is needed, emit both keys temporarily.
-- **Acceptance criteria:**
-  - `pytest -q` passes.
-  - PoC JSON schema is internally consistent and documented.
+### TG-TASK-001 — Rename `chronolog` to `chronology` in `ClockRateModulator`
 
-## 3) Comment/Documentation Discrepancy Task
-**Title:** Reconcile checklist guidance with executable test expectations for memory-decay sweep outputs.
+**Affected paths**
+- `temporal_gradient/clock/chronos.py`
+- Any docs/tests that reference `chronolog` (as discovered during implementation)
 
-- **Why:** The checklist and test describe different output fields for the same validation objective.
-- **Evidence:**
-  - `docs_knob_validation_checklist.md` instructs checking `memories_alive` / `memories_forgotten`.
-  - `tests/test_anomaly_poc.py` currently asserts on `total_swept_forgotten`.
-- **Scope:**
-  - Update documentation and tests to reference the same canonical field names.
-  - Add a short JSON schema snippet for PoC summary fields to avoid drift.
-- **Acceptance criteria:**
-  - A single set of summary field names is used in docs + tests + implementation.
+**Definition of Done**
+- `clock.chronology` is the canonical telemetry-history attribute.
+- Existing callers of `clock.chronolog` continue to work for one release window via a compatibility alias.
+- A deprecation note is added for `chronolog` usage.
+- Tests and docs are updated to reference `chronology` as the preferred name.
 
-## 4) Test Improvement Task
-**Title:** Add regression coverage for YAML scientific-notation numerics in fallback parser mode.
+### TG-TASK-002 — Align anomaly PoC summary keys with tests to remove `KeyError` drift
 
-- **Why:** The fallback parser in `temporal_gradient/config.py` only treats tokens containing `.` as float candidates; values like `1e-3` are parsed as strings and later fail numeric validation unexpectedly.
-- **Evidence:**
-  - `parse_scalar()` checks for `"." in token` before `float(token)`.
-  - Scientific notation is numeric but does not require a dot.
-- **Scope:**
-  - Add tests in `tests/test_config_loader_strictness.py` (or a new focused file) that validate numeric scientific notation for float-valued fields.
-  - Preferably force fallback-parser path (mock `yaml is None`) to capture this code path.
-- **Acceptance criteria:**
-  - A test fails on current behavior and passes after parser improvement.
-  - Scientific notation is accepted consistently for numeric config fields.
+**Affected paths**
+- `anomaly_poc.py`
+- `tests/test_anomaly_poc.py`
+
+**Definition of Done**
+- Implementation and tests agree on one canonical naming scheme for sweep/forget summary keys.
+- `pytest -q` passes for the anomaly PoC test coverage.
+- If temporary backward compatibility keys are retained, they are documented and marked for removal.
+- PoC summary output is internally consistent across code and assertions.
+
+### TG-TASK-003 — Reconcile checklist guidance with executable test expectations for memory-decay sweep outputs
+
+**Affected paths**
+- `docs_knob_validation_checklist.md`
+- `tests/test_anomaly_poc.py`
+- `anomaly_poc.py` (if schema/example snippets are co-located with output logic)
+
+**Definition of Done**
+- Documentation, tests, and implementation use one shared set of summary field names.
+- Checklist language mirrors the canonical output schema used in tests.
+- A short summary-schema snippet is added (or updated) to prevent future drift.
+- Cross-references between docs and tests are validated during review.
+
+### TG-TASK-004 — Add regression coverage for YAML scientific-notation numerics in fallback parser mode
+
+**Affected paths**
+- `temporal_gradient/config.py`
+- `tests/test_config_loader_strictness.py` (or a dedicated fallback parser test file)
+
+**Definition of Done**
+- Regression tests cover scientific-notation values (for example, `1e-3`) in fallback parser mode.
+- At least one test exercises the fallback path where YAML parsing support is unavailable.
+- Scientific-notation numerics are accepted for float-valued config fields.
+- Tests fail on pre-fix behavior and pass after parser improvements.
+
+## Triage cadence
+
+This tracker is reviewed **weekly during engineering triage** and again **before each release cut** to confirm status, ownership, and release targeting.
+
+## Archival guidance
+
+At release time, move completed entries from this file into `docs/archive/TASK_PROPOSALS_<release>.md` (for example, `docs/archive/TASK_PROPOSALS_v0.4.0.md`) and keep only active or deferred tasks in this tracker.
