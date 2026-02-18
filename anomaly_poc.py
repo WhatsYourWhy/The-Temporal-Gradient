@@ -141,6 +141,15 @@ def run_poc(
     total_swept_survivors = len(alive)
     total_swept_forgotten = len(forgotten)
 
+    if packets:
+        tau_final = packets[-1]["TAU"]
+        avg_salience = sum(p["SALIENCE"] for p in packets) / len(packets)
+        max_salience = max(p["SALIENCE"] for p in packets)
+    else:
+        tau_final = 0.0
+        avg_salience = 0.0
+        max_salience = 0.0
+
     return {
         "config": {
             "salience": asdict(cfg.salience),
@@ -150,9 +159,9 @@ def run_poc(
         },
         "seed": cfg.policies.deterministic_seed,
         "n_packets": len(packets),
-        "tau_final": packets[-1]["TAU"],
-        "avg_salience": sum(p["SALIENCE"] for p in packets) / len(packets),
-        "max_salience": max(p["SALIENCE"] for p in packets),
+        "tau_final": tau_final,
+        "avg_salience": avg_salience,
+        "max_salience": max_salience,
         "encoded_count": sum(1 for p in packets if p["ENCODED"]),
         "compute_allowed_count": sum(1 for p in packets if p["COMPUTE_ALLOWED"]),
         "total_swept_survivors": total_swept_survivors,

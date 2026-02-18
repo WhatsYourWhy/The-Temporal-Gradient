@@ -158,7 +158,7 @@ Run:
 - `python scripts/check_docs_consistency.py`
 
 Latest document-review validation run (local):
-- `pytest -q` → `74 passed`
+- `pytest -q` (run locally to see current pass count)
 
 CI uses the same command.
 

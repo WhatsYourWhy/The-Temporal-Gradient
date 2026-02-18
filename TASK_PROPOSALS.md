@@ -10,12 +10,12 @@
 | TG-004 | Add regression coverage for YAML scientific-notation numerics in fallback parser mode | Medium | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
 | TG-005 | Plan final removal of misspelled `chronolog` compatibility alias | Medium | Proposed | Unassigned | v0.3.x | Follow-up cleanup task |
 | TG-006 | Harden fallback YAML parser to reject mismatched quote delimiters | High | Completed | Codex | v0.3.x | Covered by in-repo tests/docs |
-| TG-007 | Sync README test-count claim with current CI reality | Medium | Proposed | Unassigned | v0.2.x | Docs consistency fix |
+| TG-007 | Sync README test-count claim with current CI reality | Medium | Completed | Codex | v0.2.x | Covered by README command-driven wording update |
 | TG-008 | Add negative tests for malformed fallback YAML quoting/arrays | Medium | Completed | Codex | v0.3.x | Covered by in-repo tests/docs |
 | TG-009 | Remove deprecated typo alias `chronolog` from clock modulator surface | Medium | Proposed | Unassigned | v0.3.x | Typo cleanup + migration-doc follow-up |
-| TG-010 | Handle `run_poc(..., n_events=0)` without index/division errors | High | Proposed | Unassigned | v0.2.x | Bug fix in anomaly PoC summary generation |
-| TG-011 | Replace stale README fixed test count (`74 passed`) with command-driven wording | Medium | Proposed | Unassigned | v0.2.x | Docs/comment discrepancy fix |
-| TG-012 | Add anomaly PoC regression test for empty-event streams (`n_events=0`) | Medium | Proposed | Unassigned | v0.2.x | Test-hardening task tied to TG-010 |
+| TG-010 | Handle `run_poc(..., n_events=0)` without index/division errors | High | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
+| TG-011 | Replace stale README fixed test count (`74 passed`) with command-driven wording | Medium | Completed | Codex | v0.2.x | Covered by README command-driven wording update |
+| TG-012 | Add anomaly PoC regression test for empty-event streams (`n_events=0`) | Medium | Completed | Codex | v0.2.x | Covered by in-repo tests/docs |
 
 ## Execution cadence
 
@@ -128,3 +128,8 @@ At release time, move completed entries from this file into `docs/archive/TASK_P
 - **TG-004** complete: fallback parser path is regression-tested for YAML scientific-notation numerics (for example `1e-1`, `5e-2`) when PyYAML is unavailable.
 - **TG-006** complete: fallback parser now rejects mismatched/unterminated quote delimiters with `ConfigValidationError` instead of silently accepting malformed scalars.
 - **TG-008** complete: strict fallback-parser regression tests cover malformed quoted scalars and malformed inline-array delimiters/items.
+- **TG-007** complete: README testing section now uses command-driven wording instead of a stale fixed pass count.
+- **TG-010** complete: `run_poc(..., n_events=0)` now returns explicit empty-stream aggregate defaults without indexing/division failures.
+- **TG-011** complete: README no longer hardcodes `74 passed`; readers are instructed to run `pytest -q` for current status.
+- **TG-012** complete: anomaly PoC regression coverage now asserts empty-event summary invariants for counts, aggregates, and list fields.
+
