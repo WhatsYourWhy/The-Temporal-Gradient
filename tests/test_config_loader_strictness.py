@@ -174,6 +174,53 @@ def test_load_config_fallback_parser_preserves_hash_inside_quotes(tmp_path, monk
     assert cfg.salience.keywords == ("phase#1", "critical#path")
 
 
+@pytest.mark.parametrize(
+    "body, expected_error",
+    [
+        (
+            """
+            salience:
+              keywords: ['critical"]
+            clock: {}
+            memory: {}
+            policies: {}
+            """,
+            "quoted scalar delimiters|Unterminated quoted scalar|unterminated quoted item",
+        ),
+        (
+            """
+            salience:
+              keywords: [critical, 'urgent"]
+            clock: {}
+            memory: {}
+            policies: {}
+            """,
+            "inline array|quoted scalar delimiters|Unterminated quoted scalar",
+        ),
+        (
+            """
+            salience:
+              keywords: [critical,
+            clock: {}
+            memory: {}
+            policies: {}
+            """,
+            "inline array delimiters",
+        ),
+    ],
+)
+def test_load_config_fallback_parser_rejects_malformed_quoted_scalars_and_arrays(
+    tmp_path, monkeypatch, body, expected_error
+):
+    import temporal_gradient.config as config
+
+    path = _write(tmp_path, body)
+    monkeypatch.setattr(config, "yaml", None)
+
+    with pytest.raises(ConfigValidationError, match=expected_error):
+        load_config(path)
+
+
 def test_load_config_defaults_replay_require_provenance_hash_to_false(tmp_path):
     path = _write(tmp_path, """
     salience: {}

@@ -260,19 +260,58 @@ def _parse_simple_yaml(raw_text: str) -> Mapping[str, Any]:
                 return token[:idx].rstrip()
         return token.rstrip()
 
+    def split_inline_array_items(token: str) -> list[str]:
+        items: list[str] = []
+        current: list[str] = []
+        in_single = False
+        in_double = False
+
+        for char in token:
+            if char == "'" and not in_double:
+                in_single = not in_single
+                current.append(char)
+                continue
+            if char == '"' and not in_single:
+                in_double = not in_double
+                current.append(char)
+                continue
+            if char == "," and not in_single and not in_double:
+                item = "".join(current).strip()
+                if not item:
+                    raise ConfigValidationError("Malformed YAML inline array: empty item")
+                items.append(item)
+                current = []
+                continue
+            current.append(char)
+
+        if in_single or in_double:
+            raise ConfigValidationError("Malformed YAML inline array: unterminated quoted item")
+
+        last = "".join(current).strip()
+        if not last:
+            raise ConfigValidationError("Malformed YAML inline array: trailing comma")
+        items.append(last)
+        return items
+
     def parse_scalar(token: str) -> Any:
         token = strip_inline_comment(token.strip())
         if token == "{}":
             return {}
         if token == "[]":
             return []
+        if token.startswith("[") ^ token.endswith("]"):
+            raise ConfigValidationError("Malformed YAML inline array delimiters")
         if token.startswith("[") and token.endswith("]"):
             inside = token[1:-1].strip()
             if not inside:
                 return []
-            return [parse_scalar(part.strip()) for part in inside.split(",")]
-        if token.startswith(("'", '"')) and token.endswith(("'", '"')):
+            return [parse_scalar(part) for part in split_inline_array_items(inside)]
+        if token.startswith(("'", '"')):
+            if not token.endswith(token[0]):
+                raise ConfigValidationError("Malformed YAML quoted scalar delimiters")
             return token[1:-1]
+        if token.endswith(("'", '"')):
+            raise ConfigValidationError("Malformed YAML quoted scalar delimiters")
         lowered = token.lower()
         if lowered in {"true", "false"}:
             return lowered == "true"
