@@ -1,4 +1,3 @@
-import json
 import math
 
 import pytest
@@ -73,17 +72,15 @@ def test_validate_packet_rejects_non_finite_numeric_fields(bad_value):
 
 
 def test_chronometric_vector_to_packet_matches_schema():
-    packet = json.loads(
-        ChronometricVector(
-            wall_clock_time=1.0,
-            tau=0.1,
-            psi=0.2,
-            recursion_depth=0,
-            clock_rate=0.9,
-            memory_strength=0.1,
-            provenance_hash="sha256:feedbeef",
-        ).to_packet()
-    )
+    packet = ChronometricVector(
+        wall_clock_time=1.0,
+        tau=0.1,
+        psi=0.2,
+        recursion_depth=0,
+        clock_rate=0.9,
+        memory_strength=0.1,
+        provenance_hash="sha256:feedbeef",
+    ).to_packet()
     validate_packet_schema(packet)
     assert packet["PROVENANCE_HASH"] == "sha256:feedbeef"
 

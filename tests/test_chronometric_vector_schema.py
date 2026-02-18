@@ -19,14 +19,13 @@ def test_round_trip_canonical_packet():
         memory_strength=0.4,
     )
     packet = vector.to_packet()
-    data = json.loads(packet)
-    assert "SCHEMA_VERSION" in data
-    assert "WALL_T" in data
-    assert "TAU" in data
-    assert "SALIENCE" in data
-    assert "CLOCK_RATE" in data
-    assert "MEMORY_S" in data
-    assert "DEPTH" in data
+    assert "SCHEMA_VERSION" in packet
+    assert "WALL_T" in packet
+    assert "TAU" in packet
+    assert "SALIENCE" in packet
+    assert "CLOCK_RATE" in packet
+    assert "MEMORY_S" in packet
+    assert "DEPTH" in packet
     for legacy_key in {
         "INPUT",
         "clock_rate",
@@ -35,7 +34,7 @@ def test_round_trip_canonical_packet():
         "legacy_density",
         "t_obj",
     }:
-        assert legacy_key not in data
+        assert legacy_key not in packet
 
     parsed = ChronometricVector.from_packet(packet, salience_mode="canonical")
     assert parsed.wall_clock_time == pytest.approx(1.0)
@@ -51,6 +50,18 @@ def test_canonical_fixture_round_trip():
     assert parsed.schema_version == "1"
     round_trip = ChronometricVector.from_packet(parsed.to_packet(), salience_mode="canonical")
     assert round_trip.psi == pytest.approx(parsed.psi)
+
+
+def test_to_packet_json_compatibility_output_matches_mapping_contract():
+    vector = ChronometricVector(
+        wall_clock_time=1.0,
+        tau=0.9,
+        psi=0.5,
+        recursion_depth=0,
+        clock_rate=0.6667,
+        memory_strength=0.4,
+    )
+    assert json.loads(vector.to_packet_json()) == vector.to_packet()
 
 
 def test_reject_out_of_range_salience_in_canonical_mode():

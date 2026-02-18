@@ -42,3 +42,18 @@ def test_validate_packet_schema_requires_provenance_hash_when_requested():
 
 def test_validate_packet_schema_allows_missing_provenance_hash_by_default():
     validate_packet_schema(_canonical_packet(), require_provenance_hash=False)
+
+
+def test_validate_packet_schema_accepts_chronometric_vector_packet_mapping():
+    from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
+
+    packet = ChronometricVector(
+        wall_clock_time=1.0,
+        tau=0.8,
+        psi=0.4,
+        recursion_depth=0,
+        clock_rate=0.7,
+        memory_strength=0.2,
+    ).to_packet()
+
+    validate_packet_schema(packet)

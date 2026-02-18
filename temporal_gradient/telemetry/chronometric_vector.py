@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import json
-from typing import Optional
+from typing import Any, Mapping, Optional
 
 from .schema import validate_packet_schema
 
@@ -30,7 +30,7 @@ class ChronometricVector:
         if self.psi != self.salience:
             raise ValueError("psi and salience must match when both are provided.")
 
-    def to_packet(self):
+    def to_packet(self) -> dict[str, Any]:
         packet = {
             "SCHEMA_VERSION": self.schema_version,
             "WALL_T": round(float(self.wall_clock_time), 2),
@@ -48,16 +48,25 @@ class ChronometricVector:
             packet["PROVENANCE_HASH"] = self.provenance_hash
 
         validate_packet_schema(packet, salience_mode="canonical")
-        return json.dumps(packet)
+        return packet
+
+    def to_packet_json(self) -> str:
+        """Return the canonical packet as a JSON string.
+
+        `to_packet()` is the canonical mapping representation used by schema
+        validators and examples. This method is provided for integrations that
+        still need serialized JSON.
+        """
+        return json.dumps(self.to_packet())
 
     @staticmethod
     def from_packet(
-        json_str,
+        packet: str | Mapping[str, Any],
         salience_mode="canonical",
         clock_rate_bounds=None,
         require_provenance_hash: bool = False,
     ):
-        data = json.loads(json_str)
+        data = json.loads(packet) if isinstance(packet, str) else dict(packet)
         if salience_mode == "canonical":
             legacy_keys = {"t_obj", "r", "legacy_density", "LEGACY_DENSITY", "clock_rate", "psi"}
             if legacy_keys.intersection(data.keys()):

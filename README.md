@@ -85,7 +85,7 @@ packet = tg.telemetry.ChronometricVector(
     H=sal.novelty,
     V=sal.value,
     memory_strength=0.0,
-).to_packet()
+).to_packet()  # canonical: returns a dict packet mapping
 
 validate_packet_schema(packet, salience_mode=config.clock.salience_mode)
 
@@ -122,6 +122,7 @@ Canonical telemetry is validated against the required schema keys and should be 
 - `DEPTH`
 
 `validate_packet_schema(...)` is the canonical validator; `validate_packet(...)` remains a compatibility alias.
+`ChronometricVector.to_packet()` returns the canonical packet mapping (`dict`); use `to_packet_json()` only when serialized JSON text is explicitly required.
 
 For complete canonical vs legacy mode behavior (including accepted packet keys and compatibility bypass rules), see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 
