@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import tempfile
 from unittest.mock import patch
 
 from anomaly_poc import run_poc
+from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 
 
 BASE_CONFIG = """salience:
@@ -116,10 +118,14 @@ def test_run_poc_replay_strict_mode_uses_provenance_hashes():
     assert all(packet["PROVENANCE_HASH"] for packet in result["tail"])
 
 
-def test_run_poc_uses_dict_packet_from_chronometric_vector_directly():
+def test_run_poc_to_packet_returns_mapping_contract():
     cfg = _write_cfg(cooldown_tau=0.0, encode_threshold=0.0, s_max=1.5, decay_lambda=0.05, sweep_every=5.0)
 
-    with patch("anomaly_poc.ChronometricVector.to_packet", autospec=True) as to_packet:
+    with patch("anomaly_poc.ChronometricVector.to_packet", autospec=True) as to_packet, patch(
+        "anomaly_poc.ChronometricVector.to_packet_json",
+        autospec=True,
+        side_effect=AssertionError("run_poc should consume packet mappings, not JSON text"),
+    ):
         to_packet.return_value = {
             "SCHEMA_VERSION": "1.0",
             "WALL_T": 1.0,
@@ -136,7 +142,40 @@ def test_run_poc_uses_dict_packet_from_chronometric_vector_directly():
 
     assert to_packet.called
     assert result["n_packets"] == 1
-    assert result["head"][0]["SCHEMA_VERSION"] == "1.0"
+    packet = result["head"][0]
+    assert isinstance(packet, dict)
+    assert {
+        "SCHEMA_VERSION",
+        "WALL_T",
+        "TAU",
+        "SALIENCE",
+        "CLOCK_RATE",
+        "MEMORY_S",
+        "DEPTH",
+    }.issubset(packet)
+
+
+def test_run_poc_to_packet_json_is_explicit_serialization_path():
+    packet = ChronometricVector(
+        wall_clock_time=1.0,
+        tau=0.8,
+        psi=0.4,
+        recursion_depth=0,
+        clock_rate=0.7,
+        memory_strength=0.2,
+    ).to_packet()
+
+    assert isinstance(packet, dict)
+    assert json.loads(
+        ChronometricVector(
+            wall_clock_time=1.0,
+            tau=0.8,
+            psi=0.4,
+            recursion_depth=0,
+            clock_rate=0.7,
+            memory_strength=0.2,
+        ).to_packet_json()
+    ) == packet
 
 
 def test_run_poc_handles_empty_event_stream():

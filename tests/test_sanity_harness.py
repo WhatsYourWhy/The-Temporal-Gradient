@@ -1,6 +1,8 @@
 import textwrap
+import json
 
 from sanity_harness import run_harness
+from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 
 
 def _write_config(
@@ -89,6 +91,57 @@ def test_harness_validates_every_packet(monkeypatch):
     events = ["a", "b", "c"]
     _summary, packets = run_harness(events)
     assert len(calls) == len(packets)
+
+
+def test_run_harness_to_packet_returns_mapping_contract(monkeypatch):
+    events = ["a"]
+    mapping_packet = {
+        "SCHEMA_VERSION": "1.0",
+        "WALL_T": 1.0,
+        "TAU": 1.0,
+        "SALIENCE": 0.5,
+        "CLOCK_RATE": 1.0,
+        "MEMORY_S": 0.0,
+        "DEPTH": 0,
+        "H": 0.0,
+        "V": 0.0,
+    }
+
+    monkeypatch.setattr("sanity_harness.ChronometricVector.to_packet", lambda _self: dict(mapping_packet))
+
+    def _forbid_json(*_args, **_kwargs):
+        raise AssertionError("run_harness should consume packet mappings, not JSON text")
+
+    monkeypatch.setattr("sanity_harness.ChronometricVector.to_packet_json", _forbid_json)
+
+    _summary, packets = run_harness(events)
+
+    assert len(packets) == 1
+    assert isinstance(packets[0], dict)
+    assert {
+        "SCHEMA_VERSION",
+        "WALL_T",
+        "TAU",
+        "SALIENCE",
+        "CLOCK_RATE",
+        "MEMORY_S",
+        "DEPTH",
+    }.issubset(packets[0])
+
+
+def test_run_harness_to_packet_json_is_explicit_serialization_path():
+    vector = ChronometricVector(
+        wall_clock_time=1.0,
+        tau=0.8,
+        psi=0.4,
+        recursion_depth=0,
+        clock_rate=0.7,
+        memory_strength=0.2,
+    )
+    packet = vector.to_packet()
+
+    assert isinstance(packet, dict)
+    assert json.loads(vector.to_packet_json()) == packet
 
 
 def test_harness_applies_cooldown_policy_to_writes(tmp_path):
