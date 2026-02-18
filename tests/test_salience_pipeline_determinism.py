@@ -60,7 +60,7 @@ def test_pipeline_is_deterministic_for_identical_input_sequence():
         expected_salience=EXPECTED_SALIENCE,
         expected_provenance_hashes=EXPECTED_PROVENANCE_HASHES,
     )
-    assert_numeric_diagnostics_policy([out1, out2])
+    assert_numeric_diagnostics_policy([out1, out2], allowed_unstable_metrics={})
 
 
 def test_pipeline_replay_with_reset_matches_first_run():
@@ -76,7 +76,7 @@ def test_pipeline_replay_with_reset_matches_first_run():
         expected_salience=EXPECTED_SALIENCE,
         expected_provenance_hashes=EXPECTED_PROVENANCE_HASHES,
     )
-    assert_numeric_diagnostics_policy([first_run, replay_run])
+    assert_numeric_diagnostics_policy([first_run, replay_run], allowed_unstable_metrics={})
 
 
 def test_pipeline_replay_packets_match_baseline_after_reset():

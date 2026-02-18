@@ -67,7 +67,7 @@ def test_salience_packets_are_deterministic_with_fresh_state():
         expected_salience=EXPECTED_SALIENCE,
         expected_provenance_hashes=EXPECTED_PROVENANCE_HASHES,
     )
-    assert_numeric_diagnostics_policy([run1_packets, run2_packets])
+    assert_numeric_diagnostics_policy([run1_packets, run2_packets], allowed_unstable_metrics={})
 
 
 def test_salience_packet_hashes_are_deterministic_per_event():

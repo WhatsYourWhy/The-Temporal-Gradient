@@ -3,9 +3,13 @@ from __future__ import annotations
 from math import isclose
 from typing import Iterable, Mapping, Sequence
 
-# Documented diagnostics that are allowed to vary between replays because the
-# underlying model stack may be non-deterministic across runtime environments.
-UNSTABLE_NUMERIC_DIAGNOSTICS = frozenset({"H_model", "V_model"})
+
+def _validate_unstable_metric_allowlist(allowed_unstable_metrics: Mapping[str, str]) -> None:
+    for key, rationale in allowed_unstable_metrics.items():
+        assert isinstance(key, str) and key.strip(), "unstable metric key must be a non-empty string"
+        assert isinstance(rationale, str) and rationale.strip(), (
+            f"unstable metric '{key}' requires a non-empty rationale"
+        )
 
 
 def assert_strict_invariants(
@@ -28,20 +32,22 @@ def assert_numeric_diagnostics_policy(
     tolerance_keys: Iterable[str] = (),
     abs_tol: float = 1e-9,
     rel_tol: float = 1e-9,
-    unstable_whitelist: Iterable[str] = UNSTABLE_NUMERIC_DIAGNOSTICS,
+    allowed_unstable_metrics: Mapping[str, str] | None = None,
 ) -> None:
     """Validate numeric diagnostics policy across replay runs.
 
     Policy:
     - deterministic diagnostics must match exactly,
     - explicit tolerance keys may use numeric tolerance,
-    - unstable whitelist keys are excluded from replay equality checks.
+    - unstable diagnostics are allowed only for explicitly allowlisted metrics
+      that include a per-test rationale.
     """
 
     assert runs, "at least one run is required"
     baseline = runs[0]
     tolerance_key_set = set(tolerance_keys)
-    unstable_key_set = set(unstable_whitelist)
+    unstable_metric_allowlist = dict(allowed_unstable_metrics or {})
+    _validate_unstable_metric_allowlist(unstable_metric_allowlist)
 
     for candidate in runs[1:]:
         assert len(candidate) == len(baseline)
@@ -51,8 +57,8 @@ def assert_numeric_diagnostics_policy(
             assert isinstance(baseline_diag, Mapping)
             assert isinstance(candidate_diag, Mapping)
 
-            baseline_keys = set(baseline_diag.keys()) - unstable_key_set
-            candidate_keys = set(candidate_diag.keys()) - unstable_key_set
+            baseline_keys = set(baseline_diag.keys())
+            candidate_keys = set(candidate_diag.keys())
             assert baseline_keys == candidate_keys
 
             for key in baseline_keys:
@@ -60,7 +66,12 @@ def assert_numeric_diagnostics_policy(
                 candidate_val = candidate_diag[key]
                 assert isinstance(baseline_val, float)
                 assert isinstance(candidate_val, float)
+                if key in unstable_metric_allowlist:
+                    continue
                 if key in tolerance_key_set:
                     assert isclose(candidate_val, baseline_val, rel_tol=rel_tol, abs_tol=abs_tol)
                 else:
-                    assert candidate_val == baseline_val
+                    assert candidate_val == baseline_val, (
+                        f"diagnostics metric '{key}' drifted across replays; "
+                        "add it to allowed_unstable_metrics with a rationale if instability is expected"
+                    )
