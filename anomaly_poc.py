@@ -80,9 +80,6 @@ def run_poc(*, config_path: str = "tg.yaml", n_events: int = 50) -> dict[str, An
 
     packets: list[dict[str, Any]] = []
     write_log: list[dict[str, float]] = []
-    total_swept_forgotten = 0
-    total_swept_survivors = 0
-    sweep_points: list[dict[str, float]] = []
     last_compute_tau = float("-inf")
 
     for idx, event in enumerate(simulate_events(n_events)):
@@ -103,10 +100,7 @@ def run_poc(*, config_path: str = "tg.yaml", n_events: int = 50) -> dict[str, An
             write_log.append({"tau": round(clock.tau, 4), "strength": round(mem_strength, 6)})
 
         if (idx + 1) % sweep_every == 0:
-            survivors, forgotten = decay.entropy_sweep(current_tau=clock.tau)
-            total_swept_survivors += len(survivors)
-            total_swept_forgotten += len(forgotten)
-            sweep_points.append({"event_idx": idx + 1, "tau": round(clock.tau, 4), "survivors": len(survivors), "forgotten": len(forgotten)})
+            decay.entropy_sweep(current_tau=clock.tau)
 
         packet = json.loads(
             ChronometricVector(
@@ -128,8 +122,6 @@ def run_poc(*, config_path: str = "tg.yaml", n_events: int = 50) -> dict[str, An
         packets.append(packet)
 
     alive, forgotten = decay.entropy_sweep(current_tau=clock.tau)
-    total_swept_survivors += len(alive)
-    total_swept_forgotten += len(forgotten)
 
     return {
         "config": {
@@ -147,10 +139,6 @@ def run_poc(*, config_path: str = "tg.yaml", n_events: int = 50) -> dict[str, An
         "compute_allowed_count": sum(1 for p in packets if p["COMPUTE_ALLOWED"]),
         "memories_alive": len(alive),
         "memories_forgotten": len(forgotten),
-        "total_swept_survivors": total_swept_survivors,
-        "total_swept_forgotten": total_swept_forgotten,
-        "vault_size": len(decay.vault),
-        "sweep_points": sweep_points,
         "write_log": write_log,
         "anomaly_packets": [p for p in packets if p["EVENT_KIND"] == "anomaly"][:5],
         "head": packets[:3],
