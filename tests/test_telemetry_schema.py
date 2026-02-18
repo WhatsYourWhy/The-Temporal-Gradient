@@ -19,6 +19,13 @@ def test_validate_packet_schema_accepts_canonical_packet():
     validate_packet_schema(_canonical_packet())
 
 
+def test_validate_packet_schema_accepts_string_provenance_hash():
+    packet = _canonical_packet()
+    packet["PROVENANCE_HASH"] = "sha256:abc123"
+
+    validate_packet_schema(packet)
+
+
 def test_validate_packet_alias_rejects_unknown_fields():
     packet = _canonical_packet()
     packet["legacy_density"] = 3.0

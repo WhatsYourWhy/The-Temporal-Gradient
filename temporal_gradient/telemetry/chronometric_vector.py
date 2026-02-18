@@ -17,6 +17,7 @@ class ChronometricVector:
     V: Optional[float] = None
     memory_strength: Optional[float] = None
     entropy_cost: float = 0.0
+    provenance_hash: Optional[str] = None
     schema_version: str = "1"
 
     def __post_init__(self):
@@ -43,6 +44,8 @@ class ChronometricVector:
             packet["H"] = round(float(self.H), 4)
         if self.V is not None:
             packet["V"] = round(float(self.V), 4)
+        if self.provenance_hash is not None:
+            packet["PROVENANCE_HASH"] = self.provenance_hash
 
         validate_packet_schema(packet, salience_mode="canonical")
         return json.dumps(packet)
@@ -65,6 +68,7 @@ class ChronometricVector:
                 V=data.get("V"),
                 memory_strength=data.get("MEMORY_S"),
                 entropy_cost=data.get("entropy_cost", 0.0),
+                provenance_hash=data.get("PROVENANCE_HASH"),
                 schema_version=data.get("SCHEMA_VERSION", "1"),
             )
         if salience_mode == "legacy_density":
