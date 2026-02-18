@@ -1,7 +1,5 @@
-import hashlib
-import json
-
 from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+from temporal_gradient.salience.provenance import compute_provenance_hash
 
 
 EVENT_SEQUENCE = [
@@ -24,13 +22,6 @@ def _fresh_pipeline() -> SaliencePipeline:
     )
 
 
-def _provenance_hash(provenance: dict[str, str]) -> str:
-    sorted_items = sorted(provenance.items())
-    payload = json.dumps(sorted_items, separators=(",", ":"), ensure_ascii=True)
-    digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
-    return f"sha256:{digest}"
-
-
 def _run_event_sequence() -> list[dict[str, object]]:
     pipeline = _fresh_pipeline()
     packets: list[dict[str, object]] = []
@@ -42,7 +33,7 @@ def _run_event_sequence() -> list[dict[str, object]]:
                 "event_index": index,
                 "event_text": event_text,
                 "SALIENCE": result.psi,
-                "PROVENANCE_HASH": _provenance_hash(result.provenance),
+                "PROVENANCE_HASH": compute_provenance_hash(result.provenance),
             }
         )
 
