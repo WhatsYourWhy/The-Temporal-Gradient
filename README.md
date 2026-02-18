@@ -44,38 +44,9 @@ S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
 
 Canonical module map: see `docs/CANONICAL_SURFACES.md`.
 
-### Clock Layer
-- Canonical surface: `temporal_gradient.clock.chronos`
-- Compatibility surfaces: root-level shims such as `chronos_engine.py` are compatibility-only
-- Maps salience load \(\Psi\) to internal clock rate \(d\tau/dt\)
-- Canonical mode enforces normalized salience bounds
-- Explicit minimum clock floor prevents stalling
+The architecture is organized into canonical package layers for clock, salience, memory, policies, and telemetry, with root-level modules retained only as compatibility shims during migration windows.
 
-### Salience Layer
-- Canonical surface: `temporal_gradient.salience.pipeline`
-- Rolling novelty scoring
-- Keyword-based imperative/value scoring
-- Canonical salience product \(\Psi = H\cdot V\)
-
-### Memory Layer
-- Canonical surface: `temporal_gradient.memory.*` (for example, `temporal_gradient.memory.decay`)
-- Exponential decay over internal time
-- Strength cap
-- Diminishing reconsolidation
-- Optional cooldown window
-
-### Policy Layer
-- Canonical surface: `temporal_gradient.policies.compute_cooldown`
-- Canonical policy class: `ComputeCooldownPolicy`
-- `allows_compute(...)` gate
-- This is a cooldown gate, not a compute-step allocator (`compute_budget` is a compatibility shim)
-- Canonical policy surface is provided by the library, but enforcement is not globally auto-wired; each harness/runtime must instantiate and apply the policy gate explicitly
-
-### Telemetry Layer
-- Canonical surface: `temporal_gradient.telemetry.*`
-- `ChronometricVector`
-- `validate_packet_schema` (canonical)
-- `validate_packet` (compatibility alias)
+For mode-specific behavior (`canonical` vs `legacy_density`), including schema enforcement and packet-shape differences, see `docs/CANONICAL_VS_LEGACY.md`.
 
 ## Minimal Canonical Usage (v0.2.x)
 ```python
@@ -136,6 +107,8 @@ Compatibility shims are retained for one release window and are compatibility-on
 See `docs/CANONICAL_SURFACES.md` for the canonical vs compatibility map.
 
 ## Telemetry Schema (canonical keys)
+Canonical telemetry is validated against the required schema keys and should be the default for all new integrations.
+
 - `WALL_T`
 - `TAU`
 - `SALIENCE`
@@ -143,10 +116,9 @@ See `docs/CANONICAL_SURFACES.md` for the canonical vs compatibility map.
 - `MEMORY_S`
 - `DEPTH`
 
-Validation:
-- `validate_packet_schema(...)` is canonical
-- `validate_packet(...)` is a compatibility alias
-- In `legacy_density` mode, canonical packet validation is intentionally bypassed for backward compatibility
+`validate_packet_schema(...)` is the canonical validator; `validate_packet(...)` remains a compatibility alias.
+
+For complete canonical vs legacy mode behavior (including accepted packet keys and compatibility bypass rules), see `docs/CANONICAL_VS_LEGACY.md`.
 
 ## Stability Constraints
 - Clock rate has an explicit minimum floor.

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+
+### Compatibility shims and legacy mode updates (template)
+
+> Copy this block into each release section and fill it in to keep migration messaging consistent.
+
+- Canonical status this release: `[default/required/unchanged]`
+- Legacy mode status (`legacy_density`): `[supported/deprecated/removed]`
+- Root-level compatibility shims: `[unchanged/expanded/reduced]`
+- Migration guidance updates: `[link to docs/CANONICAL_VS_LEGACY.md changes]`
+- Planned removal horizon: `[target release or TBD]`
+
 ### Documentation
 
 - Reviewed executable/documentation alignment and re-ran the project validation suite (`pytest -q`), with all tests passing.

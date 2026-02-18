@@ -23,7 +23,42 @@ The telemetry packet is versioned and split into **required** vs **optional** ke
 
 CLI tables should print **only canonical columns** by default (`WALL_T`, `TAU`, `SALIENCE`, `CLOCK_RATE`, `MEMORY_S`, `DEPTH`). Extended fields like `H` and `V` are intended for verbose/debug output, not the base schema. Demo scripts may also include an `INPUT` column for readability; it is not part of the canonical packet schema.
 
-Compatibility-mode note: `salience_mode="legacy_density"` is compatibility behavior, not canonical behavior. In this mode, salience is derived from entropy density and clamped into `[0,1]`, and canonical telemetry schema strictness is not enforced.
+### Legacy mode compatibility (`legacy_density`)
+`legacy_density` is a migration-only mode. It is not the canonical telemetry contract.
+
+Behavior summary:
+- Salience is derived from entropy density and clamped into `[0,1]`.
+- Canonical telemetry schema strictness is intentionally bypassed.
+
+Packet-shape examples:
+
+Canonical packet (preferred):
+```json
+{
+  "SCHEMA_VERSION": "1.0",
+  "WALL_T": 1.0,
+  "TAU": 0.15,
+  "SALIENCE": 0.9,
+  "CLOCK_RATE": 0.15,
+  "MEMORY_S": 0.8,
+  "DEPTH": 0,
+  "H": 0.9,
+  "V": 1.0
+}
+```
+
+Legacy compatibility packet (allowed only in `legacy_density` mode):
+```json
+{
+  "WALL_T": 1.0,
+  "TAU": 0.15,
+  "SALIENCE": 0.9,
+  "DEPTH": 0
+}
+```
+
+See `docs/CANONICAL_VS_LEGACY.md` for the full migration guidance and deprecation horizon.
+
 
 ## 1. The clock-rate table
 This table shows how the internal clock-rate is reparameterized by salience load (surprise × value).
