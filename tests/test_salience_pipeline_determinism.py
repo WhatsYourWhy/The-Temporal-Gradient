@@ -1,28 +1,72 @@
 from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
+from temporal_gradient.salience.provenance import compute_provenance_hash
+
+from tests.replay_assertions import assert_numeric_diagnostics_policy, assert_strict_invariants
+
+
+EVENT_SEQUENCE = ["critical update", "normal", "critical update"]
+EXPECTED_SALIENCE = [0.30000000000000004, 0.1, 0.0]
+EXPECTED_PROVENANCE_HASHES = [
+    "da5750207f25668c04b48e3f0bdfef68fbe5225f40cf64b41149a674f5e89ea0",
+    "59ab9ffe917f165c615bbc6cbeb12c1371d4de110526a7f1adc8668061732539",
+    "da5750207f25668c04b48e3f0bdfef68fbe5225f40cf64b41149a674f5e89ea0",
+]
 
 
 def _pipeline():
     return SaliencePipeline(RollingJaccardNovelty(window_size=3), KeywordImperativeValue())
 
 
+def _record_run(pipeline: SaliencePipeline, events: list[str]) -> list[dict[str, object]]:
+    packets: list[dict[str, object]] = []
+    for event in events:
+        result = pipeline.evaluate(event)
+        packets.append(
+            {
+                "event_text": event,
+                "SALIENCE": result.psi,
+                "PROVENANCE_HASH": compute_provenance_hash(result.provenance),
+                "diagnostics": result.diagnostics,
+            }
+        )
+    return packets
+
+
 def test_pipeline_is_deterministic_for_identical_input_sequence():
-    events = ["critical update", "normal", "critical update"]
     p1 = _pipeline()
     p2 = _pipeline()
-    out1 = [p1.evaluate(e).psi for e in events]
-    out2 = [p2.evaluate(e).psi for e in events]
-    assert out1 == out2
+    out1 = _record_run(p1, EVENT_SEQUENCE)
+    out2 = _record_run(p2, EVENT_SEQUENCE)
+
+    assert_strict_invariants(
+        out1,
+        expected_event_order=EVENT_SEQUENCE,
+        expected_salience=EXPECTED_SALIENCE,
+        expected_provenance_hashes=EXPECTED_PROVENANCE_HASHES,
+    )
+    assert_strict_invariants(
+        out2,
+        expected_event_order=EVENT_SEQUENCE,
+        expected_salience=EXPECTED_SALIENCE,
+        expected_provenance_hashes=EXPECTED_PROVENANCE_HASHES,
+    )
+    assert_numeric_diagnostics_policy([out1, out2])
 
 
 def test_pipeline_replay_with_reset_matches_first_run():
-    events = ["critical update", "normal", "critical update"]
     pipeline = _pipeline()
 
-    first_run = [pipeline.evaluate(e) for e in events]
+    first_run = _record_run(pipeline, EVENT_SEQUENCE)
     pipeline.reset()
-    replay_run = [pipeline.evaluate(e) for e in events]
+    replay_run = _record_run(pipeline, EVENT_SEQUENCE)
 
-    assert replay_run == first_run
+    assert_strict_invariants(
+        replay_run,
+        expected_event_order=EVENT_SEQUENCE,
+        expected_salience=EXPECTED_SALIENCE,
+        expected_provenance_hashes=EXPECTED_PROVENANCE_HASHES,
+    )
+    assert_numeric_diagnostics_policy([first_run, replay_run])
 
 
 def test_pipeline_reset_preserves_scorer_configuration():
