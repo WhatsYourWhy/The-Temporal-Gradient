@@ -89,11 +89,11 @@ class DecayEngine:
         if elapsed < 0:
             elapsed = 0
 
-        effective_strength = max(memory.strength, 1e-12)
-        adjusted_elapsed = elapsed / effective_strength
+        # Canonical first-order model from README: dS/dτ = -λS, so decay depends
+        # on elapsed internal time τ only (not τ scaled by current strength).
         return decay_strength(
             memory.strength,
-            adjusted_elapsed,
+            elapsed,
             half_life=self.half_life,
             decay_lambda=self.decay_lambda,
         )
