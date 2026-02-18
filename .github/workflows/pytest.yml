@@ -21,5 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run docs consistency check
+        run: python scripts/check_docs_consistency.py
       - name: Run tests
         run: pytest -q

@@ -155,11 +155,15 @@ Expected behavior:
 ## Testing
 Run:
 - `pytest -q`
+- `python scripts/check_docs_consistency.py`
 
 Latest document-review validation run (local):
 - `pytest -q` → `74 passed`
 
 CI uses the same command.
+
+### Documentation consistency guard
+Run `python scripts/check_docs_consistency.py` before opening a PR to catch drift across `README.md`, `USAGE.md`, and `TASK_PROPOSALS.md` for canonical import guidance and required canonical-reference links.
 
 ## License Notice
 This repository is provided for educational and academic review.
