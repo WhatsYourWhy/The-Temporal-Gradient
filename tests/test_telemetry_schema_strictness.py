@@ -103,7 +103,7 @@ def test_validate_packet_rejects_missing_provenance_hash_when_required():
         validate_packet_schema(packet, require_provenance_hash=True)
 
 
-def test_validate_packet_rejects_empty_provenance_hash_string():
+def test_validate_packet_rejects_empty_provenance_hash_string_when_required():
     packet = {
         "SCHEMA_VERSION": "1",
         "WALL_T": 1.0,
@@ -116,4 +116,18 @@ def test_validate_packet_rejects_empty_provenance_hash_string():
     }
 
     with pytest.raises(ValueError, match="non-empty string"):
-        validate_packet_schema(packet)
+        validate_packet_schema(packet, require_provenance_hash=True)
+
+
+def test_validate_packet_accepts_missing_provenance_hash_in_compatibility_mode():
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": 1.0,
+        "TAU": 0.1,
+        "SALIENCE": 0.2,
+        "CLOCK_RATE": 0.9,
+        "MEMORY_S": 0.1,
+        "DEPTH": 0,
+    }
+
+    validate_packet_schema(packet, require_provenance_hash=False)

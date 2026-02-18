@@ -11,6 +11,7 @@ import temporal_gradient as tg
 from temporal_gradient.memory.decay import DecayEngine, EntropicMemory
 from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 from temporal_gradient.telemetry.schema import validate_packet_schema
+from temporal_gradient.salience.provenance import compute_provenance_hash
 
 
 NORMAL_EVENTS = [
@@ -50,9 +51,14 @@ def run_poc(
     *,
     config_path: str = "tg.yaml",
     n_events: int = 50,
-    require_provenance_hash: bool = False,
+    require_provenance_hash: bool | None = None,
 ) -> dict[str, Any]:
     cfg = tg.load_config(config_path)
+    strict_replay_mode = (
+        cfg.policies.replay_require_provenance_hash
+        if require_provenance_hash is None
+        else require_provenance_hash
+    )
     random.seed(cfg.policies.deterministic_seed)
 
     salience = tg.salience.SaliencePipeline(
@@ -117,13 +123,14 @@ def run_poc(
                 H=s.novelty,
                 V=s.value,
                 memory_strength=mem_strength,
+                provenance_hash=compute_provenance_hash(s.provenance) if strict_replay_mode else None,
             ).to_packet()
         )
 
         validate_packet_schema(
             packet,
             salience_mode=cfg.clock.salience_mode,
-            require_provenance_hash=require_provenance_hash,
+            require_provenance_hash=strict_replay_mode,
         )
         packet["EVENT_KIND"] = event.kind
         packet["ENCODED"] = bool(encoded)
@@ -170,12 +177,17 @@ def main() -> None:
         action="store_true",
         help="Require PROVENANCE_HASH on canonical packets",
     )
+    parser.add_argument(
+        "--replay-grade",
+        action="store_true",
+        help="Enable replay-grade packet checks (strict PROVENANCE_HASH required)",
+    )
     args = parser.parse_args()
 
     summary = run_poc(
         config_path=args.config,
         n_events=args.events,
-        require_provenance_hash=args.require_provenance_hash,
+        require_provenance_hash=(args.require_provenance_hash or args.replay_grade),
     )
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

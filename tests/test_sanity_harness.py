@@ -12,6 +12,7 @@ def _write_config(
     initial_strength_max: float = 1.2,
     s_max: float = 1.5,
     encode_threshold: float = 0.3,
+    replay_require_provenance_hash: bool = False,
 ):
     path = tmp_path / filename
     path.write_text(
@@ -40,6 +41,7 @@ def _write_config(
               event_wall_delta: {event_wall_delta}
               cooldown_tau: {cooldown_tau}
               calibration_post_sweep_wall_delta: 5.0
+              replay_require_provenance_hash: {str(replay_require_provenance_hash).lower()}
             """
         )
     )
@@ -129,3 +131,16 @@ def test_harness_caps_initial_memory_strength_by_s_max(tmp_path):
     _summary, packets = run_harness(["CRITICAL input"], config_path=cfg)
 
     assert packets[0]["MEMORY_S"] <= 1.0
+
+
+def test_harness_replay_strict_mode_from_config_requires_hashes(tmp_path):
+    cfg = _write_config(
+        tmp_path,
+        "tg-replay-strict.yaml",
+        event_wall_delta=1.0,
+        replay_require_provenance_hash=True,
+    )
+
+    _summary, packets = run_harness(["normal", "CRITICAL input"], config_path=cfg)
+
+    assert all(packet.get("PROVENANCE_HASH") for packet in packets)

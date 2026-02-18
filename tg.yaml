@@ -31,3 +31,4 @@ policies:
   event_wall_delta: 1.0
   cooldown_tau: 0.0
   calibration_post_sweep_wall_delta: 5.0
+  replay_require_provenance_hash: false
