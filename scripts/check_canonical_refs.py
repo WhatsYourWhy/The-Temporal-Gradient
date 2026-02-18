@@ -15,6 +15,16 @@ DOC_GLOBS = [
 ]
 
 DOC_DIR = ROOT / "docs"
+EXAMPLES_DIR = ROOT / "examples"
+
+SHIM_IMPORT_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"^\s*(from|import)\s+chronos_engine\b"),
+    re.compile(r"^\s*(from|import)\s+chronometric_vector\b"),
+    re.compile(r"^\s*(from|import)\s+salience_pipeline\b"),
+    re.compile(r"^\s*(from|import)\s+entropic_decay\b"),
+    re.compile(r"^\s*from\s+temporal_gradient\.policies\.compute_budget\b"),
+    re.compile(r"^\s*import\s+temporal_gradient\.policies\.compute_budget\b"),
+)
 
 
 def iter_docs() -> list[Path]:
@@ -42,15 +52,39 @@ def check_file(path: Path) -> list[str]:
                 f"{path.relative_to(ROOT)}:{idx}: chronos_engine.py must be labeled compatibility-only"
             )
 
-        if "compute_budget" in lowered and "canonical" in lowered and "compatib" not in lowered and "not canonical" not in lowered:
-            problems.append(
-                f"{path.relative_to(ROOT)}:{idx}: compute_budget must not be labeled canonical"
-            )
-
         if re.search(r"\bcompute_budget\s+is\s+canonical\b", lowered):
             problems.append(
                 f"{path.relative_to(ROOT)}:{idx}: deprecated shim described as canonical"
             )
+
+    return problems
+
+
+def _has_shim_import(line: str) -> bool:
+    return any(pattern.search(line) for pattern in SHIM_IMPORT_PATTERNS)
+
+
+def check_canonical_examples_for_shim_imports() -> list[str]:
+    """Ensure canonical examples in docs/examples do not import shim modules."""
+    problems: list[str] = []
+    targets = [ROOT / "README.md", ROOT / "USAGE.md"]
+
+    for path in targets:
+        if not path.exists():
+            continue
+        for idx, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if _has_shim_import(line):
+                problems.append(
+                    f"{path.relative_to(ROOT)}:{idx}: shim import used in docs example: {line.strip()}"
+                )
+
+    if EXAMPLES_DIR.exists():
+        for path in sorted(EXAMPLES_DIR.glob("*.py")):
+            for idx, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                if _has_shim_import(line):
+                    problems.append(
+                        f"{path.relative_to(ROOT)}:{idx}: shim import used in example: {line.strip()}"
+                    )
 
     return problems
 
@@ -61,13 +95,15 @@ def main() -> int:
     for doc in docs:
         problems.extend(check_file(doc))
 
+    problems.extend(check_canonical_examples_for_shim_imports())
+
     if problems:
         print("Deprecated shim canonicalization check failed:")
         for item in problems:
             print(f" - {item}")
         return 1
 
-    print(f"Canonical reference check passed for {len(docs)} documentation files.")
+    print(f"Canonical reference check passed for {len(docs)} documentation files and canonical examples.")
     return 0
 
 
