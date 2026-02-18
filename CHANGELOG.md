@@ -18,6 +18,9 @@ Keep canonical-vs-legacy release messaging aligned with [`docs/CANONICAL_VS_LEGA
 ### Documentation
 
 - Reviewed executable/documentation alignment and re-ran the project validation suite (`pytest -q`), with all tests passing.
+- Clarified and guarded packet contract expectations so canonical packet shape requirements are explicit in release notes and docs.
+- Aligned runtime path messaging with canonical module usage to reduce ambiguity between shim and canonical import flows.
+- Added regression-protection callouts tied to test and docs consistency checks to keep behavior and documentation in lockstep.
 - Archived completed validation documents under `docs/archive/`:
   - `AUDIT_REPORT.md` → `docs/archive/AUDIT_REPORT.md`
   - `poc_validation_report.md` → `docs/archive/poc_validation_report.md`
