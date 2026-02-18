@@ -86,3 +86,34 @@ def test_chronometric_vector_to_packet_matches_schema():
     )
     validate_packet_schema(packet)
     assert packet["PROVENANCE_HASH"] == "sha256:feedbeef"
+
+
+def test_validate_packet_rejects_missing_provenance_hash_when_required():
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": 1.0,
+        "TAU": 0.1,
+        "SALIENCE": 0.2,
+        "CLOCK_RATE": 0.9,
+        "MEMORY_S": 0.1,
+        "DEPTH": 0,
+    }
+
+    with pytest.raises(ValueError, match="PROVENANCE_HASH is required"):
+        validate_packet_schema(packet, require_provenance_hash=True)
+
+
+def test_validate_packet_rejects_empty_provenance_hash_string():
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": 1.0,
+        "TAU": 0.1,
+        "SALIENCE": 0.2,
+        "CLOCK_RATE": 0.9,
+        "MEMORY_S": 0.1,
+        "DEPTH": 0,
+        "PROVENANCE_HASH": "   ",
+    }
+
+    with pytest.raises(ValueError, match="non-empty string"):
+        validate_packet_schema(packet)

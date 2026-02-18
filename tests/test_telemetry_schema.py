@@ -31,3 +31,14 @@ def test_validate_packet_alias_rejects_unknown_fields():
     packet["legacy_density"] = 3.0
     with pytest.raises(ValueError, match="Unknown telemetry keys"):
         validate_packet(packet)
+
+
+def test_validate_packet_schema_requires_provenance_hash_when_requested():
+    packet = _canonical_packet()
+    packet["PROVENANCE_HASH"] = "abc123"
+
+    validate_packet_schema(packet, require_provenance_hash=True)
+
+
+def test_validate_packet_schema_allows_missing_provenance_hash_by_default():
+    validate_packet_schema(_canonical_packet(), require_provenance_hash=False)
