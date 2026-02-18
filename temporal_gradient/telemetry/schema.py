@@ -13,7 +13,7 @@ REQUIRED_CANONICAL_KEYS = {
     "MEMORY_S",
     "DEPTH",
 }
-OPTIONAL_CANONICAL_KEYS = {"H", "V", "entropy_cost"}
+OPTIONAL_CANONICAL_KEYS = {"H", "V", "entropy_cost", "PROVENANCE_HASH"}
 
 NUMERIC_FIELDS = {
     "WALL_T",
@@ -54,6 +54,10 @@ def validate_packet_schema(
     schema_version = packet["SCHEMA_VERSION"]
     if not isinstance(schema_version, str):
         raise TypeError("SCHEMA_VERSION must be a string")
+
+    provenance_hash = packet.get("PROVENANCE_HASH")
+    if provenance_hash is not None and not isinstance(provenance_hash, str):
+        raise TypeError("PROVENANCE_HASH must be a string")
 
     for field in NUMERIC_FIELDS:
         if not _is_finite_numeric(packet[field]):

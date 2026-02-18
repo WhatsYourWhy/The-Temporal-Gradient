@@ -26,6 +26,23 @@ def test_validate_packet_rejects_wrong_types_without_coercion():
         validate_packet_schema(packet)
 
 
+def test_validate_packet_rejects_non_string_provenance_hash():
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": 1.0,
+        "TAU": 0.1,
+        "SALIENCE": 0.2,
+        "CLOCK_RATE": 0.9,
+        "MEMORY_S": 0.1,
+        "DEPTH": 0,
+        "PROVENANCE_HASH": 101,
+    }
+
+    with pytest.raises(TypeError, match="PROVENANCE_HASH must be a string"):
+        validate_packet_schema(packet)
+
+
+
 def test_validate_packet_accepts_minimal_valid_packet():
     packet = {
         "SCHEMA_VERSION": "1",
@@ -64,6 +81,8 @@ def test_chronometric_vector_to_packet_matches_schema():
             recursion_depth=0,
             clock_rate=0.9,
             memory_strength=0.1,
+            provenance_hash="sha256:feedbeef",
         ).to_packet()
     )
     validate_packet_schema(packet)
+    assert packet["PROVENANCE_HASH"] == "sha256:feedbeef"
