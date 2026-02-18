@@ -34,6 +34,16 @@ When your PR changes one subsystem, run its targeted tests. If your change cross
 ### Cross-cutting/API/docs safety net
 - `python -m pytest -q tests/test_package_api.py tests/test_api_canonical_paths.py tests/test_docs_canonical_imports.py tests/test_root_shims.py`
 
+## Expected local pre-push command order
+
+Before pushing, run the same required gate order as CI:
+
+1. `python -m pytest -q tests/test_packet_contract_check.py` *(pre-test packet-contract gate)*
+2. `pytest -q` *(full regression suite)*
+3. `python scripts/check_docs_consistency.py` *(docs consistency gate)*
+
+If any command fails, fix the issue and re-run all commands in order so each gate is re-validated.
+
 ## Terminology and safety reminders
 
 Before changing docs, comments, names, or examples:
