@@ -7,7 +7,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
 - **Canonical public symbols:** `ClockRateModulator`
 - **Known compatibility aliases/shims:**
   - `temporal_gradient.clock.ClockRateModulator` (package re-export)
-  - `chronos_engine.py` (root compatibility shim)
+  - `chronos_engine.py` (root compatibility shim; exports `ClockRateModulator`)
 
 ## salience
 - **Canonical module path:** `temporal_gradient.salience.pipeline`
@@ -23,7 +23,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
   - `ResettableScorer`
 - **Known compatibility aliases/shims:**
   - `temporal_gradient.salience.*` (package re-exports)
-  - `salience_pipeline.py` (root compatibility shim)
+  - `salience_pipeline.py` (root compatibility shim; exports: `SaliencePipeline`, `SalienceComponents`, `RollingJaccardNovelty`, `KeywordImperativeValue`, `CodexNoveltyAdapter`, `CodexValueAdapter`, `NoveltyScorer`, `ValueScorer`, `ResettableScorer`)
 
 ## memory
 - **Canonical module path:**
@@ -39,7 +39,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
   - `DecayMemoryStore`
 - **Known compatibility aliases/shims:**
   - `temporal_gradient.memory.*` (package re-exports)
-  - `entropic_decay.py` (root compatibility shim)
+  - `entropic_decay.py` (root compatibility shim; exports: `DecayEngine`, `EntropicMemory`, `initial_strength_from_psi`, `should_encode`, `S_MAX`, `DecayMemoryStore`)
 
 ## telemetry
 - **Canonical module path:**
@@ -50,7 +50,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
   - `validate_packet_schema`
 - **Known compatibility aliases/shims:**
   - `temporal_gradient.telemetry.validate_packet` (compatibility alias)
-  - `chronometric_vector.py` (root compatibility shim)
+  - `chronometric_vector.py` (root compatibility shim; exports `ChronometricVector`)
 
 ## policies
 - **Canonical module path:** `temporal_gradient.policies.compute_cooldown`
