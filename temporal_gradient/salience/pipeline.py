@@ -24,6 +24,7 @@ class SalienceComponents:
     value: float
     psi: float
     diagnostics: Dict[str, float] = field(default_factory=dict)
+    provenance: Dict[str, str] = field(default_factory=dict)
 
     def telemetry_dict(self) -> Dict[str, float]:
         telemetry = {
@@ -33,6 +34,9 @@ class SalienceComponents:
         }
         telemetry.update({key: float(val) for key, val in self.diagnostics.items()})
         return telemetry
+
+    def provenance_dict(self) -> Dict[str, str]:
+        return dict(self.provenance)
 
 
 class RollingJaccardNovelty:
@@ -131,15 +135,24 @@ class SaliencePipeline:
         self.value_scorer = value_scorer
 
     def evaluate(self, text: str) -> SalienceComponents:
-        novelty, novelty_diag, _novelty_provenance = self.novelty_scorer.score(text)
-        value, value_diag, _value_provenance = self.value_scorer.score(text)
+        novelty, novelty_diag, novelty_provenance = self.novelty_scorer.score(text)
+        value, value_diag, value_provenance = self.value_scorer.score(text)
         novelty = max(0.0, min(1.0, novelty))
         value = max(0.0, min(1.0, value))
         psi = max(0.0, min(1.0, novelty * value))
         diagnostics: Dict[str, float] = {}
+        provenance: Dict[str, str] = {}
         diagnostics.update(novelty_diag)
         diagnostics.update(value_diag)
-        return SalienceComponents(novelty=novelty, value=value, psi=psi, diagnostics=diagnostics)
+        provenance.update({f"H_{key}": val for key, val in novelty_provenance.items()})
+        provenance.update({f"V_{key}": val for key, val in value_provenance.items()})
+        return SalienceComponents(
+            novelty=novelty,
+            value=value,
+            psi=psi,
+            diagnostics=diagnostics,
+            provenance=provenance,
+        )
 
 
 class CodexNoveltyAdapter:
