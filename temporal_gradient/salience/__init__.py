@@ -9,6 +9,7 @@ from .pipeline import (
     SaliencePipeline,
     ValueScorer,
 )
+from .provenance import compute_provenance_hash
 
 __all__ = [
     "CodexNoveltyAdapter",
@@ -20,4 +21,5 @@ __all__ = [
     "SalienceComponents",
     "SaliencePipeline",
     "ValueScorer",
+    "compute_provenance_hash",
 ]
