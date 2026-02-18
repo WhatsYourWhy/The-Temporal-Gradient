@@ -44,6 +44,7 @@ def run_calibration(config_path: str = "tg.yaml"):
             max_value=config.salience.max_value,
         ),
     )
+    salience.reset()
     clock = ClockRateModulator(
         base_dilation_factor=config.clock.base_dilation_factor,
         min_clock_rate=config.clock.min_clock_rate,

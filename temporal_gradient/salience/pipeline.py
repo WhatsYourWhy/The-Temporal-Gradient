@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Protocol, Tuple, TYPE_CHECKING
+from typing import Dict, Iterable, List, Protocol, Tuple, TYPE_CHECKING, runtime_checkable
 import re
 
 if TYPE_CHECKING:
@@ -15,6 +15,12 @@ class NoveltyScorer(Protocol):
 
 class ValueScorer(Protocol):
     def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
+        ...
+
+
+@runtime_checkable
+class ResettableScorer(Protocol):
+    def reset(self) -> None:
         ...
 
 
@@ -47,6 +53,9 @@ class RollingJaccardNovelty:
 
     def _tokenize(self, text: str) -> set[str]:
         return set(self._token_pattern.findall(text.lower()))
+
+    def reset(self) -> None:
+        self._history.clear()
 
     def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         tokens = self._tokenize(text)
@@ -153,6 +162,11 @@ class SaliencePipeline:
             diagnostics=diagnostics,
             provenance=provenance,
         )
+
+    def reset(self) -> None:
+        for scorer in (self.novelty_scorer, self.value_scorer):
+            if isinstance(scorer, ResettableScorer):
+                scorer.reset()
 
 
 class CodexNoveltyAdapter:

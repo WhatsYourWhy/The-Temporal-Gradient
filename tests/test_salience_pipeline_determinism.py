@@ -14,6 +14,17 @@ def test_pipeline_is_deterministic_for_identical_input_sequence():
     assert out1 == out2
 
 
+def test_pipeline_replay_with_reset_matches_first_run():
+    events = ["critical update", "normal", "critical update"]
+    pipeline = _pipeline()
+
+    first_run = [pipeline.evaluate(e).psi for e in events]
+    pipeline.reset()
+    replay_run = [pipeline.evaluate(e).psi for e in events]
+
+    assert replay_run == first_run
+
+
 def test_pipeline_handles_empty_input_with_zero_or_defined_bounds():
     result = _pipeline().evaluate("")
     assert 0.0 <= result.novelty <= 1.0
