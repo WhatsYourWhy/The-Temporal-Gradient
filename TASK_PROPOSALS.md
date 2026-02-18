@@ -12,6 +12,10 @@
 | TG-006 | Harden fallback YAML parser to reject mismatched quote delimiters | High | Completed | Codex | v0.3.x | Covered by in-repo tests/docs |
 | TG-007 | Sync README test-count claim with current CI reality | Medium | Proposed | Unassigned | v0.2.x | Docs consistency fix |
 | TG-008 | Add negative tests for malformed fallback YAML quoting/arrays | Medium | Completed | Codex | v0.3.x | Covered by in-repo tests/docs |
+| TG-009 | Remove deprecated typo alias `chronolog` from clock modulator surface | Medium | Proposed | Unassigned | v0.3.x | Typo cleanup + migration-doc follow-up |
+| TG-010 | Handle `run_poc(..., n_events=0)` without index/division errors | High | Proposed | Unassigned | v0.2.x | Bug fix in anomaly PoC summary generation |
+| TG-011 | Replace stale README fixed test count (`74 passed`) with command-driven wording | Medium | Proposed | Unassigned | v0.2.x | Docs/comment discrepancy fix |
+| TG-012 | Add anomaly PoC regression test for empty-event streams (`n_events=0`) | Medium | Proposed | Unassigned | v0.2.x | Test-hardening task tied to TG-010 |
 
 ## Execution cadence
 
@@ -82,6 +86,35 @@ This board is reviewed and updated **weekly during engineering triage** and **be
 - `tests/test_config_loader_strictness.py`
 
 **Definition of done:** add fallback-parser regression tests that assert invalid quoted YAML content and malformed inline-array inputs are rejected with `ConfigValidationError`.
+
+### TG-009
+
+**Implementation scope**
+- `temporal_gradient/clock/chronos.py`
+- compatibility lifecycle docs (`docs/MIGRATION_SHIMS.md`, `docs/CANONICAL_VS_LEGACY.md`)
+
+**Definition of done:** remove `ClockRateModulator.chronolog` (misspelled compatibility alias) at the planned shim-removal boundary, ensure canonical `chronology` is the only public attribute, and update migration messaging/tests accordingly.
+
+### TG-010
+
+**Implementation scope**
+- `anomaly_poc.py` (`run_poc` summary construction)
+
+**Definition of done:** `run_poc(..., n_events=0)` returns a valid summary without `IndexError`/`ZeroDivisionError` by providing explicit empty-stream defaults for aggregates and terminal telemetry fields.
+
+### TG-011
+
+**Implementation scope**
+- `README.md` testing snippet in the quick-check section
+
+**Definition of done:** README no longer hardcodes a stale pass count; it references executable commands and/or dynamic wording that remains accurate as the suite grows.
+
+### TG-012
+
+**Implementation scope**
+- `tests/test_anomaly_poc.py`
+
+**Definition of done:** add regression coverage that exercises `run_poc(n_events=0)` and asserts summary-shape invariants (counts, aggregates, and list fields) to prevent empty-input regressions.
 
 ## Archival guidance
 
