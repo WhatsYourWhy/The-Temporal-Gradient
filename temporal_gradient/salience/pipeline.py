@@ -20,6 +20,15 @@ class ValueScorer(Protocol):
 
 @runtime_checkable
 class ResettableScorer(Protocol):
+    """Protocol for scorers that keep mutable runtime history.
+
+    Reset contract:
+    - ``reset()`` clears mutable runtime history only.
+    - ``reset()`` must not alter scorer configuration parameters.
+    - ``reset()`` is required to support deterministic replay when scorer
+      instances are reused across multiple runs.
+    """
+
     def reset(self) -> None:
         ...
 
@@ -164,6 +173,15 @@ class SaliencePipeline:
         )
 
     def reset(self) -> None:
+        """Reset runtime scorer state while preserving configured components.
+
+        The pipeline reset contract is intentionally narrow:
+        - clears mutable runtime history in resettable scorers only,
+        - does not alter scorer configuration (for example ``window_size`` or
+          keyword configuration), and
+        - enables deterministic replay when the same scorer instances are
+          reused for a subsequent run.
+        """
         for scorer in (self.novelty_scorer, self.value_scorer):
             if isinstance(scorer, ResettableScorer):
                 scorer.reset()

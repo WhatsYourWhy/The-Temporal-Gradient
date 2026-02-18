@@ -18,11 +18,28 @@ def test_pipeline_replay_with_reset_matches_first_run():
     events = ["critical update", "normal", "critical update"]
     pipeline = _pipeline()
 
-    first_run = [pipeline.evaluate(e).psi for e in events]
+    first_run = [pipeline.evaluate(e) for e in events]
     pipeline.reset()
-    replay_run = [pipeline.evaluate(e).psi for e in events]
+    replay_run = [pipeline.evaluate(e) for e in events]
 
     assert replay_run == first_run
+
+
+def test_pipeline_reset_preserves_scorer_configuration():
+    keywords = ("critical", "must", "stop")
+    novelty = RollingJaccardNovelty(window_size=4)
+    value = KeywordImperativeValue(keywords=keywords, base_value=0.15, hit_value=0.25)
+    pipeline = SaliencePipeline(novelty, value)
+
+    for event in ("critical update", "normal", "must stop now"):
+        pipeline.evaluate(event)
+
+    pipeline.reset()
+
+    assert novelty.window_size == 4
+    assert value.keywords == keywords
+    assert value.base_value == 0.15
+    assert value.hit_value == 0.25
 
 
 def test_pipeline_handles_empty_input_with_zero_or_defined_bounds():
