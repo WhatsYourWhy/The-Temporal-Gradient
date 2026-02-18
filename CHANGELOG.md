@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Documentation
+
+- Reviewed executable/documentation alignment and re-ran the project validation suite (`pytest -q`), with all tests passing.
+- Archived completed validation documents under `docs/archive/`:
+  - `AUDIT_REPORT.md` → `docs/archive/AUDIT_REPORT.md`
+  - `poc_validation_report.md` → `docs/archive/poc_validation_report.md`
+- Updated `README.md` to document the archive location and latest validation-run status.
+
 ## v0.2.0 — Canonicalization & Policy Layer Formalization
 
 **Release focus:**
