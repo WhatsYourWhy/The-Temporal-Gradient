@@ -66,6 +66,9 @@ class NoveltyScorerConfig:
     runtime_metadata: Mapping[str, str] | None = None
     allow_nondeterministic_runtime: bool = False
     code_version: str | None = None
+    tokenizer_id: str | None = None
+    tokenizer_hash: str | None = None
+    tokenizer_version: str | None = None
 
 
 class NoveltyScorer:
@@ -86,6 +89,9 @@ class NoveltyScorer:
         runtime_metadata: Mapping[str, str] | None = None,
         allow_nondeterministic_runtime: bool = False,
         code_version: str | None = None,
+        tokenizer_id: str | None = None,
+        tokenizer_hash: str | None = None,
+        tokenizer_version: str | None = None,
     ) -> None:
         if window_size <= 0:
             raise ValueError("window_size must be > 0")
@@ -99,7 +105,12 @@ class NoveltyScorer:
         self.dtype = dtype
         self.runtime_metadata = dict(runtime_metadata or {})
         self.allow_nondeterministic_runtime = allow_nondeterministic_runtime
-        self.code_version = code_version
+        self.code_version = code_version if code_version is not None else "unknown"
+        self.tokenizer_id = tokenizer_id if tokenizer_id is not None else model_id
+        self.tokenizer_hash = tokenizer_hash if tokenizer_hash is not None else model_hash
+        self.tokenizer_version = (
+            tokenizer_version if tokenizer_version is not None else self.code_version
+        )
         self.novelty_method = "embedding_max_cosine_window"
 
         self._enforce_deterministic_invariants()
@@ -177,22 +188,64 @@ class NoveltyScorer:
         return dot / ((left_norm ** 0.5) * (right_norm ** 0.5))
 
     def _provenance(self, *, cache: str, deterministic: str, reason: str | None = None) -> Dict[str, str]:
+        model_runtime = f"{self.device}_{self._runtime_dtype_label()}"
         provenance = {
             "novelty_method": self.novelty_method,
             "model_id": self.model_id,
             "model_hash": self.model_hash,
+            "tokenizer_id": self.tokenizer_id,
+            "tokenizer_hash": self.tokenizer_hash,
+            "tokenizer_version": self.tokenizer_version,
             "device": self.device,
             "dtype": self.dtype,
+            "model_runtime": model_runtime,
             "window_size": str(self.window_size),
             "quantization": self.quantization,
             "cache": cache,
             "deterministic": deterministic,
+            "code_version": self.code_version,
         }
-        if self.code_version is not None:
-            provenance["code_version"] = self.code_version
         if reason is not None:
             provenance["reason"] = reason
         return provenance
+
+    def _runtime_dtype_label(self) -> str:
+        normalized = self.dtype.strip().lower()
+        aliases = {
+            "float32": "fp32",
+            "float16": "fp16",
+            "bfloat16": "bf16",
+        }
+        return aliases.get(normalized, normalized)
+
+    def _validate_operational_provenance(self, provenance: Mapping[str, str]) -> None:
+        required_keys = {
+            "deterministic",
+            "reason",
+            "model_runtime",
+            "model_id",
+            "model_hash",
+            "tokenizer_id",
+            "tokenizer_hash",
+            "tokenizer_version",
+            "code_version",
+        }
+        missing_keys = sorted(key for key in required_keys if key not in provenance)
+        if missing_keys:
+            raise ValueError(
+                "Operational provenance invariant failed [required_keys]: missing "
+                + ", ".join(missing_keys)
+            )
+
+        if provenance["deterministic"] != "false":
+            raise ValueError(
+                "Operational provenance invariant failed [deterministic]: expected deterministic='false'."
+            )
+        if provenance["reason"] != "live_embedding_compute":
+            raise ValueError(
+                "Operational provenance invariant failed [reason]: "
+                "expected reason='live_embedding_compute'."
+            )
 
     def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         key = self._cache_key(text)
@@ -233,7 +286,8 @@ class NoveltyScorer:
             provenance = self._provenance(
                 cache="hit",
                 deterministic="false",
-                reason="operational_mode_cache_hit",
+                reason="live_embedding_compute",
             )
+            self._validate_operational_provenance(provenance)
 
         return novelty, diagnostics, provenance

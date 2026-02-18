@@ -102,3 +102,74 @@ def test_provenance_contains_required_keys() -> None:
     assert provenance["cache"] == "hit"
     assert provenance["deterministic"] == "true"
     assert provenance["code_version"] == "test-v1"
+
+
+def test_operational_provenance_contains_required_keys() -> None:
+    cache = DictEmbeddingCache()
+    scorer = _make_scorer(cache_backend=cache, deterministic_mode=False)
+    text = "alpha"
+    cache.set(scorer._cache_key(text), (1.0, 0.0, 0.0))
+
+    _, _, provenance = scorer.score(text)
+
+    assert provenance["deterministic"] == "false"
+    assert provenance["reason"] == "live_embedding_compute"
+    assert provenance["model_runtime"] == "cpu_fp32"
+    assert provenance["model_id"] == "mini-embed"
+    assert provenance["model_hash"] == "sha256:abc123"
+    assert provenance["tokenizer_id"] == "mini-embed"
+    assert provenance["tokenizer_hash"] == "sha256:abc123"
+    assert provenance["tokenizer_version"] == "test-v1"
+    assert provenance["code_version"] == "test-v1"
+
+
+@pytest.mark.parametrize(
+    "missing_key",
+    [
+        "deterministic",
+        "reason",
+        "model_runtime",
+        "model_id",
+        "model_hash",
+        "tokenizer_id",
+        "tokenizer_hash",
+        "tokenizer_version",
+        "code_version",
+    ],
+)
+def test_operational_provenance_validation_fails_when_required_key_missing(missing_key: str) -> None:
+    cache = DictEmbeddingCache()
+    scorer = _make_scorer(cache_backend=cache, deterministic_mode=False)
+    text = "alpha"
+    cache.set(scorer._cache_key(text), (1.0, 0.0, 0.0))
+
+    original_provenance = scorer._provenance
+
+    def _broken_provenance(*, cache: str, deterministic: str, reason: str | None = None) -> dict[str, str]:
+        provenance = original_provenance(cache=cache, deterministic=deterministic, reason=reason)
+        provenance.pop(missing_key)
+        return provenance
+
+    scorer._provenance = _broken_provenance  # type: ignore[method-assign]
+
+    with pytest.raises(ValueError, match=r"required_keys"):
+        scorer.score(text)
+
+
+def test_operational_provenance_validation_fails_for_wrong_reason() -> None:
+    cache = DictEmbeddingCache()
+    scorer = _make_scorer(cache_backend=cache, deterministic_mode=False)
+    text = "alpha"
+    cache.set(scorer._cache_key(text), (1.0, 0.0, 0.0))
+
+    original_provenance = scorer._provenance
+
+    def _broken_provenance(*, cache: str, deterministic: str, reason: str | None = None) -> dict[str, str]:
+        provenance = original_provenance(cache=cache, deterministic=deterministic, reason=reason)
+        provenance["reason"] = "wrong_reason"
+        return provenance
+
+    scorer._provenance = _broken_provenance  # type: ignore[method-assign]
+
+    with pytest.raises(ValueError, match=r"\[reason\]"):
+        scorer.score(text)
