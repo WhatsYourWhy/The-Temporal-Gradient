@@ -1,4 +1,5 @@
 import json
+import math
 
 import pytest
 
@@ -36,6 +37,22 @@ def test_validate_packet_accepts_minimal_valid_packet():
         "DEPTH": 0,
     }
     validate_packet_schema(packet)
+
+
+@pytest.mark.parametrize("bad_value", [math.nan, math.inf, -math.inf])
+def test_validate_packet_rejects_non_finite_numeric_fields(bad_value):
+    packet = {
+        "SCHEMA_VERSION": "1",
+        "WALL_T": bad_value,
+        "TAU": 0.1,
+        "SALIENCE": 0.2,
+        "CLOCK_RATE": 0.9,
+        "MEMORY_S": 0.1,
+        "DEPTH": 0,
+    }
+
+    with pytest.raises(TypeError, match="WALL_T must be numeric"):
+        validate_packet_schema(packet)
 
 
 def test_chronometric_vector_to_packet_matches_schema():

@@ -1,5 +1,6 @@
 """Telemetry packet schema validation for canonical v0.2.0 packets."""
 
+import math
 from numbers import Real
 from typing import Any, Mapping, Optional, Tuple
 
@@ -27,6 +28,10 @@ def _is_numeric(value: Any) -> bool:
     return isinstance(value, Real) and not isinstance(value, bool)
 
 
+def _is_finite_numeric(value: Any) -> bool:
+    return _is_numeric(value) and math.isfinite(value)
+
+
 def validate_packet_schema(
     packet: Mapping[str, Any],
     *,
@@ -51,7 +56,7 @@ def validate_packet_schema(
         raise TypeError("SCHEMA_VERSION must be a string")
 
     for field in NUMERIC_FIELDS:
-        if not _is_numeric(packet[field]):
+        if not _is_finite_numeric(packet[field]):
             raise TypeError(f"{field} must be numeric")
 
     salience = packet["SALIENCE"]
