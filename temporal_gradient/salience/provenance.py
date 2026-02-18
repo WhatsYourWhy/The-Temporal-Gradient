@@ -5,9 +5,17 @@ import json
 from typing import Mapping
 
 
-def compute_provenance_hash(provenance: Mapping[str, str], *, version: str = "1") -> str:
+def compute_provenance_hash(
+    provenance: Mapping[str, str],
+    *,
+    kind: str = "temporal_gradient.salience_provenance",
+    provenance_version: str = "1",
+    role: str = "pipeline",
+) -> str:
     preimage = {
-        "provenance_version": version,
+        "kind": kind,
+        "provenance_version": provenance_version,
+        "role": role,
         "provenance": dict(provenance),
     }
     payload = json.dumps(

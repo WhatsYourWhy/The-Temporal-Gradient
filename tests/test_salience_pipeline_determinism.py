@@ -7,9 +7,9 @@ from tests.replay_assertions import assert_numeric_diagnostics_policy, assert_st
 EVENT_SEQUENCE = ["critical update", "normal", "critical update"]
 EXPECTED_SALIENCE = [0.30000000000000004, 0.1, 0.0]
 EXPECTED_PROVENANCE_HASHES = [
-    "da5750207f25668c04b48e3f0bdfef68fbe5225f40cf64b41149a674f5e89ea0",
-    "59ab9ffe917f165c615bbc6cbeb12c1371d4de110526a7f1adc8668061732539",
-    "da5750207f25668c04b48e3f0bdfef68fbe5225f40cf64b41149a674f5e89ea0",
+    "e469247de73fe402968e3f35feaf607f1aa08714a45be9a52d5797adc17a9c63",
+    "64dba39e92daba622ec6b80c3849b6c0c70e7691d943e8757d95bed181b06803",
+    "e469247de73fe402968e3f35feaf607f1aa08714a45be9a52d5797adc17a9c63",
 ]
 
 
