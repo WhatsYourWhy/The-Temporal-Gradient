@@ -9,12 +9,12 @@ if TYPE_CHECKING:
 
 
 class NoveltyScorer(Protocol):
-    def score(self, text: str) -> Tuple[float, Dict[str, float]]:
+    def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         ...
 
 
 class ValueScorer(Protocol):
-    def score(self, text: str) -> Tuple[float, Dict[str, float]]:
+    def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         ...
 
 
@@ -44,17 +44,24 @@ class RollingJaccardNovelty:
     def _tokenize(self, text: str) -> set[str]:
         return set(self._token_pattern.findall(text.lower()))
 
-    def score(self, text: str) -> Tuple[float, Dict[str, float]]:
+    def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         tokens = self._tokenize(text)
         if not tokens:
             self._history.append(tokens)
             if len(self._history) > self.window_size:
                 self._history = self._history[-self.window_size :]
-            return 0.0, {
-                "H_jaccard_max": 0.0,
-                "H_tokens": 0.0,
-                "H_history": float(len(self._history)),
-            }
+            return (
+                0.0,
+                {
+                    "H_jaccard_max": 0.0,
+                    "H_tokens": 0.0,
+                    "H_history": float(len(self._history)),
+                },
+                {
+                    "window_size": str(self.window_size),
+                    "token_count": str(len(tokens)),
+                },
+            )
         max_similarity = 0.0
 
         if tokens and self._history:
@@ -77,7 +84,10 @@ class RollingJaccardNovelty:
             "H_tokens": float(len(tokens)),
             "H_history": float(len(self._history)),
         }
-        return novelty, diagnostics
+        return novelty, diagnostics, {
+            "window_size": str(self.window_size),
+            "token_count": str(len(tokens)),
+        }
 
 
 class KeywordImperativeValue:
@@ -96,7 +106,7 @@ class KeywordImperativeValue:
         self.max_value = max_value
         self._patterns = [re.compile(rf"\b{re.escape(keyword.lower())}\b") for keyword in self.keywords]
 
-    def score(self, text: str) -> Tuple[float, Dict[str, float]]:
+    def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         lowered = text.lower()
         hits = 0
         for pattern in self._patterns:
@@ -109,7 +119,10 @@ class KeywordImperativeValue:
             "V_keyword_count": float(len(self.keywords)),
             "V_base_value": float(self.base_value),
         }
-        return value, diagnostics
+        return value, diagnostics, {
+            "keyword_count": str(len(self.keywords)),
+            "keyword_hits": str(hits),
+        }
 
 
 class SaliencePipeline:
@@ -118,8 +131,8 @@ class SaliencePipeline:
         self.value_scorer = value_scorer
 
     def evaluate(self, text: str) -> SalienceComponents:
-        novelty, novelty_diag = self.novelty_scorer.score(text)
-        value, value_diag = self.value_scorer.score(text)
+        novelty, novelty_diag, _novelty_provenance = self.novelty_scorer.score(text)
+        value, value_diag, _value_provenance = self.value_scorer.score(text)
         novelty = max(0.0, min(1.0, novelty))
         value = max(0.0, min(1.0, value))
         psi = max(0.0, min(1.0, novelty * value))
@@ -133,13 +146,15 @@ class CodexNoveltyAdapter:
     def __init__(self, codex: "CodexValuator") -> None:
         self.codex = codex
 
-    def score(self, text: str) -> Tuple[float, Dict[str, float]]:
-        return self.codex.score_H(text)
+    def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
+        score, diagnostics = self.codex.score_H(text)
+        return score, diagnostics, {"adapter": "CodexNoveltyAdapter"}
 
 
 class CodexValueAdapter:
     def __init__(self, codex: "CodexValuator") -> None:
         self.codex = codex
 
-    def score(self, text: str) -> Tuple[float, Dict[str, float]]:
-        return self.codex.score_V(text)
+    def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
+        score, diagnostics = self.codex.score_V(text)
+        return score, diagnostics, {"adapter": "CodexValueAdapter"}
