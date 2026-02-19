@@ -40,6 +40,7 @@ Use canonical imports in all new/modified files. Keep shim usage only as tempora
 | `from chronometric_vector import ChronometricVector` | `from temporal_gradient.telemetry.chronometric_vector import ChronometricVector` | Migrate telemetry vector imports to canonical telemetry package. |
 | `from salience_pipeline import SaliencePipeline, RollingJaccardNovelty, KeywordImperativeValue` | `from temporal_gradient.salience.pipeline import SaliencePipeline, RollingJaccardNovelty, KeywordImperativeValue` | Move salience pipeline and primitives to canonical salience package imports. |
 | `from entropic_decay import DecayEngine` | `from temporal_gradient.memory.decay import DecayEngine` | Use canonical memory package path for decay engine access. |
+| `ClockRateModulator.chronolog` | `ClockRateModulator.chronology` | Typo alias removed; migrate all telemetry history access to `chronology`. |
 
 ### Copy/Paste Migration Examples
 
@@ -80,6 +81,8 @@ from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 5. When touching compatibility code, leave explicit migration notes in PR descriptions and changelog entries.
 
 Compatibility note: root-level shim modules are intentionally narrow in v0.2.x and expose only documented compatibility symbols (see `docs/CANONICAL_SURFACES.md`). Treat any non-documented shim attributes as unsupported internals.
+
+Alias removal note: `ClockRateModulator.chronolog` has been removed; `ClockRateModulator.chronology` is the only supported attribute for clock telemetry history.
 
 ## Deprecation Timeline (release-labeled)
 

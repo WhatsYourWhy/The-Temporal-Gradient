@@ -10,6 +10,7 @@ Use canonical imports for all new code. Compatibility shims are migration-only a
 | --- | --- | --- |
 | `chronos_engine` | `temporal_gradient.clock.chronos` | Root-level shim module retained for migration only. |
 | `compute_budget` naming (`ComputeBudgetPolicy`, `temporal_gradient.policies.compute_budget`) | `temporal_gradient.policies.compute_cooldown` (`ComputeCooldownPolicy`) | Canonical policy naming reflects cooldown semantics. |
+| `ClockRateModulator.chronolog` | `ClockRateModulator.chronology` | Typo alias removed; update all reads/writes to `chronology`. |
 | `chronometric_vector` | `temporal_gradient.telemetry.chronometric_vector` | Root-level shim module retained for migration only. |
 | `salience_pipeline` | `temporal_gradient.salience.pipeline` | Root-level shim module retained for migration only. |
 | `entropic_decay` | `temporal_gradient.memory.decay` | Root-level shim module retained for migration only. |
@@ -101,6 +102,7 @@ The following timeline defines the explicit version windows for compatibility sh
 
 - **v0.2.x**: Shims are available for migration and should be treated as compatibility-only.
 - **v0.3.x**: Shims enter active deprecation (warnings and docs continue to direct users to canonical imports).
+- **v0.3.x (current)**: `ClockRateModulator.chronolog` alias removed; use `ClockRateModulator.chronology`.
 - **v0.4.0+**: Shim removal window. Root-level shim modules and `compute_budget` naming aliases may be removed.
 
 If you maintain downstream integrations, migrate to canonical imports during **v0.2.x–v0.3.x** to avoid breakage.
