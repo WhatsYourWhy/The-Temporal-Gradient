@@ -84,7 +84,7 @@ Compatibility note: root-level shim modules are intentionally narrow in v0.2.x a
 ## Deprecation Timeline (release-labeled)
 
 - **v0.2.x**: Canonical mode is the default contributor target; legacy mode and compatibility shims remain available for migration.
-- **v0.3.x**: Planned removal window for legacy compatibility shims and legacy-only naming aliases (for example, `compute_budget` imports).
+- **v0.3.x**: **Staged removal by subsystem** (not a single full-shim drop): each compatibility shim/alias is removed only when its owning subsystem migration criteria are complete and explicitly release-noted.
 - **v0.4.0+**: Legacy/shim paths should be considered removed unless explicitly reintroduced with release notes.
 
 For release-by-release migration messaging, update `CHANGELOG.md` Unreleased using the compatibility template and keep this document aligned.

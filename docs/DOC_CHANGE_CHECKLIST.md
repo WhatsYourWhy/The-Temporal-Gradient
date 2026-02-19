@@ -12,5 +12,7 @@ Use this checklist for any PR that changes public behavior, naming, canonical su
 ## Contributor-doc freshness expectations
 - [ ] If APIs, canonical names, or compatibility paths evolve, contributor-facing docs are refreshed in the same PR (`README.md`, `docs/DAY1_CONTRIBUTOR_MAP.md`, and linked canonical/legacy guidance as needed)
 
+- [ ] Merge is blocked if shim-status messaging disagrees across `docs/CANONICAL_VS_LEGACY.md`, `CHANGELOG.md` (Unreleased compatibility block), and `docs/CANONICAL_SURFACES.md`
+
 ## Review routing
 - [ ] Requested review from documented maintainers/owners listed in `docs/CANONICAL_SURFACES.md`

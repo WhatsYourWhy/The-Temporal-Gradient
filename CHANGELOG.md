@@ -13,7 +13,7 @@ Keep canonical-vs-legacy release messaging aligned with [`docs/CANONICAL_VS_LEGA
 - Legacy mode status (`legacy_density`): `[supported/deprecated/removed]`
 - Root-level compatibility shims: `[unchanged/expanded/reduced]`
 - Migration guidance updates: `[link to docs/CANONICAL_VS_LEGACY.md changes]`
-- Planned removal horizon: `[target release or TBD]`
+- Planned removal horizon: `v0.3.x staged removal by subsystem (not full shim removal in a single release)`
 
 ### Documentation
 
