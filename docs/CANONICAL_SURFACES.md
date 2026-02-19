@@ -5,8 +5,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
 ## clock
 - **Canonical module path:** `temporal_gradient.clock.chronos`
 - **Canonical public symbols:** `ClockRateModulator`
-- **Known compatibility aliases/shims:**
-  - `temporal_gradient.clock.ClockRateModulator` (package re-export)
+- **Known compatibility aliases/shims (intentionally supported):**
   - `chronos_engine.py` (root compatibility shim; exports `ClockRateModulator`)
 
 ## salience
@@ -21,8 +20,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
   - `NoveltyScorer`
   - `ValueScorer`
   - `ResettableScorer`
-- **Known compatibility aliases/shims:**
-  - `temporal_gradient.salience.*` (package re-exports)
+- **Known compatibility aliases/shims (intentionally supported):**
   - `salience_pipeline.py` (root compatibility shim; exports: `SaliencePipeline`, `SalienceComponents`, `RollingJaccardNovelty`, `KeywordImperativeValue`, `CodexNoveltyAdapter`, `CodexValueAdapter`, `NoveltyScorer`, `ValueScorer`, `ResettableScorer`)
 
 ## memory
@@ -37,8 +35,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
   - `S_MAX`
   - `MemoryStore`
   - `DecayMemoryStore`
-- **Known compatibility aliases/shims:**
-  - `temporal_gradient.memory.*` (package re-exports)
+- **Known compatibility aliases/shims (intentionally supported):**
   - `entropic_decay.py` (root compatibility shim; exports: `DecayEngine`, `EntropicMemory`, `initial_strength_from_psi`, `should_encode`, `S_MAX`, `DecayMemoryStore`)
 
 ## telemetry
@@ -48,7 +45,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
 - **Canonical public symbols:**
   - `ChronometricVector`
   - `validate_packet_schema`
-- **Known compatibility aliases/shims:**
+- **Known compatibility aliases/shims (intentionally supported):**
   - `temporal_gradient.telemetry.validate_packet` (compatibility alias)
   - `chronometric_vector.py` (root compatibility shim; exports `ChronometricVector`)
 
@@ -57,7 +54,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
 - **Canonical public symbols:**
   - `ComputeCooldownPolicy`
   - `allows_compute`
-- **Known compatibility aliases/shims:**
+- **Known compatibility aliases/shims (intentionally supported):**
   - `temporal_gradient.policies.compute_budget.ComputeBudgetPolicy` (compatibility alias)
   - `temporal_gradient.policies.compute_budget` (compatibility shim module)
 
