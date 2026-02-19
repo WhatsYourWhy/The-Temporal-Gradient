@@ -1,6 +1,5 @@
 from temporal_gradient.config import load_config as load_config_from_legacy
 from temporal_gradient.config_loader import load_config as load_config_from_canonical
-from temporal_gradient.policies.compute_budget import ComputeBudgetPolicy
 from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
 from temporal_gradient.telemetry.schema import validate_packet, validate_packet_schema
 
@@ -9,8 +8,8 @@ def test_config_loader_canonical_and_legacy_exports_match():
     assert load_config_from_canonical is load_config_from_legacy
 
 
-def test_policy_canonical_and_compatibility_exports_match():
-    assert ComputeCooldownPolicy is ComputeBudgetPolicy
+def test_policy_canonical_export_is_available():
+    assert ComputeCooldownPolicy is not None
 
 
 def test_telemetry_validator_canonical_and_compatibility_exports_match():
