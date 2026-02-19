@@ -15,6 +15,10 @@ Keep canonical-vs-legacy release messaging aligned with [`docs/CANONICAL_VS_LEGA
 - Migration guidance updates: `[link to docs/CANONICAL_VS_LEGACY.md changes]`
 - Planned removal horizon: `v0.3.x staged removal by subsystem (not full shim removal in a single release)`
 
+### Changed
+
+- Removed `ClockRateModulator.chronolog` typo alias; use `ClockRateModulator.chronology` for clock telemetry history reads/writes.
+
 ### Documentation
 
 - Reviewed executable/documentation alignment and re-ran the project validation suite (`pytest -q`), with all tests passing.
