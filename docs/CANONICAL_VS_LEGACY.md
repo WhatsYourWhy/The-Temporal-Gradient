@@ -35,8 +35,8 @@ Use canonical imports in all new/modified files. Keep shim usage only as tempora
 | Legacy / shim import | Canonical import | Example replacement |
 | --- | --- | --- |
 | `from chronos_engine import ClockRateModulator` | `from temporal_gradient.clock.chronos import ClockRateModulator` | Replace direct root-level shim import with canonical package path. |
-| `from compute_budget import ComputeBudgetPolicy` | `from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy` | Rename policy class and module to cooldown naming. |
-| `from temporal_gradient.policies.compute_budget import ComputeBudgetPolicy` | `from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy` | Update in-package compatibility alias imports to canonical policy module. |
+| `from compute_budget import ComputeBudgetPolicy` *(removed in v0.3)* | `from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy` | Legacy policy naming removed; use canonical cooldown import only. |
+| `from temporal_gradient.policies.compute_budget import ComputeBudgetPolicy` *(removed in v0.3)* | `from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy` | In-package compatibility shim removed; canonical path required. |
 | `from chronometric_vector import ChronometricVector` | `from temporal_gradient.telemetry.chronometric_vector import ChronometricVector` | Migrate telemetry vector imports to canonical telemetry package. |
 | `from salience_pipeline import SaliencePipeline, RollingJaccardNovelty, KeywordImperativeValue` | `from temporal_gradient.salience.pipeline import SaliencePipeline, RollingJaccardNovelty, KeywordImperativeValue` | Move salience pipeline and primitives to canonical salience package imports. |
 | `from entropic_decay import DecayEngine` | `from temporal_gradient.memory.decay import DecayEngine` | Use canonical memory package path for decay engine access. |
@@ -47,14 +47,7 @@ Use canonical imports in all new/modified files. Keep shim usage only as tempora
 #### Policy rename and import migration
 
 ```python
-# Before (legacy/shim)
-from temporal_gradient.policies.compute_budget import ComputeBudgetPolicy
-
-policy = ComputeBudgetPolicy(cooldown_tau=0.5)
-```
-
-```python
-# After (canonical)
+# Canonical (required in v0.3+)
 from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
 
 policy = ComputeCooldownPolicy(cooldown_tau=0.5)
@@ -87,7 +80,7 @@ Alias removal note: `ClockRateModulator.chronolog` has been removed; `ClockRateM
 ## Deprecation Timeline (release-labeled)
 
 - **v0.2.x**: Canonical mode is the default contributor target; legacy mode and compatibility shims remain available for migration.
-- **v0.3.x**: **Staged removal by subsystem** (not a single full-shim drop): each compatibility shim/alias is removed only when its owning subsystem migration criteria are complete and explicitly release-noted.
+- **v0.3.x**: staged removal by subsystem is active; policy compatibility alias/module `compute_budget` removed in this cycle.
 - **v0.4.0+**: Legacy/shim paths should be considered removed unless explicitly reintroduced with release notes.
 
 For release-by-release migration messaging, update `CHANGELOG.md` Unreleased using the compatibility template and keep this document aligned.

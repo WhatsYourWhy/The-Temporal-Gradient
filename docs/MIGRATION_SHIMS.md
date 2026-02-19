@@ -9,7 +9,7 @@ Use canonical imports for all new code. Compatibility shims are migration-only a
 | Legacy shim / naming | Canonical equivalent | Notes |
 | --- | --- | --- |
 | `chronos_engine` | `temporal_gradient.clock.chronos` | Root-level shim module retained for migration only. |
-| `compute_budget` naming (`ComputeBudgetPolicy`, `temporal_gradient.policies.compute_budget`) | `temporal_gradient.policies.compute_cooldown` (`ComputeCooldownPolicy`) | Canonical policy naming reflects cooldown semantics. |
+| `compute_budget` naming (`ComputeBudgetPolicy`, `temporal_gradient.policies.compute_budget`) | `temporal_gradient.policies.compute_cooldown` (`ComputeCooldownPolicy`) | Removed in v0.3; canonical cooldown naming is required. |
 | `ClockRateModulator.chronolog` | `ClockRateModulator.chronology` | Typo alias removed; update all reads/writes to `chronology`. |
 | `chronometric_vector` | `temporal_gradient.telemetry.chronometric_vector` | Root-level shim module retained for migration only. |
 | `salience_pipeline` | `temporal_gradient.salience.pipeline` | Root-level shim module retained for migration only. |
@@ -26,7 +26,7 @@ The following shim modules intentionally expose only these names:
 - `chronometric_vector`: `ChronometricVector`
 - `salience_pipeline`: `SaliencePipeline`, `SalienceComponents`, `RollingJaccardNovelty`, `KeywordImperativeValue`, `CodexNoveltyAdapter`, `CodexValueAdapter`, `NoveltyScorer`, `ValueScorer`, `ResettableScorer`
 - `entropic_decay`: `DecayEngine`, `EntropicMemory`, `initial_strength_from_psi`, `should_encode`, `S_MAX`, `DecayMemoryStore`
-- `temporal_gradient.policies.compute_budget`: `ComputeCooldownPolicy`, `ComputeBudgetPolicy`, `allows_compute`
+- `temporal_gradient.policies.compute_budget`: removed in v0.3; migrate to `temporal_gradient.policies.compute_cooldown`
 
 Any additional symbols previously reachable via wildcard shim imports are not part of the supported compatibility contract.
 
@@ -46,14 +46,7 @@ from temporal_gradient.clock.chronos import ClockRateModulator
 
 ### 2) Policy import + naming
 
-**Before (shim naming):**
-```python
-from temporal_gradient.policies.compute_budget import ComputeBudgetPolicy
-
-policy = ComputeBudgetPolicy(cooldown_tau=0.5)
-```
-
-**After (canonical naming):**
+**Canonical naming (required in v0.3+):**
 ```python
 from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
 
@@ -101,8 +94,8 @@ from temporal_gradient.memory.decay import DecayEngine
 The following timeline defines the explicit version windows for compatibility shims:
 
 - **v0.2.x**: Shims are available for migration and should be treated as compatibility-only.
-- **v0.3.x**: Shims enter active deprecation (warnings and docs continue to direct users to canonical imports).
+- **v0.3.x**: Policy shim `temporal_gradient.policies.compute_budget` removed; remaining root-level shims stay in active deprecation.
 - **v0.3.x (current)**: `ClockRateModulator.chronolog` alias removed; use `ClockRateModulator.chronology`.
-- **v0.4.0+**: Shim removal window. Root-level shim modules and `compute_budget` naming aliases may be removed.
+- **v0.4.0+**: Remaining root-level shim removal window (clock/salience/memory/telemetry).
 
 If you maintain downstream integrations, migrate to canonical imports during **v0.2.x–v0.3.x** to avoid breakage.
