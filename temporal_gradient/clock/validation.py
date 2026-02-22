@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
+from temporal_gradient.compat.legacy import SALIENCE_MODES
+
 
 def _raise(error_factory: Callable[[str], Exception], message: str) -> None:
     raise error_factory(message)
@@ -54,7 +56,7 @@ def validate_clock_settings(
         section_name=section_name,
     )
 
-    if salience_mode not in {"canonical", "legacy_density"}:
+    if salience_mode not in SALIENCE_MODES:
         _raise(error_factory, f"{section_name}.salience_mode must be 'canonical' or 'legacy_density'")
 
     if base_dilation <= 0.0:
