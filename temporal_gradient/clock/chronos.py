@@ -1,6 +1,11 @@
 import math
 import time
 
+from temporal_gradient.compat.legacy import (
+    CANONICAL_MODE,
+    LEGACY_DENSITY_MODE,
+    normalize_legacy_density_to_psi,
+)
 from temporal_gradient.clock.validation import validate_clock_settings
 
 
@@ -52,7 +57,7 @@ class ClockRateModulator:
             raise ValueError("psi must be finite.")
         if psi < 0.0:
             psi = 0.0
-        if self.salience_mode == "canonical" and psi > 1.0:
+        if self.salience_mode == CANONICAL_MODE and psi > 1.0:
             if self.strict_psi_bounds:
                 raise ValueError("psi must be within [0, 1] in canonical mode.")
             psi = 1.0
@@ -81,10 +86,7 @@ class ClockRateModulator:
         return mass * entropy
 
     def _psi_from_legacy_density(self, density):
-        if density is None:
-            return None
-        scaled = density / self.legacy_density_scale
-        return max(0.0, min(1.0, scaled))
+        return normalize_legacy_density_to_psi(density, self.legacy_density_scale)
 
     def tick(self, psi=None, input_context=None, wall_delta=None):
         """Advance τ by one tick.
@@ -94,7 +96,7 @@ class ClockRateModulator:
         `strict_psi_bounds=True/False`).
         """
         density = None
-        if self.salience_mode == "legacy_density" and psi is None:
+        if self.salience_mode == LEGACY_DENSITY_MODE and psi is None:
             if input_context is None:
                 raise ValueError("legacy_density mode requires psi or input_context to derive psi.")
             density = self.calculate_information_density(input_context)
@@ -127,4 +129,3 @@ class ClockRateModulator:
 
         self.last_tick = current_wall_time
         return tau_delta
-

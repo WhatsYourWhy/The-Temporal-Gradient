@@ -2,6 +2,14 @@ from dataclasses import dataclass
 import json
 from typing import Any, Mapping, Optional
 
+from temporal_gradient.compat.legacy import (
+    CANONICAL_MODE,
+    LEGACY_DENSITY_MODE,
+    LEGACY_PACKET_FALLBACK_KEYS,
+    LEGACY_REJECTED_CANONICAL_KEYS,
+    coerce_legacy_schema_version,
+    legacy_packet_value,
+)
 from .schema import CANONICAL_SCHEMA_VERSION, normalize_schema_version, validate_packet_schema
 
 
@@ -51,7 +59,7 @@ class ChronometricVector:
         if self.provenance_hash is not None:
             packet["PROVENANCE_HASH"] = self.provenance_hash
 
-        validate_packet_schema(packet, salience_mode="canonical")
+        validate_packet_schema(packet, salience_mode=CANONICAL_MODE)
         return packet
 
     def to_packet_json(self) -> str:
@@ -71,13 +79,12 @@ class ChronometricVector:
         require_provenance_hash: bool = False,
     ):
         data = json.loads(packet) if isinstance(packet, str) else dict(packet)
-        if salience_mode == "canonical":
-            legacy_keys = {"t_obj", "r", "legacy_density", "LEGACY_DENSITY", "clock_rate", "psi"}
-            if legacy_keys.intersection(data.keys()):
+        if salience_mode == CANONICAL_MODE:
+            if LEGACY_REJECTED_CANONICAL_KEYS.intersection(data.keys()):
                 raise ValueError("Legacy keys present in canonical packet.")
             validate_packet_schema(
                 data,
-                salience_mode="canonical",
+                salience_mode=CANONICAL_MODE,
                 clock_rate_bounds=clock_rate_bounds,
                 require_provenance_hash=require_provenance_hash,
             )
@@ -94,33 +101,31 @@ class ChronometricVector:
                 provenance_hash=data.get("PROVENANCE_HASH"),
                 schema_version=normalize_schema_version(data.get("SCHEMA_VERSION", CANONICAL_SCHEMA_VERSION)),
             )
-        if salience_mode == "legacy_density":
-            wall_clock = data.get("WALL_T", data.get("t_obj"))
-            tau = data.get("TAU", data.get("tau"))
-            psi = data.get("SALIENCE")
-            if psi is None:
-                psi = data.get("psi", data.get("legacy_density", data.get("LEGACY_DENSITY")))
+        if salience_mode == LEGACY_DENSITY_MODE:
+            wall_clock = legacy_packet_value(data, LEGACY_PACKET_FALLBACK_KEYS["wall_clock_time"])
+            tau = legacy_packet_value(data, LEGACY_PACKET_FALLBACK_KEYS["tau"])
+            psi = legacy_packet_value(data, LEGACY_PACKET_FALLBACK_KEYS["psi"])
             if wall_clock is None or tau is None or psi is None:
                 raise ValueError("Legacy packet missing required keys.")
-            depth = data.get("DEPTH", data.get("r", 0))
-            legacy_schema_version = data.get("SCHEMA_VERSION", CANONICAL_SCHEMA_VERSION)
-            if isinstance(legacy_schema_version, str):
-                try:
-                    legacy_schema_version = normalize_schema_version(legacy_schema_version)
-                except ValueError:
-                    legacy_schema_version = CANONICAL_SCHEMA_VERSION
-            else:
-                legacy_schema_version = CANONICAL_SCHEMA_VERSION
+            depth = legacy_packet_value(data, LEGACY_PACKET_FALLBACK_KEYS["recursion_depth"])
+            if depth is None:
+                depth = 0
+
+            legacy_schema_version = coerce_legacy_schema_version(
+                data.get("SCHEMA_VERSION", CANONICAL_SCHEMA_VERSION),
+                canonical_schema_version=CANONICAL_SCHEMA_VERSION,
+                normalizer=normalize_schema_version,
+            )
 
             return ChronometricVector(
                 wall_clock_time=wall_clock,
                 tau=tau,
                 psi=psi,
                 recursion_depth=depth,
-                clock_rate=data.get("CLOCK_RATE", data.get("clock_rate")),
+                clock_rate=legacy_packet_value(data, LEGACY_PACKET_FALLBACK_KEYS["clock_rate"]),
                 H=data.get("H"),
                 V=data.get("V"),
-                memory_strength=data.get("MEMORY_S", data.get("S")),
+                memory_strength=legacy_packet_value(data, LEGACY_PACKET_FALLBACK_KEYS["memory_strength"]),
                 entropy_cost=data.get("entropy_cost", 0.0),
                 schema_version=legacy_schema_version,
             )
