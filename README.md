@@ -30,8 +30,17 @@ All claims are limited to defined state variables, dynamics, and testable invari
 
 ### Internal timebase
 \[
-\frac{d\tau}{dt}=\frac{1}{1+\Psi(t)}, \quad \Psi(t)=H(x_t)\cdot V(x_t)
+\frac{d\tau}{dt}=\frac{1}{1+\texttt{base\_dilation\_factor}\cdot\Psi(t)}, \quad \Psi(t)=H(x_t)\cdot V(x_t)
 \]
+
+In code, this is implemented by `ClockRateModulator._clock_rate_from_validated_psi(...)` as:
+`clock_rate = 1 / (1 + psi * base_dilation)` with min/max clamping.
+To map docs to constructor names in `temporal_gradient/clock/chronos.py`:
+- `base_dilation_factor` (constructor arg) is validated and stored as `self.base_dilation`.
+- `psi` is the salience load input used by `clock_rate_from_psi(psi)` and `tick(psi=...)`.
+- `min_clock_rate` and `max_clock_rate` bound the final clock rate.
+
+Default factor assumption: `base_dilation_factor=1.0`.
 
 ### Entropic memory decay
 \[
