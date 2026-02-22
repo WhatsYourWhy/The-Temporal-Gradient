@@ -19,7 +19,7 @@
 
 ## Execution cadence
 
-Canonical/compatibility source-of-truth references live in [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md) and [`docs/MIGRATION_SHIMS.md`](docs/MIGRATION_SHIMS.md).
+Canonical symbol/path mappings live in [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md). For canonical-vs-legacy lifecycle policy and removal timeline, use [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 
 This board is reviewed and updated **weekly during engineering triage** and **before each release cut** to confirm priority, status, ownership, target version, and linked implementation artifacts.
 
@@ -64,7 +64,7 @@ This board is reviewed and updated **weekly during engineering triage** and **be
 - `temporal_gradient/clock/chronos.py`
 - migration docs that still reference alias lifecycle (`docs/CANONICAL_VS_LEGACY.md`, `docs/MIGRATION_SHIMS.md`)
 
-**Definition of done:** remove the deprecated `chronolog` alias at the next planned compatibility-window boundary, update migration docs/changelog, and keep tests green on canonical `chronology` usage only.
+**Definition of done:** remove the deprecated `chronolog` alias at the next planned compatibility-window boundary, align docs/changelog with [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md), and keep tests green on canonical `chronology` usage only.
 
 ### TG-006
 
@@ -93,7 +93,7 @@ This board is reviewed and updated **weekly during engineering triage** and **be
 - `temporal_gradient/clock/chronos.py`
 - compatibility lifecycle docs (`docs/MIGRATION_SHIMS.md`, `docs/CANONICAL_VS_LEGACY.md`)
 
-**Definition of done:** remove `ClockRateModulator.chronolog` (misspelled compatibility alias) at the planned shim-removal boundary, ensure canonical `chronology` is the only public attribute, and update migration messaging/tests accordingly.
+**Definition of done:** remove `ClockRateModulator.chronolog` (misspelled compatibility alias) at the planned shim-removal boundary, ensure canonical `chronology` is the only public attribute, and align migration messaging/tests with [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 
 ### TG-010
 

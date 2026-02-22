@@ -1,7 +1,5 @@
 # Canonical Surfaces
 
-This document is the source-of-truth mapping for canonical module surfaces, public symbols, and compatibility aliases/shims.
-
 ## clock
 - **Canonical module path:** `temporal_gradient.clock.chronos`
 - **Canonical public symbols:** `ClockRateModulator`
@@ -57,6 +55,3 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
 - **Known compatibility aliases/shims (intentionally supported):**
   - None (removed in v0.3; use canonical cooldown policy module path only)
 
----
-
-**Maintenance rule:** Any API, module-path, symbol-name, or naming-contract change must update this file in the same PR.

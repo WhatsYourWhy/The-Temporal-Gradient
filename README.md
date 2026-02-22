@@ -47,9 +47,9 @@ S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
 
 Canonical module map: see [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md).
 
-The architecture is organized into canonical package layers for clock, salience, memory, policies, and telemetry, with root-level modules retained only as compatibility shims during migration windows.
+The architecture uses canonical package layers for clock, salience, memory, policies, and telemetry.
 
-For mode-specific behavior (`canonical` vs `legacy_density`), including schema enforcement and packet-shape differences, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
+For canonical-vs-legacy behavior, compatibility scope, and removal timeline, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 
 ## Minimal Canonical Usage (v0.2.x)
 ```python
@@ -105,11 +105,9 @@ Canonical imports:
 Policy:
 - `from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy`
 
-Compatibility shims are retained for one release window and are compatibility-only (not canonical).
-
 See [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md) for the canonical vs compatibility map.
 For shim-by-shim replacements and copy/paste migration examples, see [`docs/MIGRATION_SHIMS.md`](docs/MIGRATION_SHIMS.md).
-For mode behavior deltas, migration matrix guidance, and release-labeled deprecation timing, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
+For lifecycle policy and release-labeled deprecation timing, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 
 ## Telemetry Schema (canonical keys)
 Canonical telemetry is validated against the required schema keys and should be the default for all new integrations.
@@ -129,14 +127,13 @@ Canonical telemetry is validated against the required schema keys and should be 
 `validate_packet_schema(...)` is the canonical validator; `validate_packet(...)` remains a compatibility alias.
 `ChronometricVector.to_packet()` returns the canonical packet mapping (`dict`); use `to_packet_json()` only when serialized JSON text is explicitly required.
 
-For complete canonical vs legacy mode behavior (including accepted packet keys and compatibility bypass rules), see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
+For complete canonical-vs-legacy mode behavior and lifecycle policy, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 
 ## Stability Constraints
 - Clock rate has an explicit minimum floor.
 - Reconsolidation boost is bounded and diminishes.
 - Cooldown window prevents rapid repeated reinforcement.
-- Canonical mode enforces salience normalization.
-- Legacy density mode derives/clamps salience from entropy density and does not enforce canonical packet-schema strictness.
+- Canonical-vs-legacy enforcement details live in [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 
 
 ## Documentation Lifecycle
