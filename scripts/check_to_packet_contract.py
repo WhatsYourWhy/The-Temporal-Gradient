@@ -13,7 +13,7 @@ TARGET_FILES: tuple[Path, ...] = (
     ROOT / "anomaly_poc.py",
     ROOT / "sanity_harness.py",
     ROOT / "simulation_run.py",
-    ROOT / "calibration_harness.py",
+    ROOT / "twin_paradox.py",
 )
 
 CONTRACT_MESSAGE = (

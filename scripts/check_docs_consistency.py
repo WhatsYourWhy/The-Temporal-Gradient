@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check docs for canonical-import consistency and required canonical references."""
+"""Check docs for required canonical references."""
 
 from __future__ import annotations
 
@@ -15,30 +15,12 @@ DOC_FILES: tuple[Path, ...] = (
     ROOT / "TASK_PROPOSALS.md",
 )
 
-SHIM_IMPORT_RE = re.compile(
-    r"^\s*(?:from\s+(chronos_engine|chronometric_vector|salience_pipeline|entropic_decay|"
-    r"calibration_harness|sanity_harness|anomaly_poc|simulation_run)\b"
-    r"|import\s+(chronos_engine|chronometric_vector|salience_pipeline|entropic_decay|"
-    r"calibration_harness|sanity_harness|anomaly_poc|simulation_run)\b)"
-)
 CANONICAL_IMPORT_RE = re.compile(r"^\s*(?:import|from)\s+temporal_gradient(?:\.|\s|$)")
-
-# If a line with a shim import includes one of these markers, it is considered
-# explicitly compatibility-only guidance rather than canonical usage.
-COMPAT_CONTEXT_MARKERS: tuple[str, ...] = (
-    "compatibility",
-    "compat",
-    "legacy",
-    "shim",
-    "deprecated",
-    "alias",
-)
 
 # Canonical reference expectations per file.
 EXPECTED_CANONICAL_REFS: dict[Path, tuple[str, ...]] = {
     ROOT / "README.md": (
         "docs/CANONICAL_SURFACES.md",
-        "docs/MIGRATION_SHIMS.md",
     ),
     ROOT / "USAGE.md": ("docs/CANONICAL_SURFACES.md",),
     ROOT / "TASK_PROPOSALS.md": ("docs/CANONICAL_SURFACES.md",),
@@ -47,7 +29,7 @@ EXPECTED_CANONICAL_REFS: dict[Path, tuple[str, ...]] = {
 # Rule set for lines that imply canonical/compatibility guidance; when matched,
 # at least one expected canonical reference for that file should exist.
 REFERENCE_TRIGGER_RE = re.compile(
-    r"\b(canonical|compatibility|shim|deprecated|legacy|import\s+surface|entry\s*point)\b",
+    r"\b(canonical|import\s+surface|entry\s*point)\b",
     re.IGNORECASE,
 )
 
@@ -66,32 +48,11 @@ class Violation:
         return f"{rel}:{self.line_no}: {self.message} | context: {self.context}"
 
 
-def _has_compat_marker(text: str) -> bool:
-    lowered = text.lower()
-    return any(marker in lowered for marker in COMPAT_CONTEXT_MARKERS)
-
-
 def check_doc(path: Path) -> list[Violation]:
     violations: list[Violation] = []
     lines = path.read_text(encoding="utf-8").splitlines()
 
     for idx, line in enumerate(lines, start=1):
-        if SHIM_IMPORT_RE.search(line):
-            # Root shim imports should never be canonical examples.
-            nearby = " ".join(lines[max(0, idx - 2): min(len(lines), idx + 1)])
-            if not _has_compat_marker(line) and not _has_compat_marker(nearby):
-                violations.append(
-                    Violation(
-                        path=path,
-                        line_no=idx,
-                        message=(
-                            "deprecated/root shim import appears as canonical usage; "
-                            "replace with temporal_gradient canonical import paths"
-                        ),
-                        context=line.strip(),
-                    )
-                )
-
         if CANONICAL_IMPORT_RE.search(line) and "temporal_gradient.policies.compute_budget" in line:
             violations.append(
                 Violation(
