@@ -36,13 +36,13 @@ When your PR changes one subsystem, run its targeted tests. If your change cross
 
 ## Expected local pre-push command order
 
-Before pushing, run the same required gate order as CI:
+Before pushing, run the same gate sequence used in `.github/workflows/pytest.yml`:
 
-1. `python -m pytest -q tests/test_packet_contract_check.py` *(pre-test packet-contract gate)*
-2. `pytest -q` *(full regression suite)*
-3. `python scripts/check_docs_consistency.py` *(docs consistency gate)*
+1. `python -m pytest -q tests/test_packet_contract_check.py` *(Run pre-test packet contract target)*
+2. `pytest -q` *(Run full regression suite)*
+3. `python scripts/check_docs_consistency.py` *(Run docs consistency check)*
 
-If any command fails, fix the issue and re-run all commands in order so each gate is re-validated.
+If any command fails, fix the issue and re-run **all three commands in order** so each downstream gate is re-validated against the latest changes.
 
 ## Terminology and safety reminders
 
