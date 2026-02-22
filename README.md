@@ -126,6 +126,7 @@ Canonical telemetry is validated against the required schema keys and should be 
 - `to_packet_json()` => returns a JSON `str` for transport, storage, or logging contexts.
 - Do not call `json.loads(to_packet())`; `to_packet()` is already the structured mapping.
 
+- `SCHEMA_VERSION`
 - `WALL_T`
 - `TAU`
 - `SALIENCE`
@@ -134,7 +135,7 @@ Canonical telemetry is validated against the required schema keys and should be 
 - `DEPTH`
 
 `validate_packet_schema(...)` is the canonical validator; `validate_packet(...)` remains a compatibility alias.
-`ChronometricVector.to_packet()` returns the canonical packet mapping (`dict`); use `to_packet_json()` only when serialized JSON text is explicitly required.
+`ChronometricVector.to_packet()` returns the canonical packet mapping (`dict`) and emits canonical `SCHEMA_VERSION` (`"1.0"`); use `to_packet_json()` only when serialized JSON text is explicitly required.
 
 For complete canonical-vs-legacy mode behavior and lifecycle policy, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 

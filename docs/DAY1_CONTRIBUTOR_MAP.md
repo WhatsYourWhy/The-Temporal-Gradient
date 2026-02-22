@@ -59,13 +59,12 @@ Read [`docs/CANONICAL_VS_LEGACY.md`](./CANONICAL_VS_LEGACY.md) before touching m
 
 Use these starter templates for small, high-signal first contributions.
 
-### Template A — TG-TASK-001 (`chronolog` → `chronology`)
-- **Goal:** Make `clock.chronology` the preferred attribute while preserving `chronolog` as a temporary alias.
-- **Likely files:** `temporal_gradient/clock/chronos.py`, relevant docs/tests discovered during search.
+### Template A — TG-TASK-001 (`chronolog` cleanup verification)
+- **Goal:** Remove remaining references to removed `chronolog` alias and keep `clock.chronology` as the only supported attribute.
+- **Likely files:** docs/tests referencing clock telemetry history names.
 - **Checklist:**
-  - [x] Add/confirm canonical attribute and compatibility alias.
-  - [x] Add a deprecation note for alias usage.
-  - [x] Update docs/tests to prefer `chronology`.
+  - [x] Replace `chronolog` references with `chronology`.
+  - [x] Confirm no code path relies on `chronolog`.
   - [x] Run clock + API/docs tests listed above.
 
 ### Template B — TG-TASK-002 (anomaly PoC key alignment)
