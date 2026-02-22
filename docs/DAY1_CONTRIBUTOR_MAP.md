@@ -53,12 +53,7 @@ Before changing docs, comments, names, or examples:
 
 ## Canonical vs legacy gotchas (read before editing compatibility paths)
 
-Read [`docs/CANONICAL_VS_LEGACY.md`](./CANONICAL_VS_LEGACY.md) before touching mode-dependent behavior.
-
-Common gotchas:
-- Canonical mode enforces strict packet-schema expectations; legacy-density compatibility can accept/derive values differently.
-- Canonical keys/imports should be preferred in docs and examples; compatibility shims are migration-only.
-- Tests should assert canonical behavior first, then explicitly note any temporary compatibility alias behavior.
+Read [`docs/CANONICAL_VS_LEGACY.md`](./CANONICAL_VS_LEGACY.md) before touching mode-dependent behavior; it is the lifecycle authority for canonical vs legacy behavior, compatibility expectations, and removal timeline.
 
 ## “First PR” templates (from current backlog)
 

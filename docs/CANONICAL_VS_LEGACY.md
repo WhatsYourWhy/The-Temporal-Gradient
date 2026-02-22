@@ -1,6 +1,6 @@
-# Canonical vs Legacy Mode Guide
+# Canonical vs Legacy Lifecycle Authority
 
-This document defines runtime mode behavior for contributors, provides import migration guidance, and sets the deprecation horizon for compatibility shims.
+This document is the single lifecycle authority for canonical vs legacy runtime behavior, compatibility expectations, migration guidance, and removal timeline.
 
 ## Mode Definitions
 

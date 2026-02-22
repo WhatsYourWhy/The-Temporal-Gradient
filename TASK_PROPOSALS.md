@@ -10,7 +10,7 @@
 
 ## Execution cadence
 
-Canonical/compatibility source-of-truth references live in [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md) and [`docs/MIGRATION_SHIMS.md`](docs/MIGRATION_SHIMS.md).
+Canonical symbol/path mappings live in [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md). For canonical-vs-legacy lifecycle policy and removal timeline, use [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 
 This board is reviewed and updated **weekly during engineering triage** and **before each release cut** to confirm priority, status, ownership, target patch version, and linked implementation artifacts.
 
