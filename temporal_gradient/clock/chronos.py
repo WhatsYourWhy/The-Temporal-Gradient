@@ -1,10 +1,7 @@
 import math
-import textwrap
 import time
 
 from temporal_gradient.clock.validation import validate_clock_settings
-from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
-from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 
 
 class ClockRateModulator:
@@ -131,56 +128,3 @@ class ClockRateModulator:
         self.last_tick = current_wall_time
         return tau_delta
 
-
-if __name__ == "__main__":
-    agent_clock = ClockRateModulator()
-    salience = SaliencePipeline(RollingJaccardNovelty(), KeywordImperativeValue())
-
-    print(
-        f"{'EVENT':<20} | {'WALL_T':<8} | {'TAU':<10} | {'SALIENCE':<9} | "
-        f"{'CLOCK_RATE':<10} | {'MEMORY_S':<8} | {'DEPTH'}"
-    )
-    print("-" * 90)
-
-    simulated_events = [
-        "",
-        "Hello.",
-        "The quick brown fox jumps over the dog",
-        textwrap.dedent(
-            """
-            Time is a field gradient formed by memory + change.
-            Entropy’s arrow is not time itself, but an emergent
-            direction from memory accumulation.
-        """
-        )
-        * 5,
-    ]
-
-    start_time = time.time()
-    for event in simulated_events:
-        time.sleep(1.0)
-
-        sal = salience.evaluate(event)
-        psi = sal.psi
-
-        agent_clock.tick(psi)
-        wall_time = time.time() - start_time
-
-        label = (event[:15] + "...") if len(event) > 15 else (event if event else "[EMPTY INPUT]")
-
-        packet_json = ChronometricVector(
-            wall_clock_time=wall_time,
-            tau=agent_clock.tau,
-            psi=psi,
-            recursion_depth=0,
-            clock_rate=agent_clock.clock_rate_from_psi(psi),
-            H=sal.novelty,
-            V=sal.value,
-            memory_strength=0.0,
-        ).to_packet_json()
-
-        print(
-            f"{label:<20} | {wall_time:<8.2f} | {agent_clock.tau:<10.4f} | {psi:<9.3f} | "
-            f"{agent_clock.clock_rate_from_psi(psi):<10.4f} | {0.0:<8.2f} | {0}"
-        )
-        print(f"{'PACKET':<8} | {packet_json}")
