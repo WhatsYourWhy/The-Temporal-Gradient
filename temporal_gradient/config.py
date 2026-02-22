@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from temporal_gradient.clock.validation import validate_clock_settings
+
 try:
     import yaml  # type: ignore
 except ModuleNotFoundError:  # pragma: no cover
@@ -164,15 +166,14 @@ def load_config(path: str | Path = "tg.yaml") -> TemporalGradientConfig:
         _check_range(val, "salience", key_name, lower=0.0, upper=1.0)
 
     clock_raw = normalized["clock"]
-    base_dilation = _coerce_number(clock_raw["base_dilation_factor"], "clock", "base_dilation_factor")
-    min_clock_rate = _coerce_number(clock_raw["min_clock_rate"], "clock", "min_clock_rate")
-    legacy_density_scale = _coerce_number(clock_raw["legacy_density_scale"], "clock", "legacy_density_scale")
-    salience_mode = clock_raw["salience_mode"]
-    if salience_mode not in {"canonical", "legacy_density"}:
-        raise ConfigValidationError("clock.salience_mode must be 'canonical' or 'legacy_density'")
-    _check_range(base_dilation, "clock", "base_dilation_factor", lower=0.0, inclusive_lower=False)
-    _check_range(min_clock_rate, "clock", "min_clock_rate", lower=0.0, upper=1.0, inclusive_lower=False)
-    _check_range(legacy_density_scale, "clock", "legacy_density_scale", lower=0.0, inclusive_lower=False)
+    base_dilation, min_clock_rate, _max_clock_rate, salience_mode, legacy_density_scale = validate_clock_settings(
+        base_dilation_factor=clock_raw["base_dilation_factor"],
+        min_clock_rate=clock_raw["min_clock_rate"],
+        max_clock_rate=1.0,
+        salience_mode=clock_raw["salience_mode"],
+        legacy_density_scale=clock_raw["legacy_density_scale"],
+        error_factory=ConfigValidationError,
+    )
 
     memory_raw = normalized["memory"]
     half_life = _coerce_number(memory_raw["half_life"], "memory", "half_life")

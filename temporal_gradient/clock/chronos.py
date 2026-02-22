@@ -2,6 +2,7 @@ import math
 import textwrap
 import time
 
+from temporal_gradient.clock.validation import validate_clock_settings
 from temporal_gradient.salience.pipeline import KeywordImperativeValue, RollingJaccardNovelty, SaliencePipeline
 from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 
@@ -25,25 +26,24 @@ class ClockRateModulator:
         base_dilation_factor=1.0,
         min_clock_rate=0.05,
         salience_mode="canonical",
+        max_clock_rate=1.0,
         legacy_density_scale=100.0,
         strict_psi_bounds=False,
     ):
         self.start_wall_time = time.time()
         self.tau = 0.0
-        self.base_dilation = base_dilation_factor
-        self.min_clock_rate = min_clock_rate
         self.last_tick = self.start_wall_time
-        self.salience_mode = self._validate_salience_mode(salience_mode)
-        self.legacy_density_scale = legacy_density_scale
+        self.base_dilation, self.min_clock_rate, self.max_clock_rate, self.salience_mode, self.legacy_density_scale = validate_clock_settings(
+            base_dilation_factor=base_dilation_factor,
+            min_clock_rate=min_clock_rate,
+            max_clock_rate=max_clock_rate,
+            salience_mode=salience_mode,
+            legacy_density_scale=legacy_density_scale,
+            error_factory=ValueError,
+        )
         self.strict_psi_bounds = strict_psi_bounds
         self.chronology = []
 
-    def _validate_salience_mode(self, salience_mode):
-        valid_modes = {"canonical", "legacy_density"}
-        if salience_mode not in valid_modes:
-            valid = ", ".join(sorted(valid_modes))
-            raise ValueError(f"salience_mode must be one of: {valid}")
-        return salience_mode
 
     def _validate_psi(self, psi):
         if psi is None:
@@ -69,7 +69,7 @@ class ClockRateModulator:
         """
         psi = self._validate_psi(psi)
         scaled_psi = psi * self.base_dilation
-        return max(self.min_clock_rate, 1 / (1 + scaled_psi))
+        return min(self.max_clock_rate, max(self.min_clock_rate, 1 / (1 + scaled_psi)))
 
     def calculate_information_density(self, input_data):
         if not input_data:
