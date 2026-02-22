@@ -119,6 +119,35 @@ def test_legacy_packet_requires_legacy_mode():
     assert parsed.psi == pytest.approx(0.5)
 
 
+def test_legacy_mode_round_trip_preserves_normalized_schema_version():
+    legacy_packet = {
+        "SCHEMA_VERSION": "1",
+        "t_obj": 1.0,
+        "tau": 0.9,
+        "legacy_density": 0.5,
+        "r": 0,
+    }
+
+    parsed = ChronometricVector.from_packet(legacy_packet, salience_mode="legacy_density")
+    assert parsed.schema_version == "1.0"
+
+    round_trip_packet = parsed.to_packet()
+    assert round_trip_packet["SCHEMA_VERSION"] == parsed.schema_version == "1.0"
+
+
+def test_to_packet_defaults_to_canonical_schema_version_for_new_objects():
+    vector = ChronometricVector(
+        wall_clock_time=1.0,
+        tau=0.9,
+        psi=0.5,
+        recursion_depth=0,
+    )
+
+    packet = vector.to_packet()
+    assert vector.schema_version == "1.0"
+    assert packet["SCHEMA_VERSION"] == "1.0"
+
+
 def test_canonical_from_packet_strict_mode_requires_provenance_hash():
     packet = {
         "SCHEMA_VERSION": "1.0",

@@ -36,7 +36,7 @@ class ChronometricVector:
 
     def to_packet(self) -> dict[str, Any]:
         packet = {
-            "SCHEMA_VERSION": CANONICAL_SCHEMA_VERSION,
+            "SCHEMA_VERSION": self.schema_version,
             "WALL_T": round(float(self.wall_clock_time), 2),
             "TAU": round(float(self.tau), 2),
             "SALIENCE": round(float(self.psi), 3),
