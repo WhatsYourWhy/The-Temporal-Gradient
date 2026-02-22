@@ -52,3 +52,19 @@ def test_tick_rejects_negative_wall_delta():
     clock = ClockRateModulator()
     with pytest.raises(ValueError, match="wall_delta must be non-negative"):
         clock.tick(psi=0.5, wall_delta=-0.1)
+
+
+def test_tick_validates_psi_once_before_internal_rate_calculation(monkeypatch):
+    clock = ClockRateModulator()
+    calls = {"count": 0}
+    original_validate = clock._validate_psi
+
+    def spy_validate(psi):
+        calls["count"] += 1
+        return original_validate(psi)
+
+    monkeypatch.setattr(clock, "_validate_psi", spy_validate)
+
+    tick_delta = clock.tick(psi=0.3, wall_delta=1.0)
+    assert calls["count"] == 1
+    assert tick_delta == pytest.approx(clock.clock_rate_from_psi(0.3))

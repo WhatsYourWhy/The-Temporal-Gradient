@@ -68,6 +68,10 @@ class ClockRateModulator:
         strict mode rejects `psi > 1`, non-strict mode clamps it to `1.0`.
         """
         psi = self._validate_psi(psi)
+        return self._clock_rate_from_validated_psi(psi)
+
+    def _clock_rate_from_validated_psi(self, psi):
+        """Compute clock-rate from a psi value already canonicalized by `_validate_psi`."""
         scaled_psi = psi * self.base_dilation
         return min(self.max_clock_rate, max(self.min_clock_rate, 1 / (1 + scaled_psi)))
 
@@ -109,7 +113,7 @@ class ClockRateModulator:
                 raise ValueError("wall_delta must be non-negative")
             current_wall_time = self.last_tick + wall_delta
 
-        clock_rate = self.clock_rate_from_psi(psi)
+        clock_rate = self._clock_rate_from_validated_psi(psi)
         tau_delta = wall_delta * clock_rate
         self.tau += tau_delta
 
