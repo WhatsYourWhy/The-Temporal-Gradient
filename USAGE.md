@@ -69,6 +69,27 @@ Legacy compatibility packet (allowed only in `legacy_density` mode):
 
 See `docs/CANONICAL_VS_LEGACY.md` for the full migration guidance and deprecation horizon.
 
+## Minimal packet round-trip example (canonical)
+
+```python
+import temporal_gradient as tg
+from temporal_gradient.telemetry.schema import validate_packet_schema
+
+packet = tg.telemetry.ChronometricVector(
+    wall_clock_time=1.0,
+    tau=0.5,
+    psi=0.4,
+    recursion_depth=0,
+    clock_rate=0.71,
+    memory_strength=0.2,
+).to_packet()
+
+validate_packet_schema(packet, salience_mode="canonical")
+print(packet["SCHEMA_VERSION"], packet["SALIENCE"])
+```
+
+This prints canonical packet fields (`SCHEMA_VERSION` and `SALIENCE`) from the in-memory `dict` returned by `to_packet()`.
+
 
 ## 1. The clock-rate table
 This table shows how the internal clock-rate is reparameterized by salience load (surprise × value).
