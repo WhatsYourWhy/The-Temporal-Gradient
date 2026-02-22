@@ -1,4 +1,9 @@
-"""Telemetry packet schema validation for canonical v0.2.0 packets."""
+"""Telemetry packet schema validation for canonical v0.2.0 packets.
+
+Policy: canonical format is required for outputs/current interfaces. Specific
+legacy input forms are accepted only for migration at ingress and normalized
+internally to canonical values.
+"""
 
 import math
 from numbers import Real
@@ -38,8 +43,9 @@ def _is_finite_numeric(value: Any) -> bool:
 def normalize_schema_version(schema_version: str) -> str:
     """Normalize schema version values to the canonical version string.
 
-    Canonical packets must serialize as ``"1.0"``. Legacy packets that still
-    carry ``"1"`` are accepted for migration and normalized to ``"1.0"``.
+    Canonical ``SCHEMA_VERSION`` for outputs/current interfaces is ``"1.0"``.
+    Legacy migration input ``"1"`` is accepted and normalized internally to
+    ``"1.0"``.
     """
     if schema_version == CANONICAL_SCHEMA_VERSION:
         return CANONICAL_SCHEMA_VERSION
@@ -59,7 +65,12 @@ def validate_packet_schema(
     clock_rate_bounds: Optional[Tuple[float, float]] = None,
     require_provenance_hash: bool = False,
 ) -> None:
-    """Validate canonical telemetry packets with explicit typing (no coercion)."""
+    """Validate canonical telemetry packets with explicit typing (no coercion).
+
+    Canonical format is required for current interfaces. Validation still
+    accepts documented legacy migration inputs (for example,
+    ``SCHEMA_VERSION == "1"``) and normalizes them internally.
+    """
     if salience_mode != "canonical":
         return
 
