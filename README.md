@@ -146,6 +146,14 @@ For complete canonical-vs-legacy mode behavior and lifecycle policy, see [`docs/
 See `CHANGELOG.md` for the full release history, including `v0.2.0` canonicalization and policy formalization details.
 
 
+
+## Chronos Demo
+Run:
+- `python scripts/chronos_demo.py`
+
+For fast smoke checks:
+- `python scripts/chronos_demo.py --sleep-seconds 0`
+
 ## Deterministic Embedding Replay Demo
 Run:
 - `python examples/embedding_novelty_replay_demo.py`
