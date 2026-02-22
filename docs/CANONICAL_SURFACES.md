@@ -55,8 +55,7 @@ This document is the source-of-truth mapping for canonical module surfaces, publ
   - `ComputeCooldownPolicy`
   - `allows_compute`
 - **Known compatibility aliases/shims (intentionally supported):**
-  - `temporal_gradient.policies.compute_budget.ComputeBudgetPolicy` (compatibility alias)
-  - `temporal_gradient.policies.compute_budget` (compatibility shim module)
+  - None (removed in v0.3; use canonical cooldown policy module path only)
 
 ---
 

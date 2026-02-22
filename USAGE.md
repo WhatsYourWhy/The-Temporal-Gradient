@@ -103,7 +103,7 @@ At the end of the simulation, the decay engine reports which memories stayed abo
 - **PRUNED:** The memory decayed below the threshold and was pruned.
 
 ## 3. Configuration hints
-Adjust these parameters in `simulation_run.py` and the supporting modules to shape the simulation (canonical policy surface: `temporal_gradient.policies.compute_cooldown`; compatibility shim: `temporal_gradient.policies.compute_budget`):
+Adjust these parameters in `simulation_run.py` and the supporting modules to shape the simulation (canonical policy surface: `temporal_gradient.policies.compute_cooldown`):
 - `base_dilation_factor` and `min_clock_rate` in `ClockRateModulator` to control the clock-rate floor and sensitivity to salience load.
 - `half_life` in `DecayEngine` to control decay speed.
 - Reconsolidation cooldowns and diminishing returns in `EntropicMemory.reconsolidate` to avoid runaway reinforcement.

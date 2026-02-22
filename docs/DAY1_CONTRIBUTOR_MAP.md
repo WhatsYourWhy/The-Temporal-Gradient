@@ -10,7 +10,7 @@ This guide is for first-time contributors who want a fast path from “I want to
 | **Clock/timebase dynamics** (`tau`, clock-rate clamps, strict mode) | `temporal_gradient/clock/chronos.py` | `tests/test_clock_contracts.py`, `tests/test_clock_edge_cases.py`, `tests/test_clock_rate_modulator.py`, `tests/test_clock_strict_mode.py` |
 | **Memory decay/store invariants** (`S`, decay floors, store guards) | `temporal_gradient/memory/decay.py`, `temporal_gradient/memory/store.py` | `tests/test_memory_store.py`, `tests/test_memory_store_invariants.py`, `tests/test_entropic_decay.py`, `tests/test_entropic_decay_precision.py` |
 | **Telemetry packet shape/schema** | `temporal_gradient/telemetry/chronometric_vector.py`, `temporal_gradient/telemetry/schema.py` | `tests/test_telemetry_schema.py`, `tests/test_telemetry_schema_strictness.py`, `tests/test_chronometric_vector_schema.py` |
-| **Policies and compute gating** | `temporal_gradient/policies/compute_budget.py`, `temporal_gradient/policies/compute_cooldown.py` | `tests/test_policies_compute_budget.py` |
+| **Policies and compute gating** | `temporal_gradient/policies/compute_cooldown.py` | `tests/test_policies_compute_cooldown.py` |
 
 ## Required test runs by subsystem
 
@@ -29,7 +29,7 @@ When your PR changes one subsystem, run its targeted tests. If your change cross
 - `python -m pytest -q tests/test_telemetry_schema.py tests/test_telemetry_schema_strictness.py tests/test_chronometric_vector_schema.py`
 
 ### Policies
-- `python -m pytest -q tests/test_policies_compute_budget.py`
+- `python -m pytest -q tests/test_policies_compute_cooldown.py`
 
 ### Cross-cutting/API/docs safety net
 - `python -m pytest -q tests/test_package_api.py tests/test_api_canonical_paths.py tests/test_docs_canonical_imports.py tests/test_root_shims.py`

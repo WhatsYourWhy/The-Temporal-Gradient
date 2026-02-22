@@ -24,6 +24,6 @@ def test_contracts_all_contains_protocols():
     assert required.issubset(set(c.__all__))
 
 
-def test_policies_exports_include_cooldown_and_budget_compat():
+def test_policies_exports_include_canonical_cooldown_policy():
     assert hasattr(tg.policies, "ComputeCooldownPolicy")
-    assert hasattr(tg.policies, "ComputeBudgetPolicy")
+    assert not hasattr(tg.policies, "ComputeBudgetPolicy")
