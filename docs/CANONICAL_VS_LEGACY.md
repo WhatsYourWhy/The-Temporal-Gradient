@@ -4,6 +4,8 @@ This document is the single lifecycle authority for canonical vs legacy runtime 
 
 ## Mode Definitions
 
+Policy baseline: canonical format is required for all outputs and current interfaces. During migration, specific legacy input forms may still be accepted at ingress and are normalized internally to canonical values.
+
 ### `canonical`
 
 Use `canonical` mode for all new code and integrations.
@@ -11,6 +13,7 @@ Use `canonical` mode for all new code and integrations.
 - Enforces canonical telemetry schema validation with required canonical packet keys.
 - Treats normalized salience values as authoritative (`psi` from canonical salience pipeline outputs).
 - Rejects packet payloads that do not conform to canonical schema expectations.
+- Requires canonical output serialization for current interfaces (for example, `SCHEMA_VERSION: "1.0"`).
 
 ### `legacy_density`
 
@@ -19,6 +22,14 @@ Use `canonical` mode for all new code and integrations.
 - Preserves support for legacy packet shapes during migration windows.
 - Derives and clamps salience from entropy density when canonical salience inputs are absent.
 - Applies compatibility-oriented validation behavior rather than strict canonical enforcement.
+- Accepts only documented legacy input forms at boundaries and normalizes them to canonical internal values.
+
+### Accepted legacy inputs
+
+The following legacy forms are accepted for migration input only; runtime state and outputs remain canonical.
+
+- `SCHEMA_VERSION: "1"` → normalized to `SCHEMA_VERSION: "1.0"`.
+- Mixed key packets that include canonical required keys plus legacy-compatible shape in `legacy_density` mode → normalized and processed against canonical internal fields before downstream use.
 
 ## Behavior Deltas (`canonical` vs `legacy_density`)
 
