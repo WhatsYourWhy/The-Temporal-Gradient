@@ -60,6 +60,54 @@ The architecture uses canonical package layers for clock, salience, memory, poli
 
 For canonical-vs-legacy behavior, compatibility scope, and removal timeline, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
 
+### Data-Flow Diagram — Single Evaluation Cycle
+
+```
+                         text input
+                              │
+           ┌──────────────────▼──────────────────┐
+           │           SaliencePipeline            │
+           │                                       │
+           │  ┌────────────────┐  ┌─────────────┐ │
+           │  │  NoveltyScorer │  │ ValueScorer │ │
+           │  │   H ∈ [0, 1]  │  │  V ∈ [0, 1] │ │
+           │  └───────┬────────┘  └──────┬──────┘ │
+           │          └─────────┬─────────┘        │
+           │               Ψ = H × V               │
+           └──────────────────┬──────────────────-─┘
+                              │  Ψ (psi) ∈ [0, 1]
+           ┌──────────────────▼───────────────────┐
+           │          ClockRateModulator            │
+           │                                       │
+           │  rate = clamp(1 / (1 + α·Ψ),         │
+           │               min_rate, max_rate)      │
+           │  τ  += wall_delta × rate              │
+           └──────────────────┬───────────────────┘
+                              │  τ (internal time)
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                      ▼
+┌───────────────┐   ┌──────────────────┐   ┌────────────────────┐
+│ DecayEngine   │   │ComputeCooldown   │   │ChronometricVector  │
+│               │   │Policy            │   │(Telemetry)         │
+│ S(τ) decay:   │   │                  │   │                    │
+│  S·e^(−λΔτ)  │   │ allow if τ ≥ T_cd│   │ to_packet() → dict │
+│               │   │                  │   │ validate_packet_   │
+│ reconsolidate │   │                  │   │   schema(packet)   │
+│  S = min(S_max│   │                  │   │                    │
+│    , S + ΔS)  │   │                  │   │                    │
+└───────────────┘   └──────────────────┘   └────────────────────┘
+       │                    │                        │
+       └────────────────────┴────────────────────────┘
+                   structured telemetry / policy gate
+```
+
+**Layer responsibilities:**
+- `tg.salience` — scores novelty (H) and value (V) from text; computes Ψ = H × V
+- `tg.clock` — maps Ψ to a clock rate via the dilation equation; accumulates internal time τ
+- `tg.memory` — governs memory encoding, exponential decay, and reconsolidation over τ
+- `tg.policies` — gates compute eligibility based on elapsed τ
+- `tg.telemetry` — packages all state into a validated canonical packet
+
 ## Minimal Canonical Usage (v0.2.x)
 ```python
 import temporal_gradient as tg

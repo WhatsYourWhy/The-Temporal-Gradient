@@ -56,6 +56,8 @@ class ChronometricVector:
             packet["H"] = round(float(self.H), 4)
         if self.V is not None:
             packet["V"] = round(float(self.V), 4)
+        if self.entropy_cost != 0.0:
+            packet["entropy_cost"] = round(float(self.entropy_cost), 4)
         if self.provenance_hash is not None:
             packet["PROVENANCE_HASH"] = self.provenance_hash
 
