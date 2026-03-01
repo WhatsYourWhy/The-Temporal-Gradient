@@ -141,7 +141,7 @@ This instantiates and immediately discards a frozen dataclass on every call. For
 ## 3. Deprecation Status
 
 ### DEP-01 — Root-level shim files: no hard removal date bound
-**Files:** `chronos_engine.py`, `salience_pipeline.py`, `entropic_decay.py`, `chronometric_vector.py`
+**Files:** `chronos_engine.py` (compatibility-only shim), `salience_pipeline.py`, `entropic_decay.py`, `chronometric_vector.py`
 
 CHANGELOG states shims are "retained for one release window" since v0.2.0. `CANONICAL_VS_LEGACY.md` targets v0.4.0+ for removal, with v0.3.x as "staged removal by subsystem." However, no specific shim is targeted for removal in the `V0.3.0_PR_CHECKLIST.md`. The timeline is described but not enforced.
 
