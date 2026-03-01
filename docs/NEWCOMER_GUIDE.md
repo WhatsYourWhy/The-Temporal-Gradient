@@ -24,14 +24,14 @@ It is explicitly framed as an engineering dynamics framework (not a cognitive or
 
 ## First files to read
 1. `README.md` for canonical usage flow and guardrails.
-2. `docs/DAY1_CONTRIBUTOR_MAP.md` for "change X -> edit Y -> run Z tests" mapping.
+2. `docs/archive/DAY1_CONTRIBUTOR_MAP.md` for the historical "change X -> edit Y -> run Z tests" mapping (deprecated roadmap).
 3. `docs/CANONICAL_SURFACES.md` for canonical imports and shim boundaries.
 4. `temporal_gradient/__init__.py` for stable public package surface.
 
 ## Practical newcomer workflow
 - Prefer canonical imports via `import temporal_gradient as tg`.
 - Avoid adding new root-level shims; change canonical package modules first.
-- When changing a subsystem, run the targeted tests in `docs/DAY1_CONTRIBUTOR_MAP.md`.
+- When changing a subsystem, use the targeted test command groups documented in `docs/archive/DAY1_CONTRIBUTOR_MAP.md` (historical reference) and current test workflow in `README.md`.
 - Before opening PRs, run packet-contract check, full test suite, then docs consistency check.
 
 ## Good next learning targets
