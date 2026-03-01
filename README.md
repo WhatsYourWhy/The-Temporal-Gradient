@@ -5,7 +5,7 @@
 - License: Proprietary source-available (review only; execution requires permission — see LICENSE)
 
 ## Contributor Onboarding
-- New contributors: start with `docs/DAY1_CONTRIBUTOR_MAP.md` for subsystem ownership, required test commands, first-PR templates, and canonical-vs-legacy gotchas.
+- New contributors: start with `docs/NEWCOMER_GUIDE.md` for onboarding, repository flow, and where to learn next. The previous Day 1 roadmap is archived at `docs/archive/DAY1_CONTRIBUTOR_MAP.md`.
 
 ## Canonical Summary
 Temporal Gradient is a simulation framework modeling:
