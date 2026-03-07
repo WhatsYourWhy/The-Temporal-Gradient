@@ -8,6 +8,7 @@ internally to canonical values.
 import math
 from numbers import Real
 from typing import Any, Mapping, Optional, Tuple
+import warnings
 
 CANONICAL_SCHEMA_VERSION = "1.0"
 LEGACY_SCHEMA_VERSIONS = {"1"}
@@ -128,7 +129,16 @@ def validate_packet(
     clock_rate_bounds: Optional[Tuple[float, float]] = None,
     require_provenance_hash: bool = False,
 ) -> None:
-    """Backward-compatible alias for :func:`validate_packet_schema`."""
+    """Backward-compatible alias for :func:`validate_packet_schema`.
+
+    .. deprecated::
+        Use :func:`validate_packet_schema` instead.
+    """
+    warnings.warn(
+        "validate_packet() is a compatibility alias; use validate_packet_schema() instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     validate_packet_schema(
         packet,
         salience_mode=salience_mode,

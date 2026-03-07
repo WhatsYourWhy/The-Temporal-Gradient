@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Protocol, Tuple, TYPE_CHECKING, runtime_checkable
 import re
@@ -8,7 +9,7 @@ if TYPE_CHECKING:
     from codex_valuation import CodexValuator
 
 
-class NoveltyScorer(Protocol):
+class NoveltyProtocol(Protocol):
     """Interface for novelty scoring components used by :class:`SaliencePipeline`.
 
     Implementations may be stateless or history-aware. If mutable runtime
@@ -71,7 +72,7 @@ class SalienceComponents:
 class RollingJaccardNovelty:
     def __init__(self, window_size: int = 5) -> None:
         self.window_size = window_size
-        self._history: List[set[str]] = []
+        self._history: deque[set[str]] = deque(maxlen=window_size)
         self._token_pattern = re.compile(r"[a-z0-9']+")
 
     def _tokenize(self, text: str) -> set[str]:
@@ -85,8 +86,6 @@ class RollingJaccardNovelty:
         tokens = self._tokenize(text)
         if not tokens:
             self._history.append(tokens)
-            if len(self._history) > self.window_size:
-                self._history = self._history[-self.window_size :]
             return (
                 0.0,
                 {
@@ -113,8 +112,6 @@ class RollingJaccardNovelty:
         novelty = max(0.0, min(1.0, 1.0 - max_similarity))
 
         self._history.append(tokens)
-        if len(self._history) > self.window_size:
-            self._history = self._history[-self.window_size :]
 
         diagnostics = {
             "H_jaccard_max": max_similarity,
@@ -163,13 +160,15 @@ class KeywordImperativeValue:
 
 
 class SaliencePipeline:
-    def __init__(self, novelty_scorer: NoveltyScorer, value_scorer: ValueScorer) -> None:
+    def __init__(self, novelty_scorer: NoveltyProtocol, value_scorer: ValueScorer) -> None:
         self.novelty_scorer = novelty_scorer
         self.value_scorer = value_scorer
 
     def evaluate(self, text: str) -> SalienceComponents:
         novelty, novelty_diag, novelty_provenance = self.novelty_scorer.score(text)
         value, value_diag, value_provenance = self.value_scorer.score(text)
+        # Authoritative [0, 1] clamp — scorers are expected to clamp internally,
+        # but this is the pipeline's guaranteed output contract.
         novelty = max(0.0, min(1.0, novelty))
         value = max(0.0, min(1.0, value))
         psi = max(0.0, min(1.0, novelty * value))
@@ -205,6 +204,10 @@ class SaliencePipeline:
 class CodexNoveltyAdapter:
     def __init__(self, codex: "CodexValuator") -> None:
         self.codex = codex
+
+    def reset(self) -> None:
+        """Delegate reset to the wrapped CodexValuator, clearing its replay history."""
+        self.codex.reset()
 
     def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
         score, diagnostics = self.codex.score_H(text)

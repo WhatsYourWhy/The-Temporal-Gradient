@@ -30,11 +30,11 @@ All claims are limited to defined state variables, dynamics, and testable invari
 
 ### Internal timebase
 \[
-\frac{d\tau}{dt}=\frac{1}{1+\texttt{base\_dilation\_factor}\cdot\Psi(t)}, \quad \Psi(t)=H(x_t)\cdot V(x_t)
+\frac{d\tau}{dt}=\text{clamp}\!\left(\frac{1}{1+\texttt{base\_dilation\_factor}\cdot\Psi(t)},\;\texttt{min\_clock\_rate},\;\texttt{max\_clock\_rate}\right), \quad \Psi(t)=H(x_t)\cdot V(x_t)
 \]
 
 In code, this is implemented by `ClockRateModulator._clock_rate_from_validated_psi(...)` as:
-`clock_rate = 1 / (1 + psi * base_dilation)` with min/max clamping.
+`clock_rate = min(max_clock_rate, max(min_clock_rate, 1 / (1 + psi * base_dilation)))`.
 To map docs to constructor names in `temporal_gradient/clock/chronos.py`:
 - `base_dilation_factor` (constructor arg) is validated and stored as `self.base_dilation`.
 - `psi` is the salience load input used by `clock_rate_from_psi(psi)` and `tick(psi=...)`.
@@ -181,6 +181,12 @@ Canonical telemetry is validated against the required schema keys and should be 
 - `CLOCK_RATE`
 - `MEMORY_S`
 - `DEPTH`
+
+Optional keys (included when non-default):
+- `H` — novelty score from the salience pipeline
+- `V` — value score from the salience pipeline
+- `entropy_cost` — optional per-tick entropy cost (omitted from packet when `0.0`)
+- `PROVENANCE_HASH` — deterministic replay provenance digest
 
 `validate_packet_schema(...)` is the canonical validator; `validate_packet(...)` remains a compatibility alias.
 `ChronometricVector.to_packet()` returns the canonical packet mapping (`dict`) and emits canonical `SCHEMA_VERSION` (`"1.0"`); use `to_packet_json()` only when serialized JSON text is explicitly required.
