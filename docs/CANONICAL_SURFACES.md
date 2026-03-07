@@ -7,7 +7,9 @@
   - `chronos_engine.py` (root compatibility shim; exports `ClockRateModulator`)
 
 ## salience
-- **Canonical module path:** `temporal_gradient.salience.pipeline`
+- **Canonical module paths:**
+  - `temporal_gradient.salience.pipeline` (pipeline, interfaces, and adapters)
+  - `temporal_gradient.salience.embedding_novelty` (embedding-based novelty scorer)
 - **Canonical public symbols:**
   - `SaliencePipeline`
   - `SalienceComponents`
@@ -15,7 +17,8 @@
   - `KeywordImperativeValue`
   - `CodexNoveltyAdapter`
   - `CodexValueAdapter`
-  - `NoveltyScorer`
+  - `NoveltyProtocol` (Protocol/interface for novelty scorers; from `temporal_gradient.salience.pipeline`)
+  - `NoveltyScorer` (concrete embedding-based scorer; from `temporal_gradient.salience.embedding_novelty`)
   - `ValueScorer`
   - `ResettableScorer`
 - **Known compatibility aliases/shims (intentionally supported):**

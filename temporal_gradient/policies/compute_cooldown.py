@@ -15,5 +15,5 @@ class ComputeCooldownPolicy:
 
 
 def allows_compute(*, elapsed_tau: float, cooldown_tau: float = 0.0) -> bool:
-    """Compatibility helper for cooldown gating based on elapsed internal time τ."""
-    return ComputeCooldownPolicy(cooldown_tau=cooldown_tau).allows_compute(elapsed_tau=elapsed_tau)
+    """Return whether compute is allowed for the given elapsed τ and cooldown threshold."""
+    return elapsed_tau >= cooldown_tau

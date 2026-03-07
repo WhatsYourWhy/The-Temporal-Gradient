@@ -1,5 +1,6 @@
 import math
 import time
+from collections import Counter
 
 from temporal_gradient.compat.legacy import (
     CANONICAL_MODE,
@@ -48,6 +49,17 @@ class ClockRateModulator:
 
 
     def _validate_psi(self, psi):
+        """Canonicalize and validate a psi value.
+
+        Canonical mode: psi < 0 is clamped to 0.0; psi > 1.0 is rejected
+        (strict_psi_bounds=True) or clamped to 1.0 (strict_psi_bounds=False).
+
+        Legacy-density mode: psi < 0 is clamped to 0.0, but psi > 1.0 is
+        *not* clamped when the caller supplies psi explicitly (e.g. via
+        ``tick(psi=...)``). The clock-rate formula still produces a bounded
+        result via ``min_clock_rate``, but this method does not enforce the
+        [0, 1] contract for explicit-psi inputs in legacy mode.
+        """
         if psi is None:
             raise ValueError("psi is required in canonical mode.")
         if not isinstance(psi, (int, float)) or isinstance(psi, bool):
@@ -81,7 +93,8 @@ class ClockRateModulator:
         if not input_data:
             return 0.0
         mass = len(input_data)
-        prob = [float(input_data.count(c)) / len(input_data) for c in dict.fromkeys(list(input_data))]
+        counts = Counter(input_data)
+        prob = [c / mass for c in counts.values()]
         entropy = -sum([p * math.log(p) / math.log(2.0) for p in prob])
         return mass * entropy
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 from hashlib import sha256
 import json
@@ -122,7 +123,7 @@ class NoveltyScorer:
         else:
             self.cache_backend = DictEmbeddingCache()
 
-        self._history: List[Tuple[float, ...]] = []
+        self._history: deque[Tuple[float, ...]] = deque(maxlen=window_size)
 
     def _enforce_deterministic_invariants(self) -> None:
         if not self.deterministic_mode:
@@ -272,8 +273,6 @@ class NoveltyScorer:
 
         novelty = max(0.0, min(1.0, 1.0 - max_similarity))
         self._history.append(embedding)
-        if len(self._history) > self.window_size:
-            self._history = self._history[-self.window_size :]
 
         diagnostics = {
             "H_max_cosine_similarity": max_similarity,

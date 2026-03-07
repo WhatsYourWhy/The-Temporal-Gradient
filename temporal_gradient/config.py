@@ -63,6 +63,9 @@ class ClockConfig:
     min_clock_rate: float
     salience_mode: str
     legacy_density_scale: float
+    # Note: max_clock_rate is not a configurable field. load_config() hardcodes
+    # max_clock_rate=1.0 when calling validate_clock_settings(). It is not
+    # exposed via tg.yaml or DEFAULTS in v0.2.x.
 
 
 @dataclass(frozen=True)

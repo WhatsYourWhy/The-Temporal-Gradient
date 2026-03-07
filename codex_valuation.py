@@ -3,14 +3,20 @@ from typing import Dict, Tuple
 
 class CodexValuator:
     """
-    The Judge. 
+    The Judge.
     Determines the 'Tension Weight' of a new memory before it enters the substrate.
-    
+
     Scale:
     0.0 - 0.3 : Noise / Chit-Chat (Fast Decay)
     0.4 - 0.7 : Informational (Standard Decay)
     0.8 - 1.2 : Imperative / Structural (Slow Decay)
     1.3 +     : Core Axiom (Near-Permanent)
+
+    Deprecated: This root-level module predates the canonical subsystem structure and
+    is not re-exported by any canonical package module. Prefer the scorers in
+    `temporal_gradient.salience` (`RollingJaccardNovelty`, `KeywordImperativeValue`)
+    as the primary path, with `CodexNoveltyAdapter` / `CodexValueAdapter` as bridges
+    when a `CodexValuator` instance must be integrated with `SaliencePipeline`.
     """
     
     def __init__(self):
@@ -20,6 +26,10 @@ class CodexValuator:
         
         # A buffer of recent inputs to check for redundancy
         self.recent_history = []
+
+    def reset(self) -> None:
+        """Clear mutable replay history, preserving scorer configuration."""
+        self.recent_history.clear()
 
     def calculate_novelty(self, text: str) -> Tuple[float, float]:
         """
@@ -119,10 +129,10 @@ if __name__ == "__main__":
         components = pipeline.evaluate(i)
         weight = components.psi
         
-        # Classify for readability
-        if weight < 0.4: cls = "NOISE"
-        elif weight < 0.8: cls = "INFO"
-        elif weight < 1.3: cls = "IMPORTANT"
+        # Classify for readability — thresholds match psi ∈ [0, 1] output range
+        if weight < 0.3: cls = "NOISE"
+        elif weight < 0.6: cls = "INFO"
+        elif weight < 0.9: cls = "IMPORTANT"
         else: cls = "AXIOM"
         
         print(f"{i:<40} | {weight:.2f}       | {cls}")

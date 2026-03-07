@@ -8,7 +8,7 @@ from temporal_gradient.salience.pipeline import (
     CodexNoveltyAdapter,
     CodexValueAdapter,
     KeywordImperativeValue,
-    NoveltyScorer,
+    NoveltyProtocol as NoveltyScorer,
     ResettableScorer,
     RollingJaccardNovelty,
     SalienceComponents,
