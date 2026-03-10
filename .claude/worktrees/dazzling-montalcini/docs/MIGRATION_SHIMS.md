@@ -1,0 +1,101 @@
+# Migration Guide: Compatibility Shims → Canonical Imports
+
+This guide maps legacy/compatibility shim imports to their canonical v0.2.x equivalents and provides copy/paste migration snippets.
+
+## Shim Mapping
+
+Use canonical imports for all new code. Compatibility shims are migration-only and scheduled for removal.
+
+| Legacy shim / naming | Canonical equivalent | Notes |
+| --- | --- | --- |
+| `chronos_engine` | `temporal_gradient.clock.chronos` | Root-level shim module retained for migration only. |
+| `compute_budget` naming (`ComputeBudgetPolicy`, `temporal_gradient.policies.compute_budget`) | `temporal_gradient.policies.compute_cooldown` (`ComputeCooldownPolicy`) | Removed in v0.3; canonical cooldown naming is required. |
+| `ClockRateModulator.chronolog` | `ClockRateModulator.chronology` | Typo alias removed; update all reads/writes to `chronology`. |
+| `chronometric_vector` | `temporal_gradient.telemetry.chronometric_vector` | Root-level shim module retained for migration only. |
+| `salience_pipeline` | `temporal_gradient.salience.pipeline` | Root-level shim module retained for migration only. |
+| `entropic_decay` | `temporal_gradient.memory.decay` | Root-level shim module retained for migration only. |
+
+Root-level shim set above is sourced from `CHANGELOG.md` (`v0.2.0` compatibility section).
+
+
+## Supported Shim Symbols (v0.2.x compatibility window)
+
+The following shim modules intentionally expose only these names:
+
+- `chronos_engine`: `ClockRateModulator`
+- `chronometric_vector`: `ChronometricVector`
+- `salience_pipeline`: `SaliencePipeline`, `SalienceComponents`, `RollingJaccardNovelty`, `KeywordImperativeValue`, `CodexNoveltyAdapter`, `CodexValueAdapter`, `NoveltyScorer`, `ValueScorer`, `ResettableScorer`
+- `entropic_decay`: `DecayEngine`, `EntropicMemory`, `initial_strength_from_psi`, `should_encode`, `S_MAX`, `DecayMemoryStore`
+- `temporal_gradient.policies.compute_budget`: removed in v0.3; migrate to `temporal_gradient.policies.compute_cooldown`
+
+Any additional symbols previously reachable via wildcard shim imports are not part of the supported compatibility contract.
+
+## Copy/Paste Migration Snippets
+
+### 1) Clock modulator import
+
+**Before (shim):**
+```python
+from chronos_engine import ClockRateModulator
+```
+
+**After (canonical):**
+```python
+from temporal_gradient.clock.chronos import ClockRateModulator
+```
+
+### 2) Policy import + naming
+
+**Canonical naming (required in v0.3+):**
+```python
+from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
+
+policy = ComputeCooldownPolicy(cooldown_tau=0.5)
+```
+
+### 3) Telemetry vector import
+
+**Before (shim):**
+```python
+from chronometric_vector import ChronometricVector
+```
+
+**After (canonical):**
+```python
+from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
+```
+
+### 4) Salience pipeline import
+
+**Before (shim):**
+```python
+from salience_pipeline import SaliencePipeline, RollingJaccardNovelty, KeywordImperativeValue
+```
+
+**After (canonical):**
+```python
+from temporal_gradient.salience.pipeline import SaliencePipeline, RollingJaccardNovelty, KeywordImperativeValue
+```
+
+### 5) Memory decay engine import
+
+**Before (shim):**
+```python
+from entropic_decay import DecayEngine
+```
+
+**After (canonical):**
+```python
+from temporal_gradient.memory.decay import DecayEngine
+```
+
+## Deprecation Timeline
+
+The following timeline defines the explicit version windows for compatibility shims:
+
+- **v0.2.x**: Shims are available for migration and should be treated as compatibility-only.
+- **v0.3.x**: Policy shim `temporal_gradient.policies.compute_budget` removed; remaining root-level shims stay in active deprecation.
+- **v0.3.x (current)**: `ClockRateModulator.chronolog` alias removed; use `ClockRateModulator.chronology`.
+- **v0.4.0+**: Remaining root-level shim removal window (clock/salience/memory/telemetry).
+
+If you maintain downstream integrations, migrate to canonical imports during **v0.2.x–v0.3.x** to avoid breakage.

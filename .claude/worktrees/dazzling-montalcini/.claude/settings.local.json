@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest -q)",
+      "Bash(python scripts/check_docs_consistency.py)",
+      "Bash(git add README.md V0.3.0_PR_CHECKLIST.md codex_valuation.py docs/CANONICAL_SURFACES.md salience_pipeline.py temporal_gradient/clock/chronos.py temporal_gradient/config.py temporal_gradient/policies/compute_cooldown.py temporal_gradient/salience/__init__.py temporal_gradient/salience/embedding_novelty.py temporal_gradient/salience/pipeline.py temporal_gradient/telemetry/schema.py)",
+      "Bash(git commit:*)",
+      "Bash(git push -u origin claude/dazzling-montalcini)",
+      "Bash(gh pr:*)"
+    ]
+  }
+}
