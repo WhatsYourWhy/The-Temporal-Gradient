@@ -201,6 +201,9 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# Claude worktrees (keep local; do not push to GitHub)
+.claude/worktrees/
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
