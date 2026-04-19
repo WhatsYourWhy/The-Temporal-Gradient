@@ -29,8 +29,6 @@ def run_harness(
     clock = ClockRateModulator(
         base_dilation_factor=active_config.clock.base_dilation_factor,
         min_clock_rate=active_config.clock.min_clock_rate,
-        salience_mode=active_config.clock.salience_mode,
-        legacy_density_scale=active_config.clock.legacy_density_scale,
     )
     decay = DecayEngine(
         half_life=active_config.memory.half_life,

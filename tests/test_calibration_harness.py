@@ -18,8 +18,6 @@ def _write_config(tmp_path, filename: str, event_wall_delta: float):
             clock:
               base_dilation_factor: 1.0
               min_clock_rate: 0.05
-              salience_mode: canonical
-              legacy_density_scale: 100.0
             memory:
               half_life: 20.0
               prune_threshold: 0.2

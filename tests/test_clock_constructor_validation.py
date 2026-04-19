@@ -17,7 +17,6 @@ def _write(tmp_path, body: str):
     [
         ({"min_clock_rate": -0.1}, "clock.min_clock_rate must be > 0.0"),
         ({"base_dilation_factor": 0.0}, "clock.base_dilation_factor must be > 0.0"),
-        ({"legacy_density_scale": 0.0}, "clock.legacy_density_scale must be > 0.0"),
         (
             {"min_clock_rate": 0.9, "max_clock_rate": 0.5},
             "clock.min_clock_rate must be <= clock.max_clock_rate",

@@ -45,7 +45,6 @@ salience = tg.salience.SaliencePipeline(
 clock = tg.clock.ClockRateModulator(
     base_dilation_factor=config.clock.base_dilation_factor,
     min_clock_rate=config.clock.min_clock_rate,
-    salience_mode=config.clock.salience_mode,
 )
 cooldown = ComputeCooldownPolicy(cooldown_tau=config.policies.cooldown_tau)
 
@@ -63,7 +62,7 @@ packet = tg.telemetry.ChronometricVector(
     memory_strength=0.0,
 ).to_packet()
 
-validate_packet_schema(packet, salience_mode=config.clock.salience_mode)
+validate_packet_schema(packet)
 
 if cooldown.allows_compute(elapsed_tau=clock.tau):
     ...  # downstream work
