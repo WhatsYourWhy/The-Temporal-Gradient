@@ -2,104 +2,85 @@
 
 ## Unreleased
 
-Keep canonical-vs-legacy release messaging aligned with [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md) when adding entries below.
+### Removed
 
-
-### Compatibility shims and legacy mode updates (template)
-
-> Copy this block into each release section and fill it in to keep migration messaging consistent.
-
-- Canonical status this release: `[default/required/unchanged]`
-- Legacy mode status (`legacy_density`): `[supported/deprecated/removed]`
-- Root-level compatibility shims: `[unchanged/expanded/reduced]`
-- Migration guidance updates: `[link to docs/CANONICAL_VS_LEGACY.md changes]`
-- Planned removal horizon: `v0.3.x staged removal by subsystem (not full shim removal in a single release)`
+- Root-level compatibility shims (`chronos_engine.py`, `chronometric_vector.py`,
+  `entropic_decay.py`, `salience_pipeline.py`).
+- `codex_valuation.py` and its `CodexNoveltyAdapter` / `CodexValueAdapter`
+  bridges in `temporal_gradient.salience.pipeline`.
+- `temporal_gradient/compat/` — legacy schema-version coercion, packet
+  fallback keys, density-to-psi normalization.
+- `legacy_density` salience mode: `ClockRateModulator(salience_mode=...)`,
+  `legacy_density_scale`, `input_context`, and `calculate_information_density()`.
+- `validate_packet_schema(salience_mode=...)` kwarg and the
+  `validate_packet()` compatibility alias — use `validate_packet_schema()`.
+- `ChronometricVector.from_packet(salience_mode=...)` and its legacy
+  branch that read `t_obj` / `r` / `legacy_density` keys.
+- Legacy `"1"` schema-version migration — only `"1.0"` is accepted now.
+- Stale process docs (V0.2.0 / V0.3.0 PR checklists, `TASK_PROPOSALS.md`,
+  `docs_knob_validation_checklist.md`, `docs/CODE_REVIEW_AUDIT.md`,
+  `docs/DOC_CHANGE_CHECKLIST.md`, `docs/DAY1_CONTRIBUTOR_MAP.md`,
+  `docs/MIGRATION_SHIMS.md`, `docs/NEWCOMER_GUIDE.md`,
+  `docs/CANONICAL_VS_LEGACY.md`, `docs/CANONICAL_SURFACES.md`,
+  `docs/archive/`).
 
 ### Changed
 
-- Removed `ClockRateModulator.chronolog` typo alias; use `ClockRateModulator.chronology` for clock telemetry history reads/writes.
+- Runnable entrypoints moved from the repo root into `examples/`:
+  `anomaly_poc.py` → `examples/anomaly_detection.py`,
+  `simulation_run.py` → `examples/simulation.py`,
+  and `twin_paradox.py`, `sanity_harness.py`, `calibration_harness.py`
+  relocated under `examples/`.
+- `GLOSSARY.md`, `SAFETY.md`, `USAGE.md` moved into `docs/` (lowercase).
+- README rewritten: leads with what the framework does, install, and a
+  minimal usage example; architecture / schema details moved to
+  `docs/architecture.md`.
+- `anomaly_detection.py` drops the `memories_alive` / `memories_forgotten`
+  back-compat aliases on its result dict — use `total_swept_survivors` /
+  `total_swept_forgotten`.
 
-### Documentation
+### Added
 
-- Reviewed executable/documentation alignment and re-ran the project validation suite (`pytest -q`), with all tests passing.
-- Clarified and guarded packet contract expectations so canonical packet shape requirements are explicit in release notes and docs.
-- Aligned runtime path messaging with canonical module usage to reduce ambiguity between shim and canonical import flows.
-- Added regression-protection callouts tied to test and docs consistency checks to keep behavior and documentation in lockstep.
-- Archived completed validation documents under `docs/archive/`:
-  - `AUDIT_REPORT.md` → `docs/archive/AUDIT_REPORT.md`
-  - `poc_validation_report.md` → `docs/archive/poc_validation_report.md`
-- Updated `README.md` to document the archive location and latest validation-run status.
+- `pyproject.toml` with Python ≥3.10, optional `PyYAML`, and a `[dev]`
+  extra that installs `pytest`.
+- `docs/architecture.md` — layer map, data-flow diagram, telemetry
+  schema reference.
 
 ## v0.2.0 — Canonicalization & Policy Layer Formalization
 
 **Release focus:**
-Stabilize the public API surface, normalize naming, formalize the policy layer, and enforce telemetry/schema discipline.
+Stabilize the public API surface, normalize naming, formalize the policy
+layer, and enforce telemetry/schema discipline.
 
 ### Added
 
-- Canonical config surface:
-  - `temporal_gradient.config_loader`
-  - `load_config(...)` exposed at package root
-- Telemetry schema validator:
-  - `validate_packet_schema(...)` (canonical)
-  - `validate_packet(...)` retained as compatibility alias
-- Policy layer:
-  - `ComputeCooldownPolicy` (canonical)
-  - `allows_compute(...)` cooldown gate
-- Structured subsystem test files for:
-  - config loader
-  - clock invariants
-  - telemetry schema
-  - policies
-- Compatibility shim modules retained for one release window
+- Canonical config surface: `temporal_gradient.config_loader`,
+  `load_config(...)` exposed at package root.
+- Telemetry schema validator: `validate_packet_schema(...)` (canonical),
+  `validate_packet(...)` retained as compatibility alias.
+- Policy layer: `ComputeCooldownPolicy` and `allows_compute(...)` cooldown
+  gate.
+- Structured subsystem test files for the config loader, clock invariants,
+  telemetry schema, and policies.
+- Compatibility shim modules retained for one release window.
 
 ### Renamed / Normalized
 
-- `ComputeBudgetPolicy` → `ComputeCooldownPolicy`
-  - Clarifies semantics (cooldown gate, not step allocator)
-  - `compute_budget` module retained as compatibility shim
-- Telemetry validator naming standardized:
-  - `validate_packet_schema` is canonical
-  - `validate_packet` calls canonical implementation
-
-### Internal Consistency Improvements
-
-- Enforced canonical import paths under `temporal_gradient.*`
-- Removed duplicate config loader imports
-- Eliminated semantic drift between policy naming and behavior
-- Ensured harnesses validate telemetry packets
-- Standardized error messaging and docstrings across subsystems
+- `ComputeBudgetPolicy` → `ComputeCooldownPolicy` (clarifies semantics —
+  cooldown gate, not step allocator). `compute_budget` module retained
+  as a compatibility shim.
+- Telemetry validator naming standardized: `validate_packet_schema` is
+  canonical; `validate_packet` calls the canonical implementation.
 
 ### Stability & Invariants
 
-- Canonical mode enforces normalized salience bounds
-- Clock rate remains floor-clamped
-- Reconsolidation remains bounded with diminishing returns
-- Cooldown gate prevents rapid repeated compute eligibility
+- Canonical mode enforces normalized salience bounds.
+- Clock rate remains floor-clamped.
+- Reconsolidation remains bounded with diminishing returns.
+- Cooldown gate prevents rapid repeated compute eligibility.
 
-### Compatibility
+### No behavior changes intended
 
-Root-level modules remain as compatibility shims for one release window:
-
-- `chronometric_vector.py`
-- `salience_pipeline.py`
-- `chronos_engine.py`
-- `entropic_decay.py`
-- `compute_budget` (policy alias)
-
-Future releases may remove shims.
-
-### No Behavior Changes Intended
-
-This release does not modify:
-
-- Core clock-rate equation
-- Salience computation logic
-- Entropic decay dynamics
-- Reconsolidation math
-
-All changes are structural, naming, and API-surface normalization.
-
-### Why v0.2.0 Exists
-
-> v0.2.0 formalizes the public API surface and eliminates naming/duplication drift introduced during earlier refactors. The emphasis is canonical imports, schema validation, and policy clarity—not new dynamics.
+v0.2.0 does not modify the core clock-rate equation, salience
+computation, entropic decay dynamics, or reconsolidation math. All
+changes are structural, naming, and API-surface normalization.
