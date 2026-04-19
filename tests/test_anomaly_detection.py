@@ -5,7 +5,7 @@ import tempfile
 from collections.abc import Mapping
 from unittest.mock import patch
 
-from anomaly_poc import run_poc
+from anomaly_detection import run_poc
 from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 
 
@@ -118,8 +118,8 @@ def test_run_poc_replay_strict_mode_uses_provenance_hashes():
 def test_run_poc_to_packet_returns_mapping_contract():
     cfg = _write_cfg(cooldown_tau=0.0, encode_threshold=0.0, s_max=1.5, decay_lambda=0.05, sweep_every=5.0)
 
-    with patch("anomaly_poc.ChronometricVector.to_packet", autospec=True) as to_packet, patch(
-        "anomaly_poc.ChronometricVector.to_packet_json",
+    with patch("anomaly_detection.ChronometricVector.to_packet", autospec=True) as to_packet, patch(
+        "anomaly_detection.ChronometricVector.to_packet_json",
         autospec=True,
         side_effect=AssertionError("run_poc should consume packet mappings, not JSON text"),
     ):

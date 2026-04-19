@@ -82,8 +82,8 @@ diagram, layer responsibilities, and telemetry schema.
 ## Examples
 
 ```bash
-python anomaly_poc.py                           # deterministic anomaly-stream PoC
-python simulation_run.py                        # end-to-end simulation
+python examples/anomaly_detection.py            # deterministic anomaly-stream PoC
+python examples/simulation.py                   # end-to-end simulation
 python examples/embedding_novelty_replay_demo.py
 python scripts/chronos_demo.py                  # minimal clock demo
 ```

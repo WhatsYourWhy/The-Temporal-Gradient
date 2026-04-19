@@ -10,10 +10,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGET_FILES: tuple[Path, ...] = (
-    ROOT / "anomaly_poc.py",
-    ROOT / "sanity_harness.py",
-    ROOT / "simulation_run.py",
-    ROOT / "twin_paradox.py",
+    ROOT / "examples" / "anomaly_detection.py",
+    ROOT / "examples" / "sanity_harness.py",
+    ROOT / "examples" / "simulation.py",
+    ROOT / "examples" / "twin_paradox.py",
 )
 
 CONTRACT_MESSAGE = (
