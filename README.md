@@ -1,254 +1,109 @@
-# Temporal Gradient: Internal Timebase + Entropic Memory
+# Temporal Gradient
 
-## Status
-- Version: 0.2.0
-- License: Proprietary source-available (review only; execution requires permission — see LICENSE)
+A simulation framework for **salience-modulated internal time** and
+**entropic memory decay**.
 
-## Contributor Onboarding
-- New contributors: start with `docs/NEWCOMER_GUIDE.md` for onboarding, repository flow, and where to learn next. The previous Day 1 roadmap is archived at `docs/archive/DAY1_CONTRIBUTOR_MAP.md`.
+Given a stream of text events, Temporal Gradient computes:
 
-## Canonical Summary
-Temporal Gradient is a simulation framework modeling:
-1. an internal time accumulator \(\tau\) whose rate is modulated by salience load \(\Psi\), and
-2. a memory strength variable \(S\) that decays over internal time and may reconsolidate on access.
+- **Ψ (salience)** — novelty × value, scored per event.
+- **τ (internal time)** — wall time reparameterized by Ψ. High-salience
+  events slow the internal clock; low-salience events speed it up.
+- **S (memory strength)** — per-item exponential decay over τ, with
+  bounded reconsolidation on access.
 
-The system exposes engineered control signals and structured telemetry for simulation inspection.
+Each event produces a validated telemetry packet suitable for offline
+analysis, replay, or downstream policy gating.
 
-This is a dynamics framework, not a cognitive model.
+> This is a dynamics framework. It does not model cognition,
+> consciousness, or subjective experience. All claims are limited to
+> the state variables, dynamics, and invariants defined in code.
 
-## Guardrails
-This project does not model:
-- consciousness
-- subjective experience
-- suffering
-- moral status
-- life
+## Install
 
-All claims are limited to defined state variables, dynamics, and testable invariants.
-
-## Core Equations
-
-### Internal timebase
-\[
-\frac{d\tau}{dt}=\text{clamp}\!\left(\frac{1}{1+\texttt{base\_dilation\_factor}\cdot\Psi(t)},\;\texttt{min\_clock\_rate},\;\texttt{max\_clock\_rate}\right), \quad \Psi(t)=H(x_t)\cdot V(x_t)
-\]
-
-In code, this is implemented by `ClockRateModulator._clock_rate_from_validated_psi(...)` as:
-`clock_rate = min(max_clock_rate, max(min_clock_rate, 1 / (1 + psi * base_dilation)))`.
-To map docs to constructor names in `temporal_gradient/clock/chronos.py`:
-- `base_dilation_factor` (constructor arg) is validated and stored as `self.base_dilation`.
-- `psi` is the salience load input used by `clock_rate_from_psi(psi)` and `tick(psi=...)`.
-- `min_clock_rate` and `max_clock_rate` bound the final clock rate.
-
-Default factor assumption: `base_dilation_factor=1.0`.
-
-### Entropic memory decay
-\[
-\frac{dS}{d\tau}=-\lambda S
-\]
-
-### Reconsolidation on access
-\[
-S(\tau_k^+)=\min(S_{\max}, S(\tau_k^-)+\Delta_k)
-\]
-
-## Architecture (v0.2.x)
-
-Canonical module map: see [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md).
-
-The architecture uses canonical package layers for clock, salience, memory, policies, and telemetry.
-
-For canonical-vs-legacy behavior, compatibility scope, and removal timeline, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
-
-### Data-Flow Diagram — Single Evaluation Cycle
-
-```
-                         text input
-                              │
-           ┌──────────────────▼──────────────────┐
-           │           SaliencePipeline            │
-           │                                       │
-           │  ┌────────────────┐  ┌─────────────┐ │
-           │  │  NoveltyScorer │  │ ValueScorer │ │
-           │  │   H ∈ [0, 1]  │  │  V ∈ [0, 1] │ │
-           │  └───────┬────────┘  └──────┬──────┘ │
-           │          └─────────┬─────────┘        │
-           │               Ψ = H × V               │
-           └──────────────────┬──────────────────-─┘
-                              │  Ψ (psi) ∈ [0, 1]
-           ┌──────────────────▼───────────────────┐
-           │          ClockRateModulator            │
-           │                                       │
-           │  rate = clamp(1 / (1 + α·Ψ),         │
-           │               min_rate, max_rate)      │
-           │  τ  += wall_delta × rate              │
-           └──────────────────┬───────────────────┘
-                              │  τ (internal time)
-        ┌─────────────────────┼─────────────────────┐
-        ▼                     ▼                      ▼
-┌───────────────┐   ┌──────────────────┐   ┌────────────────────┐
-│ DecayEngine   │   │ComputeCooldown   │   │ChronometricVector  │
-│               │   │Policy            │   │(Telemetry)         │
-│ S(τ) decay:   │   │                  │   │                    │
-│  S·e^(−λΔτ)  │   │ allow if τ ≥ T_cd│   │ to_packet() → dict │
-│               │   │                  │   │ validate_packet_   │
-│ reconsolidate │   │                  │   │   schema(packet)   │
-│  S = min(S_max│   │                  │   │                    │
-│    , S + ΔS)  │   │                  │   │                    │
-└───────────────┘   └──────────────────┘   └────────────────────┘
-       │                    │                        │
-       └────────────────────┴────────────────────────┘
-                   structured telemetry / policy gate
+```bash
+git clone https://github.com/WhatsYourWhy/The-Temporal-Gradient
+cd The-Temporal-Gradient
+pip install -e ".[dev]"
 ```
 
-**Layer responsibilities:**
-- `tg.salience` — scores novelty (H) and value (V) from text; computes Ψ = H × V
-- `tg.clock` — maps Ψ to a clock rate via the dilation equation; accumulates internal time τ
-- `tg.memory` — governs memory encoding, exponential decay, and reconsolidation over τ
-- `tg.policies` — gates compute eligibility based on elapsed τ
-- `tg.telemetry` — packages all state into a validated canonical packet
+Python 3.10+ is required. `PyYAML` is optional — a minimal fallback
+parser is used when it's absent.
 
-## Minimal Canonical Usage (v0.2.x)
+## Quickstart
+
 ```python
 import temporal_gradient as tg
-from temporal_gradient.telemetry.schema import validate_packet_schema
 from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
+from temporal_gradient.telemetry.schema import validate_packet_schema
 
 config = tg.load_config("tg.yaml")
 
+salience = tg.salience.SaliencePipeline(
+    tg.salience.RollingJaccardNovelty(window_size=config.salience.window_size),
+    tg.salience.KeywordImperativeValue(keywords=config.salience.keywords),
+)
 clock = tg.clock.ClockRateModulator(
     base_dilation_factor=config.clock.base_dilation_factor,
     min_clock_rate=config.clock.min_clock_rate,
     salience_mode=config.clock.salience_mode,
 )
-
-salience = tg.salience.SaliencePipeline(
-    tg.salience.RollingJaccardNovelty(),
-    tg.salience.KeywordImperativeValue(),
-)
-
 cooldown = ComputeCooldownPolicy(cooldown_tau=config.policies.cooldown_tau)
 
-text = "CRITICAL: SECURITY BREACH DETECTED."
-sal = salience.evaluate(text)
-clock.tick(psi=sal.psi, wall_delta=config.policies.event_wall_delta)
+s = salience.evaluate("CRITICAL: security breach detected.")
+clock.tick(psi=s.psi, wall_delta=config.policies.event_wall_delta)
 
 packet = tg.telemetry.ChronometricVector(
     wall_clock_time=config.policies.event_wall_delta,
     tau=clock.tau,
-    psi=sal.psi,
+    psi=s.psi,
     recursion_depth=0,
-    clock_rate=clock.clock_rate_from_psi(sal.psi),
-    H=sal.novelty,
-    V=sal.value,
+    clock_rate=clock.clock_rate_from_psi(s.psi),
+    H=s.novelty,
+    V=s.value,
     memory_strength=0.0,
-).to_packet()  # canonical: returns a dict packet mapping
+).to_packet()
 
 validate_packet_schema(packet, salience_mode=config.clock.salience_mode)
 
 if cooldown.allows_compute(elapsed_tau=clock.tau):
-    print("Compute permitted.")
+    ...  # downstream work
 ```
 
-## Stable Import Surface (v0.2.x)
-Canonical imports:
-- `import temporal_gradient as tg`
-- `tg.load_config(...)`
-- `tg.clock`
-- `tg.salience`
-- `tg.memory`
-- `tg.telemetry`
+## Core equations
 
-Policy:
-- `from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy`
+```
+dτ/dt = clamp( 1 / (1 + α·Ψ),  min_rate,  max_rate )
+dS/dτ = −λ·S
+S(τ⁺) = min(S_max, S(τ⁻) + Δ)      # reconsolidation on access
+```
 
-See [`docs/CANONICAL_SURFACES.md`](docs/CANONICAL_SURFACES.md) for the canonical vs compatibility map.
-For shim-by-shim replacements and copy/paste migration examples, see [`docs/MIGRATION_SHIMS.md`](docs/MIGRATION_SHIMS.md).
-For lifecycle policy and release-labeled deprecation timing, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
+See [`docs/architecture.md`](docs/architecture.md) for the data-flow
+diagram, layer responsibilities, and telemetry schema.
 
-## Telemetry Schema (canonical keys)
-Canonical telemetry is validated against the required schema keys and should be the default for all new integrations.
+## Examples
 
-### Packet API contract
-- `to_packet()` => returns a Python `dict` mapping for schema validation and in-memory processing.
-- `to_packet_json()` => returns a JSON `str` for transport, storage, or logging contexts.
-- Do not call `json.loads(to_packet())`; `to_packet()` is already the structured mapping.
+```bash
+python anomaly_poc.py                           # deterministic anomaly-stream PoC
+python simulation_run.py                        # end-to-end simulation
+python examples/embedding_novelty_replay_demo.py
+python scripts/chronos_demo.py                  # minimal clock demo
+```
 
-- `SCHEMA_VERSION`
-- `WALL_T`
-- `TAU`
-- `SALIENCE`
-- `CLOCK_RATE`
-- `MEMORY_S`
-- `DEPTH`
+## Tests
 
-Optional keys (included when non-default):
-- `H` — novelty score from the salience pipeline
-- `V` — value score from the salience pipeline
-- `entropy_cost` — optional per-tick entropy cost (omitted from packet when `0.0`)
-- `PROVENANCE_HASH` — deterministic replay provenance digest
+```bash
+pytest
+```
 
-`validate_packet_schema(...)` is the canonical validator; `validate_packet(...)` remains a compatibility alias.
-`ChronometricVector.to_packet()` returns the canonical packet mapping (`dict`) and emits canonical `SCHEMA_VERSION` (`"1.0"`); use `to_packet_json()` only when serialized JSON text is explicitly required.
+## Docs
 
-For complete canonical-vs-legacy mode behavior and lifecycle policy, see [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
+- [`docs/architecture.md`](docs/architecture.md) — layers, data flow, packet schema
+- [`docs/usage.md`](docs/usage.md) — extended usage and tuning
+- [`docs/glossary.md`](docs/glossary.md) — terminology
+- [`docs/safety.md`](docs/safety.md) — scope and safety constraints
+- [`CHANGELOG.md`](CHANGELOG.md) — release history
 
-## Stability Constraints
-- Clock rate has an explicit minimum floor.
-- Reconsolidation boost is bounded and diminishes.
-- Cooldown window prevents rapid repeated reinforcement.
-- Canonical-vs-legacy enforcement details live in [`docs/CANONICAL_VS_LEGACY.md`](docs/CANONICAL_VS_LEGACY.md).
+## License
 
-
-## Documentation Lifecycle
-- Active planning and implementation docs remain at the repository root for visibility.
-- Completed validation reports are archived under `docs/archive/`:
-  - `docs/archive/AUDIT_REPORT.md`
-  - `docs/archive/poc_validation_report.md`
-
-## Changelog
-See `CHANGELOG.md` for the full release history, including `v0.2.0` canonicalization and policy formalization details.
-
-
-
-## Chronos Demo
-Run:
-- `python scripts/chronos_demo.py`
-
-For fast smoke checks:
-- `python scripts/chronos_demo.py --sleep-seconds 0`
-
-## Deterministic Embedding Replay Demo
-Run:
-- `python examples/embedding_novelty_replay_demo.py`
-
-Expected behavior:
-- The script uses a fixed event list and deterministic fake embeddings cached in local JSON files under `examples/.cache/` (no model downloads).
-- It runs the salience pipeline in deterministic mode, emits packet summaries including `PROVENANCE_HASH`, resets the pipeline, and reruns with an exact output-equality assertion.
-- It then changes novelty configuration (`window_size`) and reruns; at least one `PROVENANCE_HASH` index must change, demonstrating replay provenance sensitivity to config changes.
-
-## Testing
-Run:
-- `pytest -q`
-- `python scripts/check_docs_consistency.py`
-
-Latest document-review validation run (local):
-- `pytest -q` (run locally to see current pass count)
-
-CI uses the same command.
-
-### Documentation consistency guard
-Run `python scripts/check_docs_consistency.py` before opening a PR to catch drift across `README.md`, `USAGE.md`, and `TASK_PROPOSALS.md` for canonical import guidance and required canonical-reference links.
-
-## License Notice
-This repository is provided for educational and academic review.
-
-Code examples illustrate structure only.
-
-Execution of the code requires explicit written permission per LICENSE.
-
-## Glossary
-Canonical terms and deprecated terms are defined in `GLOSSARY.md`.
-
-## Copyright
-Copyright (c) 2026 Justin Shank.
+Source-available for review — see [LICENSE](LICENSE). Copyright (c)
+2026 Justin Shank.
