@@ -164,9 +164,6 @@ def run_poc(
         "compute_allowed_count": sum(1 for p in packets if p["COMPUTE_ALLOWED"]),
         "total_swept_survivors": total_swept_survivors,
         "total_swept_forgotten": total_swept_forgotten,
-        # Backward-compatible aliases maintained for one release window.
-        "memories_alive": total_swept_survivors,
-        "memories_forgotten": total_swept_forgotten,
         "write_log": write_log,
         "anomaly_packets": [p for p in packets if p["EVENT_KIND"] == "anomaly"][:5],
         "head": packets[:3],

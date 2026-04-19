@@ -1,7 +1,5 @@
 from .embedding_novelty import DictEmbeddingCache, JsonDirectoryEmbeddingCache, NoveltyScorer
 from .pipeline import (
-    CodexNoveltyAdapter,
-    CodexValueAdapter,
     KeywordImperativeValue,
     NoveltyProtocol,
     RollingJaccardNovelty,
@@ -13,8 +11,6 @@ from .pipeline import (
 from .provenance import compute_provenance_hash
 
 __all__ = [
-    "CodexNoveltyAdapter",
-    "CodexValueAdapter",
     "DictEmbeddingCache",
     "JsonDirectoryEmbeddingCache",
     "KeywordImperativeValue",

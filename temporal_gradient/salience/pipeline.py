@@ -2,11 +2,8 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Protocol, Tuple, TYPE_CHECKING, runtime_checkable
+from typing import Dict, Iterable, Protocol, Tuple, runtime_checkable
 import re
-
-if TYPE_CHECKING:
-    from codex_valuation import CodexValuator
 
 
 class NoveltyProtocol(Protocol):
@@ -199,33 +196,3 @@ class SaliencePipeline:
         for scorer in (self.novelty_scorer, self.value_scorer):
             if isinstance(scorer, ResettableScorer):
                 scorer.reset()
-
-
-class CodexNoveltyAdapter:
-    def __init__(self, codex: "CodexValuator") -> None:
-        self.codex = codex
-
-    def reset(self) -> None:
-        """Delegate reset to the wrapped CodexValuator, clearing its replay history."""
-        self.codex.reset()
-
-    def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
-        score, diagnostics = self.codex.score_H(text)
-        return score, diagnostics, {
-            "method": "codex_novelty",
-            "codex_version": str(getattr(self.codex, "version", "unknown")),
-            "adapter_class": self.__class__.__name__,
-        }
-
-
-class CodexValueAdapter:
-    def __init__(self, codex: "CodexValuator") -> None:
-        self.codex = codex
-
-    def score(self, text: str) -> Tuple[float, Dict[str, float], Dict[str, str]]:
-        score, diagnostics = self.codex.score_V(text)
-        return score, diagnostics, {
-            "method": "codex_value",
-            "codex_version": str(getattr(self.codex, "version", "unknown")),
-            "adapter_class": self.__class__.__name__,
-        }

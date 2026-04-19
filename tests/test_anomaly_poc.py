@@ -99,8 +99,6 @@ def test_run_poc_knobs_change_observable_outputs():
     assert len(cooldown["write_log"]) < len(baseline["write_log"])
     assert max(item["strength"] for item in capped["write_log"]) <= 0.05
     assert high["total_swept_forgotten"] >= low["total_swept_forgotten"]
-    assert high["memories_forgotten"] == high["total_swept_forgotten"]
-    assert low["memories_alive"] == low["total_swept_survivors"]
 
 
 def test_run_poc_replay_strict_mode_uses_provenance_hashes():
@@ -194,8 +192,6 @@ def test_run_poc_handles_empty_event_stream():
     assert result["compute_allowed_count"] == 0
     assert result["total_swept_survivors"] == 0
     assert result["total_swept_forgotten"] == 0
-    assert result["memories_alive"] == 0
-    assert result["memories_forgotten"] == 0
     assert result["head"] == []
     assert result["tail"] == []
     assert result["anomaly_packets"] == []
