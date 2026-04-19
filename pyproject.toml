@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "temporal-gradient"
+version = "0.2.0"
+description = "Simulation framework for salience-modulated internal time and entropic memory decay."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Justin Shank" }]
+keywords = ["simulation", "temporal-dynamics", "salience", "memory-decay"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = []
+
+[project.optional-dependencies]
+yaml = ["PyYAML>=6.0"]
+dev = ["pytest>=7.0", "PyYAML>=6.0"]
+
+[project.urls]
+Homepage = "https://github.com/WhatsYourWhy/The-Temporal-Gradient"
+
+[tool.setuptools.packages.find]
+include = ["temporal_gradient*"]
+exclude = ["tests*", "scripts*", "examples*", "docs*"]
