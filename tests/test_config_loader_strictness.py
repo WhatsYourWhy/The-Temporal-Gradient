@@ -85,8 +85,6 @@ def test_load_config_fallback_parser_accepts_scientific_notation(tmp_path, monke
     clock:
       base_dilation_factor: 1e0
       min_clock_rate: 5e-2
-      legacy_density_scale: 1e2
-      salience_mode: canonical
     memory:
       half_life: 2e1
       prune_threshold: 2e-1
@@ -132,8 +130,6 @@ def test_load_config_fallback_parser_accepts_inline_comments(tmp_path, monkeypat
     clock:
       base_dilation_factor: 1.0
       min_clock_rate: 0.05 # lower clamp
-      legacy_density_scale: 100.0
-      salience_mode: canonical
     memory:
       half_life: 20.0
       prune_threshold: 0.2

@@ -35,7 +35,7 @@ def test_tick_rejects_non_finite_psi():
     ],
 )
 def test_tick_and_rate_have_identical_canonical_psi_policy(strict, psi, should_raise):
-    clock = ClockRateModulator(salience_mode="canonical", strict_psi_bounds=strict)
+    clock = ClockRateModulator(strict_psi_bounds=strict)
 
     if should_raise:
         with pytest.raises(ValueError, match=r"within \[0, 1\]"):

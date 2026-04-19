@@ -25,8 +25,6 @@ def test_missing_root_sections_are_defaulted(tmp_path):
         clock:
           base_dilation_factor: 1.0
           min_clock_rate: 0.05
-          salience_mode: canonical
-          legacy_density_scale: 100.0
         memory:
           half_life: 20.0
           prune_threshold: 0.2
@@ -52,8 +50,6 @@ def test_out_of_range_values_fail_fast(tmp_path):
         clock:
           base_dilation_factor: 1.0
           min_clock_rate: 1.5
-          salience_mode: canonical
-          legacy_density_scale: 100.0
         memory:
           half_life: 20.0
           prune_threshold: 0.2
@@ -84,8 +80,6 @@ def test_canonical_clock_constraints_remain_enforced(tmp_path):
         clock:
           base_dilation_factor: 1.0
           min_clock_rate: 0.05
-          salience_mode: canonical
-          legacy_density_scale: 100.0
         memory:
           half_life: 20.0
           prune_threshold: 0.2
@@ -103,10 +97,8 @@ def test_canonical_clock_constraints_remain_enforced(tmp_path):
     clock = ClockRateModulator(
         base_dilation_factor=cfg.clock.base_dilation_factor,
         min_clock_rate=cfg.clock.min_clock_rate,
-        salience_mode=cfg.clock.salience_mode,
-        legacy_density_scale=cfg.clock.legacy_density_scale,
     )
 
-    # Non-strict canonical mode clamps psi>1.0 instead of rejecting.
+    # Non-strict mode clamps psi>1.0 instead of rejecting.
     tau_delta = clock.tick(psi=1.5, wall_delta=1.0)
     assert tau_delta == pytest.approx(clock.clock_rate_from_psi(1.0), rel=0.0, abs=1e-12)

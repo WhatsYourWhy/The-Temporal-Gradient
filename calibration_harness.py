@@ -48,8 +48,6 @@ def run_calibration(config_path: str = "tg.yaml"):
     clock = ClockRateModulator(
         base_dilation_factor=config.clock.base_dilation_factor,
         min_clock_rate=config.clock.min_clock_rate,
-        salience_mode=config.clock.salience_mode,
-        legacy_density_scale=config.clock.legacy_density_scale,
     )
     decay = DecayEngine(
         half_life=config.memory.half_life,

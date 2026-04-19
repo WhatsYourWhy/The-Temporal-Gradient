@@ -41,10 +41,9 @@ def test_validate_packet_rejects_non_string_provenance_hash():
         validate_packet_schema(packet)
 
 
-@pytest.mark.parametrize("version", ["1.0", "1"])
-def test_validate_packet_accepts_canonical_and_legacy_migration_versions(version):
+def test_validate_packet_accepts_canonical_schema_version():
     packet = {
-        "SCHEMA_VERSION": version,
+        "SCHEMA_VERSION": "1.0",
         "WALL_T": 1.0,
         "TAU": 0.1,
         "SALIENCE": 0.2,
@@ -55,8 +54,8 @@ def test_validate_packet_accepts_canonical_and_legacy_migration_versions(version
     validate_packet_schema(packet)
 
 
-@pytest.mark.parametrize("bad_version", ["1.00", "2", "v1", "", " 1.0 "])
-def test_validate_packet_rejects_non_policy_schema_versions(bad_version):
+@pytest.mark.parametrize("bad_version", ["1", "1.00", "2", "v1", "", " 1.0 "])
+def test_validate_packet_rejects_non_canonical_schema_versions(bad_version):
     packet = {
         "SCHEMA_VERSION": bad_version,
         "WALL_T": 1.0,
@@ -66,7 +65,7 @@ def test_validate_packet_rejects_non_policy_schema_versions(bad_version):
         "MEMORY_S": 0.1,
         "DEPTH": 0,
     }
-    with pytest.raises(ValueError, match="SCHEMA_VERSION must be canonical"):
+    with pytest.raises(ValueError, match="SCHEMA_VERSION"):
         validate_packet_schema(packet)
 
 

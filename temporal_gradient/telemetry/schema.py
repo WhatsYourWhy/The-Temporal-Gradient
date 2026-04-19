@@ -1,17 +1,10 @@
-"""Telemetry packet schema validation for canonical v0.2.0 packets.
-
-Policy: canonical format is required for outputs/current interfaces. Specific
-legacy input forms are accepted only for migration at ingress and normalized
-internally to canonical values.
-"""
+"""Telemetry packet schema validation."""
 
 import math
 from numbers import Real
 from typing import Any, Mapping, Optional, Tuple
-import warnings
 
 CANONICAL_SCHEMA_VERSION = "1.0"
-LEGACY_SCHEMA_VERSIONS = {"1"}
 
 REQUIRED_CANONICAL_KEYS = {
     "SCHEMA_VERSION",
@@ -33,48 +26,25 @@ NUMERIC_FIELDS = {
 }
 
 
-def _is_numeric(value: Any) -> bool:
-    return isinstance(value, Real) and not isinstance(value, bool)
-
-
 def _is_finite_numeric(value: Any) -> bool:
-    return _is_numeric(value) and math.isfinite(value)
+    return isinstance(value, Real) and not isinstance(value, bool) and math.isfinite(value)
 
 
 def normalize_schema_version(schema_version: str) -> str:
-    """Normalize schema version values to the canonical version string.
-
-    Canonical ``SCHEMA_VERSION`` for outputs/current interfaces is ``"1.0"``.
-    Legacy migration input ``"1"`` is accepted and normalized internally to
-    ``"1.0"``.
-    """
     if schema_version == CANONICAL_SCHEMA_VERSION:
         return CANONICAL_SCHEMA_VERSION
-    if schema_version in LEGACY_SCHEMA_VERSIONS:
-        return CANONICAL_SCHEMA_VERSION
-
     raise ValueError(
-        "SCHEMA_VERSION must be canonical \"1.0\"; accepted legacy values "
-        f"for migration: {sorted(LEGACY_SCHEMA_VERSIONS)}. Got: {schema_version!r}"
+        f"SCHEMA_VERSION must be {CANONICAL_SCHEMA_VERSION!r}; got {schema_version!r}"
     )
 
 
 def validate_packet_schema(
     packet: Mapping[str, Any],
     *,
-    salience_mode: str = "canonical",
     clock_rate_bounds: Optional[Tuple[float, float]] = None,
     require_provenance_hash: bool = False,
 ) -> None:
-    """Validate canonical telemetry packets with explicit typing (no coercion).
-
-    Canonical format is required for current interfaces. Validation still
-    accepts documented legacy migration inputs (for example,
-    ``SCHEMA_VERSION == "1"``) and normalizes them internally.
-    """
-    if salience_mode != "canonical":
-        return
-
+    """Validate a canonical telemetry packet."""
     keys = set(packet.keys())
     missing = REQUIRED_CANONICAL_KEYS - keys
     if missing:
@@ -86,10 +56,7 @@ def validate_packet_schema(
 
     schema_version = packet["SCHEMA_VERSION"]
     if not isinstance(schema_version, str):
-        raise TypeError(
-            "SCHEMA_VERSION must be a string equal to canonical \"1.0\" "
-            "(legacy \"1\" is accepted for migration input)"
-        )
+        raise TypeError(f"SCHEMA_VERSION must be a string equal to {CANONICAL_SCHEMA_VERSION!r}")
     normalize_schema_version(schema_version)
 
     provenance_hash = packet.get("PROVENANCE_HASH")
@@ -107,7 +74,7 @@ def validate_packet_schema(
 
     salience = packet["SALIENCE"]
     if not 0.0 <= salience <= 1.0:
-        raise ValueError("SALIENCE must be within [0.0, 1.0] in canonical mode")
+        raise ValueError("SALIENCE must be within [0.0, 1.0]")
 
     depth = packet["DEPTH"]
     if not isinstance(depth, int) or isinstance(depth, bool):
@@ -120,28 +87,3 @@ def validate_packet_schema(
         clock_rate = packet["CLOCK_RATE"]
         if clock_rate < lower or clock_rate > upper:
             raise ValueError(f"CLOCK_RATE must be within [{lower}, {upper}]")
-
-
-def validate_packet(
-    packet: Mapping[str, Any],
-    *,
-    salience_mode: str = "canonical",
-    clock_rate_bounds: Optional[Tuple[float, float]] = None,
-    require_provenance_hash: bool = False,
-) -> None:
-    """Backward-compatible alias for :func:`validate_packet_schema`.
-
-    .. deprecated::
-        Use :func:`validate_packet_schema` instead.
-    """
-    warnings.warn(
-        "validate_packet() is a compatibility alias; use validate_packet_schema() instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    validate_packet_schema(
-        packet,
-        salience_mode=salience_mode,
-        clock_rate_bounds=clock_rate_bounds,
-        require_provenance_hash=require_provenance_hash,
-    )

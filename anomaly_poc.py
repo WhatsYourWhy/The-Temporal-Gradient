@@ -74,8 +74,6 @@ def run_poc(
     clock = tg.clock.ClockRateModulator(
         base_dilation_factor=cfg.clock.base_dilation_factor,
         min_clock_rate=cfg.clock.min_clock_rate,
-        salience_mode=cfg.clock.salience_mode,
-        legacy_density_scale=cfg.clock.legacy_density_scale,
     )
 
     decay = DecayEngine(
@@ -125,11 +123,7 @@ def run_poc(
             provenance_hash=compute_provenance_hash(s.provenance) if strict_replay_mode else None,
         ).to_packet()
 
-        validate_packet_schema(
-            packet,
-            salience_mode=cfg.clock.salience_mode,
-            require_provenance_hash=strict_replay_mode,
-        )
+        validate_packet_schema(packet, require_provenance_hash=strict_replay_mode)
         packet["EVENT_KIND"] = event.kind
         packet["ENCODED"] = bool(encoded)
         packet["COMPUTE_ALLOWED"] = bool(compute_allowed)

@@ -4,8 +4,7 @@ from typing import Optional
 
 @dataclass(frozen=True)
 class ClockTickRequest:
-    psi: Optional[float] = None
-    input_context: Optional[str] = None
+    psi: float
     wall_delta: Optional[float] = None
 
 

@@ -1,6 +1,6 @@
 import pytest
 
-from temporal_gradient.telemetry.schema import validate_packet, validate_packet_schema
+from temporal_gradient.telemetry.schema import validate_packet_schema
 
 
 def _canonical_packet():
@@ -26,18 +26,11 @@ def test_validate_packet_schema_accepts_string_provenance_hash():
     validate_packet_schema(packet)
 
 
-def test_validate_packet_schema_accepts_legacy_version_for_migration_input():
+def test_validate_packet_schema_rejects_unknown_fields():
     packet = _canonical_packet()
-    packet["SCHEMA_VERSION"] = "1"
-
-    validate_packet_schema(packet)
-
-
-def test_validate_packet_alias_rejects_unknown_fields():
-    packet = _canonical_packet()
-    packet["legacy_density"] = 3.0
+    packet["unexpected_key"] = 3.0
     with pytest.raises(ValueError, match="Unknown telemetry keys"):
-        validate_packet(packet)
+        validate_packet_schema(packet)
 
 
 def test_validate_packet_schema_requires_provenance_hash_when_requested():

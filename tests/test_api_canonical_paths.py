@@ -1,7 +1,7 @@
 from temporal_gradient.config import load_config as load_config_from_legacy
 from temporal_gradient.config_loader import load_config as load_config_from_canonical
 from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
-from temporal_gradient.telemetry.schema import validate_packet, validate_packet_schema
+from temporal_gradient.telemetry.schema import validate_packet_schema
 
 
 def test_config_loader_canonical_and_legacy_exports_match():
@@ -12,9 +12,7 @@ def test_policy_canonical_export_is_available():
     assert ComputeCooldownPolicy is not None
 
 
-def test_telemetry_validator_canonical_and_compatibility_exports_match():
-    assert validate_packet is not validate_packet_schema
-
+def test_telemetry_validator_accepts_canonical_packet():
     packet = {
         "SCHEMA_VERSION": "1.0",
         "WALL_T": 0.0,
@@ -25,4 +23,3 @@ def test_telemetry_validator_canonical_and_compatibility_exports_match():
         "DEPTH": 0,
     }
     validate_packet_schema(packet)
-    validate_packet(packet)

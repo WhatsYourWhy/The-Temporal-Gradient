@@ -27,8 +27,6 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "clock": {
         "base_dilation_factor": 1.0,
         "min_clock_rate": 0.05,
-        "salience_mode": "canonical",
-        "legacy_density_scale": 100.0,
     },
     "memory": {
         "half_life": 20.0,
@@ -61,11 +59,6 @@ class SalienceConfig:
 class ClockConfig:
     base_dilation_factor: float
     min_clock_rate: float
-    salience_mode: str
-    legacy_density_scale: float
-    # Note: max_clock_rate is not a configurable field. load_config() hardcodes
-    # max_clock_rate=1.0 when calling validate_clock_settings(). It is not
-    # exposed via tg.yaml or DEFAULTS in v0.2.x.
 
 
 @dataclass(frozen=True)
@@ -169,12 +162,10 @@ def load_config(path: str | Path = "tg.yaml") -> TemporalGradientConfig:
         _check_range(val, "salience", key_name, lower=0.0, upper=1.0)
 
     clock_raw = normalized["clock"]
-    base_dilation, min_clock_rate, _max_clock_rate, salience_mode, legacy_density_scale = validate_clock_settings(
+    base_dilation, min_clock_rate, _max_clock_rate = validate_clock_settings(
         base_dilation_factor=clock_raw["base_dilation_factor"],
         min_clock_rate=clock_raw["min_clock_rate"],
         max_clock_rate=1.0,
-        salience_mode=clock_raw["salience_mode"],
-        legacy_density_scale=clock_raw["legacy_density_scale"],
         error_factory=ConfigValidationError,
     )
 
@@ -225,8 +216,6 @@ def load_config(path: str | Path = "tg.yaml") -> TemporalGradientConfig:
         clock=ClockConfig(
             base_dilation_factor=base_dilation,
             min_clock_rate=min_clock_rate,
-            salience_mode=salience_mode,
-            legacy_density_scale=legacy_density_scale,
         ),
         memory=MemoryConfig(
             half_life=half_life,
