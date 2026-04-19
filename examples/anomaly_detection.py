@@ -3,9 +3,12 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import temporal_gradient as tg
 from temporal_gradient.memory.decay import DecayEngine, EntropicMemory

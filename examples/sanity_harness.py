@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import json
+import sys
+from pathlib import Path
 from typing import Dict, List, Tuple
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from temporal_gradient.clock.chronos import ClockRateModulator
 from temporal_gradient.telemetry.chronometric_vector import ChronometricVector

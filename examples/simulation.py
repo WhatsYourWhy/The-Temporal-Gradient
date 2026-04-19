@@ -1,4 +1,9 @@
+import sys
 import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from temporal_gradient.clock.chronos import ClockRateModulator
 from temporal_gradient.telemetry.chronometric_vector import ChronometricVector
 from temporal_gradient.memory.decay import (
