@@ -25,8 +25,8 @@ def test_packet_contract_targets_active_v03_entrypoints() -> None:
     target_names = {path.name for path in packet_check.TARGET_FILES}
 
     assert target_names == {
-        "anomaly_poc.py",
+        "anomaly_detection.py",
         "sanity_harness.py",
-        "simulation_run.py",
+        "simulation.py",
         "twin_paradox.py",
     }

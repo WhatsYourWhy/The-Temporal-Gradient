@@ -47,8 +47,8 @@ policies: {}
 
 
 def test_harnesses_use_only_config_loader_imports():
-    harness_files = ["sanity_harness.py", "calibration_harness.py"]
-    for harness_file in harness_files:
-        source = Path(harness_file).read_text()
+    examples = Path(__file__).resolve().parents[1] / "examples"
+    for harness_file in ("sanity_harness.py", "calibration_harness.py"):
+        source = (examples / harness_file).read_text()
         assert "temporal_gradient.config_loader" in source
         assert not re.search(r"(?:from|import)\s+temporal_gradient\.config\b", source)
