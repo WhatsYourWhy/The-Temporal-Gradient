@@ -104,5 +104,4 @@ pytest
 
 ## License
 
-Source-available for review — see [LICENSE](LICENSE). Copyright (c)
-2026 Justin Shank.
+[MIT](LICENSE). Copyright (c) 2026 Justin Shank.

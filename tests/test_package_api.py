@@ -7,8 +7,8 @@ def test_top_level_exports_are_present():
         assert hasattr(tg, attr)
 
 
-def test_package_version_is_0_2_0():
-    assert tg.__version__ == "0.2.0"
+def test_package_version_is_0_3_0():
+    assert tg.__version__ == "0.3.0"
 
 
 def test_contracts_all_contains_protocols():

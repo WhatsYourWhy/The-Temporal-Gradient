@@ -1,28 +1,21 @@
-PROPRIETARY SOURCE-AVAILABLE LICENSE
-Educational Review Only
+MIT License
+
 Copyright (c) 2026 Justin Shank
-All rights reserved.
-1. Scope
-This software and its associated documentation (the “Software”) are provided as source-available for educational and academic review of the Temporal Gradient architecture.
-2. Grant of Rights
-You are permitted to:
-View and download the source code
-Inspect and study the implementation and design
-No other rights are granted.
-3. Execution Restriction
-You may not run, execute, compile, or simulate this Software (in whole or in part) without explicit written permission from the Author.
-This restriction applies to local execution, cloud execution, automated testing, agent deployment, and any form of runtime use.
-4. Prohibited Uses
-You may not:
-Use the Software for any commercial purpose
-Modify, adapt, translate, or create derivative works
-Distribute, publish, sublicense, or host the Software
-Incorporate the Software into any system that operates autonomously or makes decisions affecting real-world systems or persons
-5. Safety Restrictions
-Use of the Software is prohibited for:
-Weaponization, surveillance, harassment, or coercive manipulation
-Experiments or test protocols designed to induce distress narratives, simulate suffering, or pressure humans to suppress ethical judgment under the guise of technical evaluation
-6. No Warranty
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.
-7. Reservation of Rights
-All rights not expressly granted in this License are reserved by the Author.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
