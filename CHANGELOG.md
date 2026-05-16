@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.4.0 — Launch-ready presentation
+
+**Release focus:** make the project legible to first-time visitors —
+no code changes to the engine, but a materially different surface for
+anyone landing on the repo.
+
+### Added
+
+- `examples/showcase.py` — deterministic 30-second demo. Same 20-event
+  stream fed to a naive LRU and to Temporal Gradient. The naive system
+  evicts the critical signal with routine traffic; Temporal Gradient
+  retains it as the sole survivor.
+- `CONTRIBUTING.md` — scope/out-of-scope, dev setup, PR expectations.
+- `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1.
+- `.github/ISSUE_TEMPLATE/bug_report.md`,
+  `.github/ISSUE_TEMPLATE/feature_request.md`,
+  `.github/PULL_REQUEST_TEMPLATE.md`.
+
+### Changed
+
+- README rewritten to lead with a tagline ("An engine that gives
+  software a sense of its own time"), a motivation paragraph, and the
+  showcase output above the fold. Adds CI / license / Python / status
+  badges, the ASCII data-flow diagram inline, a sample telemetry packet,
+  a "What this is not" callout, and a comparison table vs. rate
+  limiters, LRU, and vector databases.
+
+### No engine changes
+
+The clock, salience, memory, policies, and telemetry modules are
+unchanged from v0.3.0. All 166 tests pass. No migration required.
+
 ## v0.3.0 — Cleanup & simplification
 
 **Release focus:** remove accumulated compatibility cruft, consolidate
