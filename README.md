@@ -1,22 +1,60 @@
 # Temporal Gradient
 
-A simulation framework for **salience-modulated internal time** and
-**entropic memory decay**.
+**An engine that gives software a sense of its own time.**
 
-Given a stream of text events, Temporal Gradient computes:
+Salience-modulated internal time and entropic memory decay for adaptive Python systems.
 
-- **Ψ (salience)** — novelty × value, scored per event.
-- **τ (internal time)** — wall time reparameterized by Ψ. High-salience
-  events slow the internal clock; low-salience events speed it up.
-- **S (memory strength)** — per-item exponential decay over τ, with
-  bounded reconsolidation on access.
+[![pytest](https://github.com/WhatsYourWhy/The-Temporal-Gradient/actions/workflows/pytest.yml/badge.svg)](https://github.com/WhatsYourWhy/The-Temporal-Gradient/actions/workflows/pytest.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Status: Beta](https://img.shields.io/badge/status-beta-orange.svg)](CHANGELOG.md)
 
-Each event produces a validated telemetry packet suitable for offline
-analysis, replay, or downstream policy gating.
+---
 
-> This is a dynamics framework. It does not model cognition,
-> consciousness, or subjective experience. All claims are limited to
-> the state variables, dynamics, and invariants defined in code.
+## Why this exists
+
+Every running program has a clock, but almost none of them have a *tempo*.
+They tick at whatever rate the CPU allows, and every tick weighs the same.
+A flood of low-stakes events and a single critical signal pass through the
+same pipe at the same speed, occupying the same slice of attention. This
+is fine for most software. It is conspicuously wrong for any software that
+is supposed to *think*.
+
+Temporal Gradient unifies two questions that production agent systems
+usually answer with two unrelated layers — *when should the system do
+expensive work?* and *what should it remember?* — under a single signal:
+**salience**. High-salience events slow the internal clock and reinforce
+memory. Quiet stretches accelerate the clock and let stale items decay.
+One model. One knob. Adaptive tempo.
+
+## See it in 30 seconds
+
+```bash
+pip install -e ".[dev]"
+python examples/showcase.py
+```
+
+A noisy 20-event stream with one critical signal buried at index 6:
+
+```
+NAIVE LRU (capacity=5) — retained:
+    request handled ok
+    cache hit ratio nominal
+    request handled ok
+    disk usage at 44 percent
+    request handled ok
+
+  critical signal retained: False
+
+TEMPORAL GRADIENT (salience-decayed) — retained:
+  * [S=0.20] CRITICAL auth service unreachable must page oncall
+
+  critical signal retained: True
+```
+
+A flat LRU evicts the signal with routine traffic. Temporal Gradient
+retains it because salience drove the encoding strength and the routine
+repeats decayed along internal time.
 
 ## Install
 
@@ -26,15 +64,47 @@ cd The-Temporal-Gradient
 pip install -e ".[dev]"
 ```
 
-Python 3.10+ is required. `PyYAML` is optional — a minimal fallback
-parser is used when it's absent.
+Python 3.10+. `PyYAML` is optional — a minimal fallback parser is used
+when it's absent.
+
+## How it works
+
+```
+                         text input
+                              │
+           ┌──────────────────▼──────────────────┐
+           │           SaliencePipeline          │
+           │   H = novelty       V = value       │
+           │            Ψ = H × V                │
+           └──────────────────┬──────────────────┘
+                              │  Ψ ∈ [0, 1]
+           ┌──────────────────▼───────────────────┐
+           │          ClockRateModulator          │
+           │  dτ/dt = clamp(1/(1+α·Ψ), min, max)  │
+           │  τ  += wall_delta × dτ/dt            │
+           └──────────────────┬───────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+   DecayEngine         ComputeCooldown       ChronometricVector
+   S(τ⁺)=S·e^(−λΔτ)    allow if τ ≥ T_cd     → validated packet
+   reconsolidate       (gated compute)       (telemetry out)
+```
+
+Three state variables, governed by one input signal:
+
+- **Ψ (salience)** — `H × V`. Novelty × value, scored per event.
+- **τ (internal time)** — `dτ/dt = clamp(1 / (1 + α·Ψ), min, max)`. High Ψ slows the clock.
+- **S (memory strength)** — `dS/dτ = −λ·S`. Decay along internal time, bounded reconsolidation on access.
+
+See [`docs/architecture.md`](docs/architecture.md) for the full data flow,
+layer responsibilities, and packet schema.
 
 ## Quickstart
 
 ```python
 import temporal_gradient as tg
 from temporal_gradient.policies.compute_cooldown import ComputeCooldownPolicy
-from temporal_gradient.telemetry.schema import validate_packet_schema
 
 config = tg.load_config("tg.yaml")
 
@@ -62,30 +132,62 @@ packet = tg.telemetry.ChronometricVector(
     memory_strength=0.0,
 ).to_packet()
 
-validate_packet_schema(packet)
-
 if cooldown.allows_compute(elapsed_tau=clock.tau):
     ...  # downstream work
 ```
 
-## Core equations
+### Example telemetry packet
 
-```
-dτ/dt = clamp( 1 / (1 + α·Ψ),  min_rate,  max_rate )
-dS/dτ = −λ·S
-S(τ⁺) = min(S_max, S(τ⁻) + Δ)      # reconsolidation on access
+Every evaluation cycle emits a validated packet for offline analysis,
+replay, or downstream policy gating:
+
+```json
+{
+  "SCHEMA_VERSION": "1.0",
+  "WALL_T": 1.0,
+  "TAU": 0.15,
+  "SALIENCE": 0.9,
+  "CLOCK_RATE": 0.15,
+  "MEMORY_S": 0.8,
+  "DEPTH": 0,
+  "H": 0.9,
+  "V": 1.0
+}
 ```
 
-See [`docs/architecture.md`](docs/architecture.md) for the data-flow
-diagram, layer responsibilities, and telemetry schema.
+## What this is not
+
+- **Not a cognitive model.** The dynamics make no claim about how minds
+  work, consciousness, or subjective experience. All claims are limited
+  to the state variables and equations defined in the code.
+- **Not a product.** No integration with any real event source, no
+  persistence layer for the memory store, no deployed callers. The
+  default salience scorers (rolling Jaccard for novelty, keyword counts
+  for value) are deliberate placeholders. Real use requires a domain-
+  appropriate scorer — typically embedding-based novelty.
+- **Not a replacement for vector databases.** Temporal Gradient
+  complements semantic recall; it doesn't replace it. Pair the two.
+
+## How it compares
+
+| Approach | Importance signal | Memory model | Tempo |
+|---|---|---|---|
+| Rate limiter | none | none | flat |
+| LRU / bounded queue | recency | recency-only eviction | flat |
+| Vector DB (mem0, Letta, Zep) | semantic similarity | similarity-ranked recall | flat |
+| **Temporal Gradient** | **salience (novelty × value)** | **strength decays along τ; salience reinforces** | **adaptive — τ dilates under load** |
+
+Temporal Gradient is positioned *upstream* of recall — it shapes what
+gets encoded and how long it survives, before any similarity search runs.
 
 ## Examples
 
 ```bash
+python examples/showcase.py                     # the 30-second case (start here)
 python examples/anomaly_detection.py            # deterministic anomaly-stream PoC
 python examples/simulation.py                   # end-to-end simulation
 python examples/embedding_novelty_replay_demo.py
-python scripts/chronos_demo.py                  # minimal clock demo
+python scripts/chronos_demo.py                  # minimal clock-only demo
 ```
 
 ## Tests
@@ -94,6 +196,8 @@ python scripts/chronos_demo.py                  # minimal clock demo
 pytest
 ```
 
+CI runs the full suite on Python 3.10, 3.11, and 3.12.
+
 ## Docs
 
 - [`docs/architecture.md`](docs/architecture.md) — layers, data flow, packet schema
@@ -101,6 +205,7 @@ pytest
 - [`docs/glossary.md`](docs/glossary.md) — terminology
 - [`docs/safety.md`](docs/safety.md) — scope and safety constraints
 - [`CHANGELOG.md`](CHANGELOG.md) — release history
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to contribute
 
 ## License
 
