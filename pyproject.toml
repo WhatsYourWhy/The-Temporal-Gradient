@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "temporal-gradient"
-version = "0.3.0"
+version = "0.4.0"
 description = "Simulation framework for salience-modulated internal time and entropic memory decay."
 readme = "README.md"
 license = { file = "LICENSE" }
